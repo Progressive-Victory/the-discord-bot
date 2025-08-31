@@ -1,10 +1,8 @@
 import {
   AttachmentBuilder,
   ChatInputCommandInteraction,
-  MessageFlagsBitField,
+  MessageFlags,
 } from "discord.js";
-import { ns } from "../../commands/chat/state.js";
-import { localize } from "../../i18n.js";
 
 /**
  * Executes a chat input command interaction to export role members to a CSV file.
@@ -19,16 +17,15 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
     return interaction.reply({
       content:
         "This command can only be run in a server that the PV bot is registered with",
-      flags: MessageFlagsBitField.Flags.Ephemeral,
+      flags: MessageFlags.Ephemeral,
     });
   }
 
-  // Extract relevant fields from the interaction.
-  const { guild, locale, options } = interaction;
-  const local = localize.getLocale(locale);
-
   // Defer the reply to indicate that the bot is processing the command.
-  await interaction.deferReply({ flags: MessageFlagsBitField.Flags.Ephemeral });
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  // Extract relevant fields from the interaction.
+  const { guild, options } = interaction;
 
   // Get the role option from the interaction's options, ensuring it is required.
   const role = options.getRole("role", true);
@@ -41,17 +38,22 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   const csv = new AttachmentBuilder(
     // Construct the CSV content using the role's members.
     Buffer.from(
-      `Display Name,Username,Id\n${members.map((member) => `${member.displayName},${member.user.username},${member.id}\n`).join("")}`,
+      [`Display Name,Username,Id`]
+        .concat(
+          members.map(
+            (guildMember) =>
+              `${guildMember.displayName},${guildMember.user.username},${guildMember.id}`,
+          ),
+        )
+        .join("\n"),
     ),
     // Set the file name for the CSV attachment based on the role name and interaction ID.
     { name: `${role.name.replace(" ", "-")}.csv` },
   );
 
   // Send a follow-up message with a content and the CSV file attached.
-  await interaction.followUp({
-    content: local?.t("member-list-message-followup", ns, {
-      role: role.toString(),
-    }),
+  await interaction.editReply({
+    content: `Members with the ${role.toString()} role`,
     files: [csv],
   });
 }
