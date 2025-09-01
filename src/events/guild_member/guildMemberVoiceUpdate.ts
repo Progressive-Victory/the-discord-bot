@@ -137,8 +137,7 @@ async function markAttendance(channelId: string, member: GuildMember) {
 	})
 		.sort({ _id: -1 })
 		.exec()) as IScheduledEvent;
-	if (!res) throw Error(`Could not find event with channel Id: ${channelId}`);
-	console.log(res);
+	if (!res) return;
 	if (res.attendees.find((x) => x === member.id)) return;
 	res.attendees.push(member.id);
 	await res.save();
