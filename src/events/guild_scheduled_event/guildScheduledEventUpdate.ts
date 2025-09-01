@@ -11,14 +11,14 @@ export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
 	try {
-    console.log("updating");
+    console.log("Updating Event ID: " + newEvent.id);
     if (!oldEvent) throw Error("No old event reported");
     await dbConnect();
 
     let res;
 
     if (oldEvent.isScheduled() && newEvent.isActive()) {
-      console.log("starting event");
+      console.log("Starting Event: " + newEvent.id);
       await new Promise((r) => setTimeout(r, 2000));
       const evChannel = (await newEvent.channel?.fetch()) as VoiceBasedChannel;
       res = (await ScheduledEvent.insertOne({
@@ -79,14 +79,14 @@ export const guildScheduledEventUpdate = new Event({
 
     if (!res.recurrence) {
       if (oldEvent.isActive() && newEvent.isCompleted()) {
-        console.log("ending one time event");
+        console.log("ending one time event: " + newEvent.id);
         res.endedAt = new Date(Date.now());
 
         await logScheduledEvent(res);
       }
     } else {
       if (oldEvent.isActive() && newEvent.isScheduled()) {
-        console.log("ending recurring event");
+        console.log("ending recurring event: " + newEvent.id);
         res.endedAt = new Date(Date.now());
 
         await logScheduledEvent(res);
