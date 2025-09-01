@@ -1,16 +1,16 @@
 import {
-	channelMention,
-	ColorResolvable,
-	Colors,
-	EmbedBuilder,
-	Events,
-	GuildMember,
-	inlineCode,
+  channelMention,
+  ColorResolvable,
+  Colors,
+  EmbedBuilder,
+  Events,
+  GuildMember,
+  inlineCode,
 } from "discord.js";
 import Event from "../../Classes/Event.js";
 import {
-	IScheduledEvent,
-	ScheduledEvent,
+  IScheduledEvent,
+  ScheduledEvent,
 } from "../../models/ScheduledEvent.js";
 import { GuildSetting } from "../../models/Setting.js";
 import { getGuildChannel } from "../../util/index.js";
@@ -128,20 +128,20 @@ function vcLogEmbed(
  * @param member
  */
 async function markAttendance(channelId: string, member: GuildMember) {
-  try{
-	console.log("Marking Attendance");
-	await dbConnect();
-	const res: IScheduledEvent = (await ScheduledEvent.findOne({
-		channelId: channelId,
-		status: 2,
-	})
-		.sort({ _id: -1 })
-		.exec()) as IScheduledEvent;
-	if (!res) return;
-	if (res.attendees.find((x) => x === member.id)) return;
-	res.attendees.push(member.id);
-	await res.save();
-  } catch(e) {
-	console.error(e)
+  try {
+    console.log("Marking Attendance");
+    await dbConnect();
+    const res: IScheduledEvent = (await ScheduledEvent.findOne({
+      channelId: channelId,
+      status: 2,
+    })
+      .sort({ _id: -1 })
+      .exec()) as IScheduledEvent;
+    if (!res) return;
+    if (res.attendees.find((x) => x === member.id)) return;
+    res.attendees.push(member.id);
+    await res.save();
+  } catch (e) {
+    console.error(e);
   }
 }
