@@ -2,14 +2,15 @@ import { Events, VoiceBasedChannel } from "discord.js";
 import { Event } from "../../Classes/Event.js";
 import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
 import {
-  IScheduledEvent,
-  ScheduledEvent,
+	IScheduledEvent,
+	ScheduledEvent,
 } from "../../models/ScheduledEvent.js";
 import dbConnect from "../../util/libmongo.js";
 
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
+	try {
     console.log("updating");
     if (!oldEvent) throw Error("No old event reported");
     await dbConnect();
@@ -93,5 +94,8 @@ export const guildScheduledEventUpdate = new Event({
     }
 
     await res.save();
+	} catch (e) {
+		console.error(e)
+	}
   },
 });
