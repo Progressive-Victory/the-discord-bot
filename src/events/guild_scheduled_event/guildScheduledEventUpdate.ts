@@ -11,7 +11,7 @@ export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
     console.log("updating");
-    if (!oldEvent) throw Error("No old event reported")
+    if (!oldEvent) throw Error("No old event reported");
     await dbConnect();
 
     let res;
