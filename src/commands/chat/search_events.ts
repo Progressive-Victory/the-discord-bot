@@ -82,9 +82,10 @@ async function findEventsMatchingQuery(interaction:ChatInputCommandInteraction,g
 	let events_list = all_events.map((v,_)=>v)
 	let out = events_list.filter((v) => {
 		return (
-			(time != null && time_matches(v, time)) ||
-			(id != null && v.id.includes(id) && id != "") ||
-			(name != null && v.name.includes(name) && name != "")
+			(time === null && name === null && id === null) || 
+			(time !== null && time_matches(v, time)) ||
+			(id !== null && v.id.includes(id) && id !== "") ||
+			(name !== null && v.name.includes(name) && name !== "")
 		);
 	})
 	return out; 
