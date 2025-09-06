@@ -33,13 +33,14 @@ export const search_events = new ChatInputCommand({
 	)
 	.addIntegerOption(option=>option
 		.setName("time")
+		.setDescription("Find by time")
 		.setChoices(
 			{name:"7am",value:7},
 			{name:"8am",value:8},
 			{name:"9am",value:9},
 			{name:"10am",value:10},
 			{name:"11am",value:11},
-			{name:"12pm",value:12},
+			{name:"12pm (noon)",value:12},
 			{name:"1pm",value:13},
 			{name:"2pm",value:14},
 			{name:"3pm",value:15},
@@ -51,7 +52,7 @@ export const search_events = new ChatInputCommand({
 			{name:"9pm",value:21},
 			{name:"10pm",value:22},
 			{name:"11pm",value:23},
-			{name:"12am",value:24},
+			{name:"12am (midnight)",value:24},
 		)
 	),
 	execute: async(interaction)=>{
@@ -78,7 +79,22 @@ async function findEventsMatchingQuery(interaction:ChatInputCommandInteraction,g
 	let id = interaction.options.getString("id")
 	let name = interaction.options.getString("name")
 	let time = interaction.options.getInteger("time")
-	return all_events.map((v,k)=>v) // TODO: actually filter out items not matching id name or time
+	let events_list = all_events.map((v,_)=>v)
+	let out = events_list.filter((v) => {
+		return (
+			(time != null && time_matches(v, time)) ||
+			(id != null && v.id.includes(id) && id != "") ||
+			(name != null && v.name.includes(name) && name != "")
+		);
+	})
+	return out; 
+}
+
+function time_matches(v:GuildScheduledEvent, time: number): boolean {
+	if (!v.scheduledStartAt || !v.scheduledEndAt) {
+		return false;
+	}
+	return v.scheduledStartAt.getHours() <= time && v.scheduledEndAt.getHours() >= time;
 }
 
 function directMessageEvents(interaction:ChatInputCommandInteraction,events:any[]|null){
@@ -87,6 +103,7 @@ function directMessageEvents(interaction:ChatInputCommandInteraction,events:any[
 		return
 	}
 	//TODO: do we want to paginate this info somehow?
+	//TODO: do we want to format this differently?
 	let out = ""
 	for(let e of events){
 		out += e.toString() + "\n"
