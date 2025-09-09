@@ -1,6 +1,6 @@
 {
   "name": "crm-bot",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "repository": {
     "type": "git",
     "url": "git+https://https://github.com/Progressive-Victory/crm-bot.git"
@@ -17,31 +17,37 @@
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc --project tsconfig.json",
+    "build": "pnpm format && tsc --project tsconfig.json",
     "dev": "node --env-file=.env .",
     "start": "node .",
     "predev": "pnpm build",
-    "lint": "eslint --fix {src}/**/*.{js,ts,jsx,tsx} --no-error-on-unmatched-pattern"
+    "lint": "eslint \"src/**/*.{js,ts,jsx,tsx}\" --no-error-on-unmatched-pattern",
+    "lint:fix": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\" --no-error-on-unmatched-pattern",
+    "format": "prettier -w src",
+    "doc": "typedoc"
   },
   "engines": {
     "node": ">=22.13.0"
   },
   "dependencies": {
     "@fluent/bundle": "^0.19.1",
-    "discord.js": "^14.19.3",
+    "discord.js": "^14.22.1",
     "express": "^5.1.0",
-    "mongoose": "^8.15.0"
+    "mongoose": "^8.18.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.27.0",
-    "@stylistic/eslint-plugin": "^4.2.0",
-    "@types/express": "^5.0.2",
-    "@types/node": "^22.15.18",
-    "@typescript-eslint/parser": "^8.32.1",
-    "eslint": "^9.27.0",
-    "eslint-plugin-jsdoc": "^50.6.17",
-    "globals": "^16.1.0",
-    "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1"
+    "@eslint/js": "^9.34.0",
+    "@types/express": "^5.0.3",
+    "@types/node": "^22.18.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-tsdoc": "^0.4.0",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "typedoc": "^0.28.11",
+    "typedoc-plugin-markdown": "^4.8.1",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0"
   }
 }

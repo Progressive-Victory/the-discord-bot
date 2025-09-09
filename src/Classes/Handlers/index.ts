@@ -1,6 +1,5 @@
-export { CommandHandler } from './CommandHandler.js';
+export { CommandHandler } from "./CommandHandler.js";
 
-export { EventHandler } from './EventHandler.js';
+export { EventHandler } from "./EventHandler.js";
 
-export { InteractionHandler } from './InteractionHandler.js';
-
+export { InteractionHandler } from "./InteractionHandler.js";

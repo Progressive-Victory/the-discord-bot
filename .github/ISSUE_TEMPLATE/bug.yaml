@@ -1,5 +1,5 @@
-name: Bug Report
-description: File a bug report.
+name: "[PV Bot] Bug Report"
+description: File a bug report for the PV Bot.
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -18,9 +18,48 @@ body:
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
-      description: Also tell us, what did you expect to happen?
+      label: Description of the Bug
+      description: What was the expected behavior?
       placeholder: Tell us what you see!
       value: "A bug happened!"
     validations:
       required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Step by step instructions to reproduce the bug
+      placeholder: How can we reproduce the bug?
+      value: |
+        For example:
+          * Using the PV server on Windows
+          * Attempted to use the `/feedback` command
+          * The app crashed
+    validations:
+      required: true
+  - type: textarea
+    id: suggested-fix
+    attributes:
+      label: "[Optional] Suggested Fix"
+      description: Suggest an approach to fix the bug
+      placeholder: How can we fix the bug?
+      value: |
+        We can fix the bug by:
+          * [Code link]
+          * [Design document]
+          * [Step by step approach]
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: When can we call this bug "fixed"?
+      placeholder: What are the acceptance criteria for the fix?
+      value: |
+        A PR for this issue must:
+          * [Have regression tests]
+          * [Be manually tested in the dev server]
+          * [etc.]
+    validations:
+      required: false

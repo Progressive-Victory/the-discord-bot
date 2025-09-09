@@ -1,131 +1,174 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildMember, inlineCode, MessageFlags, ModalSubmitInteraction } from "discord.js";
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  GuildMember,
+  inlineCode,
+  MessageFlags,
+  ModalSubmitInteraction,
+} from "discord.js";
 import { Interaction } from "../../Classes/Interaction.js";
 import { getAuthorOptions } from "../../features/moderation/embeds.js";
-import { messageReportColor, reportModalPrefix, userReportColor } from "../../features/report.js";
+import {
+  messageReportColor,
+  reportModalPrefix,
+  userReportColor,
+} from "../../features/report.js";
 import { GuildSetting } from "../../models/Setting.js";
 import { getGuildChannel, getMember } from "../../util/index.js";
 
+/**
+ * `userReport` is a modal interaction which allows users to report other users. It:
+ * <ul>
+ *     <li>Sends an audit log to the report audit logging channel if one exists</li>
+ *     <li>Notifies the reporter that their report has been received</li>
+ * </ul>
+ */
 export const userReport = new Interaction<ModalSubmitInteraction>({
-	customIdPrefix: reportModalPrefix.userReport,
+  customIdPrefix: reportModalPrefix.userReport,
 
-	run: async (interaction) => {
-		
-		if(!interaction.inGuild()) return
-		
-		const {guild, guildId, customId, client, member} = interaction
+  run: async (interaction) => {
+    if (!interaction.inGuild()) return;
 
-		const targetId = customId.split(client.splitCustomIdOn!)[1]
-		if(!guild) return
-		const target = await getMember(guild, targetId)
+    const { guild, guildId, customId, client, member } = interaction;
 
-		if(!target) return
+    const targetId = customId.split(client.splitCustomIdOn!)[1];
+    if (!guild) return;
+    const target = await getMember(guild, targetId);
 
-		const reporter = member instanceof GuildMember ? member : await getMember(guild, member.user.id)
-		if(!reporter) return
-		
-		const setting = await GuildSetting.findOne({guildId})
+    if (!target) return;
 
-		const comment = interaction.fields.getTextInputValue('comment')
+    const reporter =
+      member instanceof GuildMember
+        ? member
+        : await getMember(guild, member.user.id);
+    if (!reporter) return;
 
-		if (setting?.report.logChannelId) {
-			const logChannel = await getGuildChannel(guild, setting.report.logChannelId)
-			if(!logChannel?.isSendable()) return
-			logChannel.send({
-				embeds:[
-					new EmbedBuilder()
-						.setTitle('User Report')
-						.setDescription(`${target} was reported by ${interaction.member}`)
-						.setFields({
-							name:'Comment',
-							value: comment.length === 0 ? 'No comment provided' : comment
-						})
-						.setAuthor(getAuthorOptions(target))
-						.setColor(userReportColor)
-				]
-			})
-		}
+    const setting = await GuildSetting.findOne({ guildId });
 
-		interaction.reply({
-			flags: MessageFlags.Ephemeral,
-			content: 'Your report has been received and will be reviewed. Thank you'
-		})
-	}
-})
+    const comment = interaction.fields.getTextInputValue("comment");
 
+    if (setting?.report.logChannelId) {
+      const logChannel = await getGuildChannel(
+        guild,
+        setting.report.logChannelId,
+      );
+      if (!logChannel?.isSendable()) return;
+      logChannel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle("User Report")
+            .setDescription(`${target} was reported by ${interaction.member}`)
+            .setFields({
+              name: "Comment",
+              value: comment.length === 0 ? "No comment provided" : comment,
+            })
+            .setAuthor(getAuthorOptions(target))
+            .setColor(userReportColor),
+        ],
+      });
+    }
+
+    interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "Your report has been received and will be reviewed. Thank you",
+    });
+  },
+});
+
+/**
+ * `userReport` is a modal interaction which allows users to report messages. It:
+ * <ul>
+ *     <li>Sends an audit log to the report audit logging channel if one exists</li>
+ *     <li>Notifies the reporter that their report has been received</li>
+ * </ul>
+ */
 export const messageReport = new Interaction<ModalSubmitInteraction>({
-	customIdPrefix: reportModalPrefix.messageReport,
+  customIdPrefix: reportModalPrefix.messageReport,
 
-	run: async (interaction) => {
-		
-		if(!interaction.inGuild()) return
-		
-		const {guild, guildId, customId, client, member} = interaction
+  run: async (interaction) => {
+    if (!interaction.inGuild()) return;
 
-		const channelId = customId.split(client.splitCustomIdOn!)[1]
-		if (!guild) return;
+    const { guild, guildId, customId, client, member } = interaction;
 
-		const channel = await getGuildChannel(guild, channelId)
-		if(!channel?.isSendable()) return
+    const channelId = customId.split(client.splitCustomIdOn!)[1];
+    if (!guild) return;
 
-		const messageId = customId.split(client.splitCustomIdOn!)[2]
-		const message = channel.messages.cache.get(messageId) ?? await channel.messages.fetch(messageId) ?? undefined
-		if(!message) return
+    const channel = await getGuildChannel(guild, channelId);
+    if (!channel?.isSendable()) return;
 
-		const author = message.member ?? await getMember(guild, message.author.id)
+    const messageId = customId.split(client.splitCustomIdOn!)[2];
+    const message =
+      channel.messages.cache.get(messageId) ??
+      (await channel.messages.fetch(messageId)) ??
+      undefined;
+    if (!message) return;
 
-		if(!author) return
+    const author =
+      message.member ?? (await getMember(guild, message.author.id));
 
-		const reporter = member instanceof GuildMember ? member : await getMember(guild, member.user.id)
+    if (!author) return;
 
-		if(!reporter) return
-		
-		const setting = await GuildSetting.findOne({guildId})
+    const reporter =
+      member instanceof GuildMember
+        ? member
+        : await getMember(guild, member.user.id);
 
-		const comment = interaction.fields.getTextInputValue('comment')
+    if (!reporter) return;
 
-		if (setting?.report.logChannelId) {
-			const logChannel = await getGuildChannel(guild, setting.report.logChannelId)
-			if(!logChannel?.isSendable()) return
-			const embed = new EmbedBuilder()
-			.setTitle('Message Report')
-			.setDescription(`${author}'s message was reported by ${interaction.member}`)
-			.setAuthor(getAuthorOptions(author))
-			.setColor(messageReportColor)
+    const setting = await GuildSetting.findOne({ guildId });
 
-			if(message.content.length > 0) {
-				embed.addFields({
-					name: 'Message Content',
-					value: message.content
-				})
-			}
-			if(message.attachments.size > 0) {
-				embed.addFields({
-					name: 'attachments',
-					value: `Message has ${inlineCode(message.attachments.size.toString())} attachments`
-				})
-			}
+    const comment = interaction.fields.getTextInputValue("comment");
 
-			embed.addFields({
-				name:'Comment',
-				value: comment.length === 0 ? 'No comment provided' : comment
-			})
+    if (setting?.report.logChannelId) {
+      const logChannel = await getGuildChannel(
+        guild,
+        setting.report.logChannelId,
+      );
+      if (!logChannel?.isSendable()) return;
+      const embed = new EmbedBuilder()
+        .setTitle("Message Report")
+        .setDescription(
+          `${author}'s message was reported by ${interaction.member}`,
+        )
+        .setAuthor(getAuthorOptions(author))
+        .setColor(messageReportColor);
 
-			const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-				new ButtonBuilder()
-					.setStyle(ButtonStyle.Link)
-					.setURL(message.url)
-					.setLabel('Jump to Message')
-			)
+      if (message.content.length > 0) {
+        embed.addFields({
+          name: "Message Content",
+          value: message.content,
+        });
+      }
+      if (message.attachments.size > 0) {
+        embed.addFields({
+          name: "attachments",
+          value: `Message has ${inlineCode(message.attachments.size.toString())} attachments`,
+        });
+      }
 
-			logChannel.send({
-				embeds:[embed],
-				components: [row]
-			})
-		}
+      embed.addFields({
+        name: "Comment",
+        value: comment.length === 0 ? "No comment provided" : comment,
+      });
 
-		interaction.reply({
-			flags: MessageFlags.Ephemeral,
-			content: 'Your report has been received and will be reviewed. Thank you'
-		})
-	}
-})
+      const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Link)
+          .setURL(message.url)
+          .setLabel("Jump to Message"),
+      );
+
+      logChannel.send({
+        embeds: [embed],
+        components: [row],
+      });
+    }
+
+    interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "Your report has been received and will be reviewed. Thank you",
+    });
+  },
+});

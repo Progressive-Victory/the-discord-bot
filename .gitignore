@@ -109,3 +109,6 @@ package-lock.json
 
 # Visual Studio Config
 .vs/
+
+# Documentation
+docs/
