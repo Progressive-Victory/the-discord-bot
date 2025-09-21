@@ -63,6 +63,49 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       flags: MessageFlags.Ephemeral,
     });
 
+  const messageOption = options.getString("message", false);
+  const titleOption = options.getString("title");
+
+  // change the option from is legacy to is components using not was east way to change the logic
+  const legacyOption = !(options.getBoolean("usecomponents") ?? false);
+
+  if (!messageOption) {
+    const title = new TextInputBuilder()
+      .setCustomId("title")
+      .setLabel("Title")
+      .setMaxLength(titleMaxLength)
+      .setPlaceholder(`State Announcement`)
+      .setRequired(true)
+      .setStyle(TextInputStyle.Short);
+
+    if (titleOption) title.setValue(titleOption);
+
+    const message = new TextInputBuilder()
+      .setCustomId("message")
+      .setLabel("Message")
+      .setPlaceholder(`Your message to state member`)
+      .setMaxLength(messageMaxLength)
+      .setRequired(true)
+      .setStyle(TextInputStyle.Paragraph);
+
+    const titleRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
+      title,
+    );
+    const messageRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
+      message,
+    );
+
+    const modal = new ModalBuilder()
+      .setCustomId(AddSplitCustomId("sp", stateAbbreviation, legacyOption))
+      .setTitle("State Ping Message")
+      .setComponents(titleRow, messageRow);
+
+    await interaction.showModal(modal);
+    return;
+  }
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
   const state = await States.findOne({
     guildId: interaction.guildId,
     abbreviation: stateAbbreviation,
@@ -71,8 +114,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
 
   // check to see if the person trying to use the command has the role being pinged
   if (!member.roles.cache.has(state.roleId)) {
-    interaction.reply({
-      flags: MessageFlags.Ephemeral,
+    await interaction.editReply({
       content: `You are not allowed to run this command to ${state.name}`,
     });
     return;
@@ -81,13 +123,6 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   const channel = await getGuildChannel(guild, state.channelId);
   if (!channel || !channel.isSendable()) return;
 
-  const messageOption = options.getString("message", false);
-  const titleOption =
-    options.getString("title") ?? `${state.name} Announcement`;
-
-  // change the option from is legacy to is components using not was east way to change the logic
-  const legacyOption = !(options.getBoolean("usecomponents") ?? false);
-
   let stateMessageCreateOptions: MessageCreateOptions;
   if (messageOption) {
     if (legacyOption)
@@ -95,51 +130,20 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
         state.roleId,
         member.id,
         messageOption,
-        titleOption,
+        titleOption ?? `${state.name} Announcement`,
       );
     else
       stateMessageCreateOptions = stateMessageCreate(
         state.roleId,
         member.id,
         messageOption,
-        titleOption,
+        titleOption ?? `${state.name} Announcement`,
       );
 
     const pingMessage = await channel.send(stateMessageCreateOptions);
-    await statePingReply(interaction, pingMessage);
+    await statePingReply(interaction, pingMessage, true);
     return;
   }
-
-  const title = new TextInputBuilder()
-    .setCustomId("title")
-    .setLabel("Title")
-    .setMaxLength(titleMaxLength)
-    .setPlaceholder(`${state.name} Announcement`)
-    .setValue(titleOption)
-    .setRequired(true)
-    .setStyle(TextInputStyle.Short);
-
-  const message = new TextInputBuilder()
-    .setCustomId("message")
-    .setLabel("Message")
-    .setPlaceholder(`Your message to ${state.name} member`)
-    .setMaxLength(messageMaxLength)
-    .setRequired(true)
-    .setStyle(TextInputStyle.Paragraph);
-
-  const titleRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
-    title,
-  );
-  const messageRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
-    message,
-  );
-
-  const modal = new ModalBuilder()
-    .setCustomId(AddSplitCustomId("sp", stateAbbreviation, legacyOption))
-    .setTitle("State Ping Message")
-    .setComponents(titleRow, messageRow);
-
-  interaction.showModal(modal);
 }
 
 /**
@@ -168,7 +172,7 @@ export function stateMessageCreate(
       builder.setContent(
         [
           subtext(`Message from your ${roleMention(stateRoleId)} team`),
-          subtext(userMention(authorId)),
+          subtext(`Written by ${userMention(authorId)}`),
         ].join("\n"),
       ),
     );
@@ -190,8 +194,9 @@ export function legacyStateMessageCreate(
     content: [
       heading(title),
       message,
+      "",
       subtext(`Message from your ${roleMention(stateRoleId)} team`),
-      subtext(userMention(authorId)),
+      subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
     // allowedMentions:{parse:[AllowedMentionsTypes.Role]}
   };
@@ -205,16 +210,23 @@ export function legacyStateMessageCreate(
 export async function statePingReply(
   interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
   message: Message<true>,
+  deferred: boolean = false,
 ) {
   const button = new ButtonBuilder()
     .setStyle(ButtonStyle.Link)
     .setURL(message.url)
     .setLabel("Jump to Message");
   const row = new ActionRowBuilder<ButtonBuilder>().setComponents(button);
-
-  return interaction.reply({
-    flags: MessageFlags.Ephemeral,
-    content: "Your message has been sent",
-    components: [row],
-  });
+  if (deferred) {
+    await interaction.editReply({
+      content: "Your message has been sent",
+      components: [row],
+    });
+  } else {
+    await interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "Your message has been sent",
+      components: [row],
+    });
+  }
 }

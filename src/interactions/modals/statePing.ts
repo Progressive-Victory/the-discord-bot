@@ -1,6 +1,7 @@
 import {
   Guild,
   MessageCreateOptions,
+  MessageFlags,
   ModalSubmitInteraction,
 } from "discord.js";
 import { Interaction } from "../../Classes/Interaction.js";
@@ -31,19 +32,22 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
     } else return;
 
     if (!splitOn) return;
-
     const args = customId.split(splitOn);
 
     const stateAbbreviation = args[1];
     const legacyOption = args[2] === "true";
-    // console.log(args[2],legacyOption)
+    // console.log(stateAbbreviation, legacyOption);
 
     if (!isStateAbbreviations(stateAbbreviation)) return;
+
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const state = await States.findOne({
       guildId: guild.id,
       abbreviation: stateAbbreviation,
     }).catch(console.error);
+    // console.log(state, !(state && state.roleId && state.channelId));
+
     if (!(state && state.roleId && state.channelId)) return;
 
     const content = fields.getTextInputValue("message");
@@ -51,7 +55,7 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
     const stateChannel =
       guild.channels.cache.get(state.channelId) ??
       (await guild.channels.fetch(state.channelId).catch(console.error));
-
+    // console.log(stateChannel);
     if (!(stateChannel && stateChannel.isSendable())) return;
 
     let stateMessageCreateOptions: MessageCreateOptions;
@@ -73,6 +77,6 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     const pingMessage = await stateChannel.send(stateMessageCreateOptions);
 
-    await statePingReply(interaction, pingMessage);
+    await statePingReply(interaction, pingMessage, true);
   },
 });

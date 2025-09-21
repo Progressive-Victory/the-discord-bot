@@ -110,13 +110,13 @@ export const stateAdmin = new ChatInputCommand()
     if (!role && !channel) {
       message.content = `No update made to ${name} settings`;
     } else if (subcommandGroup === "team") {
-      state.team.roleId = role?.id;
-      state.team.channelId = channel?.id;
-      message.content = `updated state team role or channel in ${name} settings`;
+      if (role?.id) state.team.roleId = role.id;
+      if (channel?.id) state.team.channelId = channel.id;
+      message.content = `updated state team for ${name} settings`;
     } else {
-      state.roleId = role?.id;
-      state.channelId = channel?.id;
-      message.content = `updated state role or channel in ${name} settings`;
+      if (role?.id) state.roleId = role.id;
+      if (channel?.id) state.channelId = channel.id;
+      message.content = `updated state for ${name} settings`;
     }
     await state.save();
     interaction.reply(message);
