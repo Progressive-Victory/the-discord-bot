@@ -46,7 +46,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       member = await guild.members.fetch(interaction.user);
     } catch (error) {
       console.log(error);
-      interaction.reply({
+      await interaction.reply({
         flags: MessageFlags.Ephemeral,
         content: "An Error has occurred, contact your administrator",
       });
@@ -84,7 +84,9 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   const messageOption = options.getString("message", false);
   const titleOption =
     options.getString("title") ?? `${state.name} Announcement`;
-  const legacyOption = options.getBoolean("legacy") ?? false;
+
+  // change the option from is legacy to is components using not was east way to change the logic
+  const legacyOption = !(options.getBoolean("usecomponents") ?? false);
 
   let stateMessageCreateOptions: MessageCreateOptions;
   if (messageOption) {
@@ -104,7 +106,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       );
 
     const pingMessage = await channel.send(stateMessageCreateOptions);
-    statePingReply(interaction, pingMessage);
+    await statePingReply(interaction, pingMessage);
     return;
   }
 

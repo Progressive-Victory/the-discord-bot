@@ -53,8 +53,8 @@ export default new ChatInputCommand()
           )
           .addBooleanOption((legacy) =>
             legacy
-              .setName("legacy")
-              .setDescription("Use standard message format")
+              .setName("usecomponents")
+              .setDescription("send message using components V2")
               .setRequired(false),
           )
           .addStringOption((title) =>

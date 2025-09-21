@@ -69,7 +69,10 @@ export const stateAdmin = new ChatInputCommand()
             option
               .setName("channel")
               .setDescription("set state channel")
-              .addChannelTypes(ChannelType.GuildText),
+              .addChannelTypes(
+                ChannelType.GuildText,
+                ChannelType.GuildAnnouncement,
+              ),
           )
           .addRoleOption((option) =>
             option.setName("role").setDescription("set state role"),
@@ -95,8 +98,10 @@ export const stateAdmin = new ChatInputCommand()
 
     const role = options.getRole("role") ?? undefined;
     const channel =
-      options.getChannel("channel", false, [ChannelType.GuildText]) ??
-      undefined;
+      options.getChannel("channel", false, [
+        ChannelType.GuildText,
+        ChannelType.GuildAnnouncement,
+      ]) ?? undefined;
     const message: InteractionReplyOptions = { flags: MessageFlags.Ephemeral };
     const name = stateNames.get(abbreviation)?.name;
 

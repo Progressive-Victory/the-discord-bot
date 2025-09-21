@@ -73,6 +73,6 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     const pingMessage = await stateChannel.send(stateMessageCreateOptions);
 
-    statePingReply(interaction, pingMessage);
+    await statePingReply(interaction, pingMessage);
   },
 });
