@@ -1,16 +1,16 @@
 import {
-	channelMention,
-	ColorResolvable,
-	Colors,
-	EmbedBuilder,
-	Events,
-	GuildMember,
-	inlineCode,
+  channelMention,
+  ColorResolvable,
+  Colors,
+  EmbedBuilder,
+  Events,
+  GuildMember,
+  inlineCode,
 } from "discord.js";
 import Event from "../../Classes/Event.js";
 import {
-	IScheduledEvent,
-	ScheduledEvent,
+  IScheduledEvent,
+  ScheduledEvent,
 } from "../../models/ScheduledEvent.js";
 import { GuildSetting } from "../../models/Setting.js";
 import { getGuildChannel } from "../../util/index.js";
@@ -138,7 +138,9 @@ async function markAttendance(channelId: string, member: GuildMember) {
       .exec()) as IScheduledEvent;
     if (!res) return;
     if (res.attendees.find((x) => x === member.id)) return;
-	console.log(`Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`)
+    console.log(
+      `Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`,
+    );
     res.attendees.push(member.id);
     await res.save();
   } catch (e) {
