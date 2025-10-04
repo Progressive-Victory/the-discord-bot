@@ -1,16 +1,16 @@
 {
-  "name": "crm-bot",
+  "name": "the-discord-bot",
   "version": "4.2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://https://github.com/Progressive-Victory/crm-bot.git"
+    "url": "git+https://https://github.com/Progressive-Victory/the-discord-bot.git"
   },
   "author": {
     "name": "William Bowen",
     "email": "wbowen@progress.win"
   },
   "bugs": {
-    "url": "https://github.com/Progressive-Victory/crm-bot/issues"
+    "url": "https://github.com/Progressive-Victory/the-discord-bot/issues"
   },
   "license": "MIT",
   "private": true,
