@@ -2,6 +2,74 @@
 
 This bot supports operations in the Progressive Victory Discord Server. To join, sign up [here](https://www.progressivevictory.win/volunteer).
 
+## High-Level Overview
+
+The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
+
+- [pnpm](https://pnpm.io/) to manage dependencies
+- [MongoDB](https://www.mongodb.com/docs/manual/) as a (document) database
+- [Mongoose](https://mongoosejs.com/docs/) to interact with the database
+- [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
+  - **NOTE:** Currently, the PV bot doesn't define any RESTful API routes or handlers. The long-term vision is for the PV bot to act as a proxy for requests to the Discord API.
+
+## How to Contribute
+
+To contribute to this repo, follow the contribution standards and instructions outlined on the [project home page](https://github.com/Progressive-Victory).
+
+## Setup Instructions
+
+### Installation
+
+To get started we recommend you install the following software:
+
+- [git](https://git-scm.com/downloads)
+- [Visual Studio Code](https://code.visualstudio.com/Download)
+- [Node.js](https://nodejs.org/en/download) v20.12.2 or later
+
+Follow the installation instructions for Node.js. Then, run the following:
+
+```sh
+npm install -g pnpm@latest-10
+```
+
+Finally, copy `./.env.sample` to a file `./.env` then edit the following vaules to be accurate:
+
+```txt
+DISCORD_TOKEN="<BOT_TOKEN>"
+MONGODB_URI="<MONGODB_DEV_URI>"
+PORT=<PORT>
+```
+
+You can ask the current tech director to provide these values.
+
+### Runing the Bot
+
+The following actions must be completed to run the bot:
+
+First, install all dependencies:
+
+```sh
+pnpm install
+```
+
+To build and run the bot:
+
+```sh
+pnpm dev
+```
+
+If the bot fails to run, check that all values are correct in the `./.env` file.
+
+### Building the Documentation
+
+To build the documentation, first run
+
+```sh
+pnpm doc
+```
+
+Then, open `./docs/index.html` in a browser.
+
 ## Commands
 
 Commands help users interact with the server and manage its members:
@@ -15,30 +83,7 @@ This command has two subcommands
 
 ### feedback
 
-Directs members to the [GitHub issues](https://github.com/Progressive-Victory/crm-bot/issues) page to submit feedback and report bugs
-
-## How to Contribute
-
-To contribute to this repo, start by forking it and working on the fork. Then, when you are ready, create a pull request. The  pull request will be reviewed as soon as possible.
-
-### Software
-
-To get started we recommend you install the following software:
-
-- [Node.js](https://nodejs.org/en/download) v20.12.2 or later
-  - [pnpm](https://pnpm.io/installation)
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [git](https://git-scm.com/downloads)
-
-## High-Level Overview
-
-The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
-
-- [pnpm](https://pnpm.io/) to manage dependencies
-- [MongoDB](https://www.mongodb.com/docs/manual/) as a (document) database
-- [Mongoose](https://mongoosejs.com/docs/) to interact with the database
-- [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
-  - **NOTE:** Currently, the PV bot doesn't define any RESTful API routes or handlers. The long-term vision is for the PV bot to act as a proxy for requests to the Discord API.
+Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs
 
 ### References
 
