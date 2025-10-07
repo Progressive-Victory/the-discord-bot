@@ -1,6 +1,6 @@
 # Progressive Victory Bot
 
-This bot supports operations in the Progressive Victory Discord Server. To join, sign up [here](https://www.progressivevictory.win/volunteer).
+This bot supports operations in the Progressive Victory Discord Server. To join, sign up on the [website](https://www.progressivevictory.win/volunteer).
 
 ## High-Level Overview
 
@@ -52,13 +52,13 @@ First, install all dependencies:
 pnpm install
 ```
 
-To build and run the bot:
+Build and run the bot:
 
 ```sh
 pnpm dev
 ```
 
-If the bot fails to run, check that all values are correct in the `./.env` file.
+If the bot fails to run, check that all values are correct in the `./.env` file. Otherwise, if everything succeeds, you should be able to send commands to the bot via the Dev Discord server.
 
 ### Building the Documentation
 
@@ -76,14 +76,54 @@ Commands help users interact with the server and manage its members:
 
 ### state
 
-This command has two subcommands
+State lead tools. This command has two subcommands:
 
 - ping - Allows our state leads to ping members' state roles
 - members - Gets a list of all members with a specified role
 
 ### feedback
 
-Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs
+Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs.
+
+### warn
+
+Moderation tools. This command has four subcommands:
+
+- create - Add a warning to a user
+- update - Update an existing warning
+- remove - Remove an existing warning
+- view - Gets a filterable list of all warnings
+
+### settings
+
+Admin tools for managing the server structure. This command has four subcommands:
+
+- warn channels - Configure which channels are used to manage warnings
+- report channels - Configure which channels are used to manage reports
+- welcome channel - Configure which channel to send join logs to
+- logging channels - Configure which channels logs are sent to
+
+### timeout
+
+Moderation tool to timeout a user for a specified duration.
+
+### state-admin
+
+Admin tools for managing the server structure for states. This command has two subcommands:
+
+- team set - Set a state's team channel and role
+- set - Set a state's channel and role
+
+### mute
+
+Moderation tool to mute a user for a specified duration.
+
+### Context Menus
+
+Context menus provide actions that can be taken on users and messages.
+
+- Report User: Report a user to the mods
+- Report Message: Report a message to the mods
 
 ### References
 

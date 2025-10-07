@@ -40,7 +40,9 @@ export default new ChatInputCommand()
             )
             .setEmoji("📝")
             .setStyle(ButtonStyle.Link)
-            .setURL("https://github.com/Progressive-Victory/the-discord-bot/issues"),
+            .setURL(
+              "https://github.com/Progressive-Victory/the-discord-bot/issues",
+            ),
         ),
       ],
     });
