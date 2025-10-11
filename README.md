@@ -21,7 +21,7 @@ Directs members to the [GitHub issues](https://github.com/Progressive-Victory/cr
 
 To contribute to this repo, start by forking it and working on the fork. Then, when you are ready, create a pull request. The  pull request will be reviewed as soon as possible.
 
-### Software
+### Getting Started
 
 To get started we recommend you install the following software:
 
@@ -30,9 +30,30 @@ To get started we recommend you install the following software:
 - [Visual Studio Code](https://code.visualstudio.com/)
 - [git](https://git-scm.com/downloads)
 
+Once you have installed the required tools, use the following steps to setup your local environment:
+
+1. Open the git cli
+2. Navigate to the directory you'd like to store your copy of the project in with the following command:
+	cd <directory-path>
+3. Use the clone command to install the git project locally:
+	git clone https://github.com/Progressive-Victory/the-discord-bot.git
+4. Open the newly downloaded folder in visual studio code
+5. In visual studio open the console, and switch to command prompt since powershell likes to cause problems
+6. Use the following command to install all dependencies for the project:
+	pnpm install
+7. To both build and run the project, use the following command:
+	pnpm run dev
+
+To familiarize yourself with the primary libraries in use here we'd recommend reading the quickstart guides (at least) for the following docs:
+
+- [discord.js](https://discord.js.org/docs/packages/discord.js/14.23.2)
+- [mongoose](https://mongoosejs.com/docs/guide.html)
+
+Also, being familiar with how writing HTTP requests for interfacing with the [API](https://github.com/Progressive-Victory/the-api), and knowing the basic overview of how [mongo db](https://www.mongodb.com/docs/manual/) works will be necessary.
+
 ## High-Level Overview
 
-The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
+The *production deployment* of the Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). *DO NOT WORRY* you don't have to worry about that. For development purposes you can run the discord bot locally. We have a developer discord server intended for testing new bot features. To get an invite to the dev server, and the dev environmental variables: reach out to sH3llH0und or Joops. The bot uses:
 
 - [pnpm](https://pnpm.io/) to manage dependencies
 - [MongoDB](https://www.mongodb.com/docs/manual/) as a (document) database
