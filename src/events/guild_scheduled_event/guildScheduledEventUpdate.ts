@@ -1,17 +1,17 @@
 import {
-  Events,
-  Guild,
-  GuildScheduledEventEntityType,
-  GuildScheduledEventPrivacyLevel,
-  GuildScheduledEventStatus,
-  GuildVoiceChannelResolvable,
-  VoiceBasedChannel,
+	Events,
+	Guild,
+	GuildScheduledEventEntityType,
+	GuildScheduledEventPrivacyLevel,
+	GuildScheduledEventStatus,
+	GuildVoiceChannelResolvable,
+	VoiceBasedChannel,
 } from "discord.js";
 import { Event } from "../../Classes/Event.js";
 import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
 import {
-  IScheduledEvent,
-  ScheduledEvent,
+	IScheduledEvent,
+	ScheduledEvent,
 } from "../../models/ScheduledEvent.js";
 import dbConnect from "../../util/libmongo.js";
 
@@ -32,6 +32,7 @@ async function handleEventVerify(ev: IScheduledEvent, guild: Guild) {
       privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
       entityType: GuildScheduledEventEntityType.Voice,
       channel: channel,
+	  description: ev.description
     });
 
     await guildEv.setStatus(GuildScheduledEventStatus.Active);
