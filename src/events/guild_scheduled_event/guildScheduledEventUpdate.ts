@@ -1,4 +1,12 @@
-import { Events, VoiceBasedChannel } from "discord.js";
+import {
+  Events,
+  Guild,
+  GuildScheduledEventEntityType,
+  GuildScheduledEventPrivacyLevel,
+  GuildScheduledEventStatus,
+  GuildVoiceChannelResolvable,
+  VoiceBasedChannel,
+} from "discord.js";
 import { Event } from "../../Classes/Event.js";
 import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
 import {
@@ -6,6 +14,29 @@ import {
   ScheduledEvent,
 } from "../../models/ScheduledEvent.js";
 import dbConnect from "../../util/libmongo.js";
+
+function checkEventDuration(a: Date, b: Date) {
+  return (b.getTime() - a.getTime()) / 60000 < 1 ? true : false;
+}
+
+async function handleEventVerify(ev: IScheduledEvent, guild: Guild) {
+  const underOneMin: boolean = checkEventDuration(ev.startedAt, ev.endedAt);
+  if (underOneMin) {
+    if (!ev.channelId) throw Error("event has no channel id");
+    const channel: GuildVoiceChannelResolvable | null =
+      (await guild.channels.fetch(ev.channelId)) as GuildVoiceChannelResolvable;
+    if (!channel) throw Error("event channel could not be found");
+    const guildEv = await guild.scheduledEvents.create({
+      name: ev.name,
+      scheduledStartTime: ev.scheduledStart ?? Date.now(),
+      privacyLevel: GuildScheduledEventPrivacyLevel.GuildOnly,
+      entityType: GuildScheduledEventEntityType.Voice,
+      channel: channel,
+    });
+
+    await guildEv.setStatus(GuildScheduledEventStatus.Active);
+  }
+}
 
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
@@ -86,6 +117,8 @@ export const guildScheduledEventUpdate = new Event({
           res.endedAt = new Date(Date.now());
 
           await logScheduledEvent(res);
+          if (!newEvent.guild) throw Error("new event has no guild");
+          await handleEventVerify(res, newEvent.guild);
         }
       } else {
         if (oldEvent.isActive() && newEvent.isScheduled()) {
@@ -93,6 +126,8 @@ export const guildScheduledEventUpdate = new Event({
           res.endedAt = new Date(Date.now());
 
           await logScheduledEvent(res);
+          if (!newEvent.guild) throw Error("new event has no guild");
+          await handleEventVerify(res, newEvent.guild);
         }
       }
 
