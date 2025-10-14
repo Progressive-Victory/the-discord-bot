@@ -41,7 +41,7 @@
     "discord-api-types": {
       "Locale": "https://discord.js.org/docs/packages/discord-api-types/0.37.55/Locale:TypeAlias"
     },
-    "crm-bot": {
+    "the-discord-bot": {
       "Event.once": "#",
       "Event.name": "#",
       "Event#handler": "#",

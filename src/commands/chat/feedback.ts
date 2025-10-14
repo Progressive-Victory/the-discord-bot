@@ -12,7 +12,7 @@ export const ns = "feedback";
 /**
  * The `feedback` command is used to inform the caller how to submit feedback on the
  * PV bot. It displays a button that links to the GitHub issues page.
- * @see https://github.com/Progressive-Victory/crm-bot/issues
+ * @see https://github.com/Progressive-Victory/the-discord-bot/issues
  * @see {@link ChatInputCommand}
  */
 export default new ChatInputCommand()
@@ -40,7 +40,9 @@ export default new ChatInputCommand()
             )
             .setEmoji("📝")
             .setStyle(ButtonStyle.Link)
-            .setURL("https://github.com/Progressive-Victory/crm-bot/issues"),
+            .setURL(
+              "https://github.com/Progressive-Victory/the-discord-bot/issues",
+            ),
         ),
       ],
     });

@@ -57,7 +57,7 @@ export const stateAdmin = new ChatInputCommand()
       .addSubcommand((subcommand) =>
         subcommand
           .setName("set")
-          .setDescription("configure sate settings")
+          .setDescription("configure state settings")
           .addStringOption((option) =>
             option
               .setName("state")

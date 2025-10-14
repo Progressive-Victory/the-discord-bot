@@ -1,6 +1,74 @@
 # Progressive Victory Bot
 
-This bot supports operations in the Progressive Victory Discord Server. To join, sign up [here](https://www.progressivevictory.win/volunteer).
+This bot supports operations in the Progressive Victory Discord Server. To join, sign up on the [website](https://www.progressivevictory.win/volunteer).
+
+## High-Level Overview
+
+The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
+
+- [pnpm](https://pnpm.io/) to manage dependencies
+- [MongoDB](https://www.mongodb.com/docs/manual/) as a (document) database
+- [Mongoose](https://mongoosejs.com/docs/) to interact with the database
+- [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
+  - **NOTE:** Currently, the PV bot doesn't define any RESTful API routes or handlers. The long-term vision is for the PV bot to act as a proxy for requests to the Discord API.
+
+## How to Contribute
+
+To contribute to this repo, follow the contribution standards and instructions outlined on the [project home page](https://github.com/Progressive-Victory).
+
+## Setup Instructions
+
+### Installation
+
+To get started we recommend you install the following software:
+
+- [git](https://git-scm.com/downloads)
+- [Visual Studio Code](https://code.visualstudio.com/Download)
+- [Node.js](https://nodejs.org/en/download) v20.12.2 or later
+
+Follow the installation instructions for Node.js. Then, run the following:
+
+```sh
+npm install -g pnpm@latest-10
+```
+
+Finally, copy `./.env.sample` to a file `./.env` then edit the following vaules to be accurate:
+
+```txt
+DISCORD_TOKEN="<BOT_TOKEN>"
+MONGODB_URI="<MONGODB_DEV_URI>"
+PORT=<PORT>
+```
+
+You can ask the current tech director to provide these values.
+
+### Runing the Bot
+
+The following actions must be completed to run the bot:
+
+First, install all dependencies:
+
+```sh
+pnpm install
+```
+
+Build and run the bot:
+
+```sh
+pnpm dev
+```
+
+If the bot fails to run, check that all values are correct in the `./.env` file. Otherwise, if everything succeeds, you should be able to send commands to the bot via the Dev Discord server.
+
+### Building the Documentation
+
+To build the documentation, first run
+
+```sh
+pnpm doc
+```
+
+Then, open `./docs/index.html` in a browser.
 
 ## Commands
 
@@ -8,58 +76,54 @@ Commands help users interact with the server and manage its members:
 
 ### state
 
-This command has two subcommands
+State lead tools. This command has two subcommands:
 
 - ping - Allows our state leads to ping members' state roles
 - members - Gets a list of all members with a specified role
 
 ### feedback
 
-Directs members to the [GitHub issues](https://github.com/Progressive-Victory/crm-bot/issues) page to submit feedback and report bugs
+Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs.
 
-## How to Contribute
+### warn
 
-To contribute to this repo, start by forking it and working on the fork. Then, when you are ready, create a pull request. The  pull request will be reviewed as soon as possible.
+Moderation tools. This command has four subcommands:
 
-### Getting Started
+- create - Add a warning to a user
+- update - Update an existing warning
+- remove - Remove an existing warning
+- view - Gets a filterable list of all warnings
 
-To get started we recommend you install the following software:
+### settings
 
-- [Node.js](https://nodejs.org/en/download) v20.12.2 or later
-  - [pnpm](https://pnpm.io/installation)
-- [Visual Studio Code](https://code.visualstudio.com/)
-- [git](https://git-scm.com/downloads)
+Admin tools for managing the server structure. This command has four subcommands:
 
-Once you have installed the required tools, use the following steps to setup your local environment:
+- warn channels - Configure which channels are used to manage warnings
+- report channels - Configure which channels are used to manage reports
+- welcome channel - Configure which channel to send join logs to
+- logging channels - Configure which channels logs are sent to
 
-1. Open the git cli
-2. Navigate to the directory you'd like to store your copy of the project in with the following command:
-	cd <directory-path>
-3. Use the clone command to install the git project locally:
-	git clone https://github.com/Progressive-Victory/the-discord-bot.git
-4. Open the newly downloaded folder in visual studio code
-5. In visual studio open the console, and switch to command prompt since powershell likes to cause problems
-6. Use the following command to install all dependencies for the project:
-	pnpm install
-7. To both build and run the project, use the following command:
-	pnpm run dev
+### timeout
 
-To familiarize yourself with the primary libraries in use here we'd recommend reading the quickstart guides (at least) for the following docs:
+Moderation tool to timeout a user for a specified duration.
 
-- [discord.js](https://discord.js.org/docs/packages/discord.js/14.23.2)
-- [mongoose](https://mongoosejs.com/docs/guide.html)
+### state-admin
 
-Also, being familiar with how writing HTTP requests for interfacing with the [API](https://github.com/Progressive-Victory/the-api), and knowing the basic overview of how [mongo db](https://www.mongodb.com/docs/manual/) works will be necessary.
+Admin tools for managing the server structure for states. This command has two subcommands:
 
-## High-Level Overview
+- team set - Set a state's team channel and role
+- set - Set a state's channel and role
 
-The *production deployment* of the Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). *DO NOT WORRY* you don't have to worry about that. For development purposes you can run the discord bot locally. We have a developer discord server intended for testing new bot features. To get an invite to the dev server, and the dev environmental variables: reach out to sH3llH0und or Joops. The bot uses:
+### mute
 
-- [pnpm](https://pnpm.io/) to manage dependencies
-- [MongoDB](https://www.mongodb.com/docs/manual/) as a (document) database
-- [Mongoose](https://mongoosejs.com/docs/) to interact with the database
-- [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
-  - **NOTE:** Currently, the PV bot doesn't define any RESTful API routes or handlers. The long-term vision is for the PV bot to act as a proxy for requests to the Discord API.
+Moderation tool to mute a user for a specified duration.
+
+### Context Menus
+
+Context menus provide actions that can be taken on users and messages.
+
+- Report User: Report a user to the mods
+- Report Message: Report a message to the mods
 
 ### References
 
