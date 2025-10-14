@@ -14,7 +14,6 @@ export { timeout } from "./chat/timeout.js";
 
 export { stateAdmin } from "./chat/state-admin.js";
 
-export { search_events } from './chat/search_events.js'
+export { searchEvents } from "./chat/search-events.js";
 
 export { mute } from "./chat/mute.js";
-
