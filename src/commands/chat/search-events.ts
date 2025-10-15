@@ -64,6 +64,7 @@ export const searchEvents = new ChatInputCommand({
             name: event.name,
             value: event.name,
           }));
+        if (filtered.length > 25) filtered.length = 25;
         await interaction.respond(filtered).catch(console.error);
       } else {
         // not a valid autocomplete
@@ -96,10 +97,10 @@ async function findEventsMatchingQuery(
   if (guild === null) {
     return null;
   }
-  let id = interaction.options.getString("id");
-  let name = interaction.options.getString("name");
-  let events_list = await fast_fetch_events(guild);
-  let out = events_list.filter((v) => {
+  const id = interaction.options.getString("id");
+  const name = interaction.options.getString("name");
+  const events_list = await fast_fetch_events(guild);
+  const out = events_list.filter((v) => {
     return (
       (name === null && id === null) ||
       (id !== null && v.id.includes(id) && id !== "") ||
@@ -121,7 +122,7 @@ function directMessageEvents(
     return;
   }
   let out = "";
-  for (let e of events) {
+  for (const e of events) {
     out += e.toString() + "\n";
   }
   interaction.reply({
