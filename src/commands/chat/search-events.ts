@@ -145,12 +145,12 @@ async function findEventsMatchingQuery(
   return out;
 }
 
-function directMessageEvents(
+async function directMessageEvents(
   interaction: ChatInputCommandInteraction,
   events: any[] | null,
 ) {
   if (events === null || events.length === 0) {
-    interaction.reply({
+    await interaction.reply({
       content: "No Matching events were found",
       flags: MessageFlags.Ephemeral,
     });
@@ -160,7 +160,7 @@ function directMessageEvents(
   for (const e of events) {
     out += e.toString() + "\n";
   }
-  interaction.reply({
+  await interaction.reply({
     content: out,
     flags: MessageFlags.Ephemeral,
   });
