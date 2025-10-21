@@ -128,15 +128,18 @@ async function findEventsMatchingQuery(
   const events_list = await fast_fetch_events(guild);
   const out = events_list.filter((v) => {
     return (
-      (name === null && id === null) ||
+      (name === null &&
+        id === null &&
+        startDate === null &&
+        endDate === null) ||
       (id !== null && v.id.includes(id) && id !== "") ||
       (name !== null && v.name.includes(name) && name !== "") ||
       (startDate !== null &&
         endDate !== null &&
         endDate > startDate &&
         v.scheduledStartAt !== null &&
-        v.scheduledStartAt > startDate &&
-        v.scheduledStartAt < endDate)
+        v.scheduledStartAt >= startDate &&
+        v.scheduledStartAt <= endDate)
     );
   });
   return out;
