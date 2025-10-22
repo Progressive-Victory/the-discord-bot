@@ -15,3 +15,5 @@ export { timeout } from './chat/timeout.js';
 
 export { stateAdmin } from './chat/state-admin.js';
 
+
+export {ban} from "./chat/ban.js"
