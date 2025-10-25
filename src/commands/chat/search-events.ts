@@ -33,6 +33,7 @@ export const searchEvents = new ChatInputCommand({
       option
         .setName("date-range")
         .setDescription("find by range of dates; ex: mm/dd/yyyy-mm/dd/yyyy")
+        .setAutocomplete(false)
         .setMaxLength(100),
     ),
   execute: async (interaction) => {
