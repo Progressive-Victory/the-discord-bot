@@ -39,7 +39,10 @@ export const searchEvents = new ChatInputCommand({
     console.log("execute");
 
     if (interaction.isChatInputCommand()) {
-      // await interaction.deferReply({ ephemeral: true });
+      await interaction.reply({
+        content: "working on it",
+        flags: MessageFlags.Ephemeral,
+      });
 
       const events = await findEventsMatchingQuery(
         interaction,
@@ -136,10 +139,12 @@ async function findEventsMatchingQuery(
       (name !== null && v.name.includes(name) && name !== "") ||
       (startDate !== null &&
         endDate !== null &&
-        endDate > startDate &&
+        endDate >= startDate &&
         v.scheduledStartAt !== null &&
-        v.scheduledStartAt >= startDate &&
-        v.scheduledStartAt <= endDate)
+        v.scheduledStartAt.setUTCHours(0, 0, 0, 0) >=
+          startDate.setUTCHours(0, 0, 0, 0) &&
+        v.scheduledStartAt.setUTCHours(0, 0, 0, 0) <=
+          endDate.setUTCHours(0, 0, 0, 0))
     );
   });
   return out;
@@ -150,7 +155,7 @@ async function directMessageEvents(
   events: any[] | null,
 ) {
   if (events === null || events.length === 0) {
-    await interaction.reply({
+    await interaction.followUp({
       content: "No Matching events were found",
       flags: MessageFlags.Ephemeral,
     });
@@ -160,7 +165,7 @@ async function directMessageEvents(
   for (const e of events) {
     out += e.toString() + "\n";
   }
-  await interaction.reply({
+  await interaction.followUp({
     content: out,
     flags: MessageFlags.Ephemeral,
   });
