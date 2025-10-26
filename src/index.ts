@@ -1,14 +1,18 @@
-import { AnySelectMenuInteraction, GatewayIntentBits as Intents, Partials } from "discord.js";
+import {
+  AnySelectMenuInteraction,
+  GatewayIntentBits as Intents,
+  Partials,
+} from "discord.js";
 import express from "express";
 import { Client, Interaction } from "./Classes/index.js";
 import * as commands from "./commands/index.js";
 import * as events from "./events/index.js";
-import * as buttons from './interactions/buttons/index.js';
-import * as modals from './interactions/modals/index.js';
-import * as selectMenus from './interactions/select_menus/index.js';
+import * as buttons from "./interactions/buttons/index.js";
+import * as modals from "./interactions/modals/index.js";
+import * as selectMenus from "./interactions/select_menus/index.js";
 import dbConnect from "./util/libmongo.js";
 
-dbConnect()
+dbConnect();
 
 // Initialization (specify intents and partials)
 export const client = new Client({
@@ -21,9 +25,7 @@ export const client = new Client({
     Intents.GuildModeration,
     Intents.GuildScheduledEvents,
   ],
-  partials: [
-	Partials.GuildMember
-],
+  partials: [Partials.GuildMember],
   receiveMessageComponents: true,
   receiveModals: true,
   receiveAutocomplete: true,
@@ -39,15 +41,16 @@ for (const command of Object.values(commands)) client.commands.add(command);
 
 // Load buttons
 for (const button of Object.values(buttons))
-	client.interactions.addButton(button);
+  client.interactions.addButton(button);
 
 // Load modals
-for (const modal of Object.values(modals))
-	client.interactions.addModal(modal);
+for (const modal of Object.values(modals)) client.interactions.addModal(modal);
 
 // Load selectMenus
 for (const selectMenu of Object.values(selectMenus))
-	client.interactions.addSelectMenu(selectMenu as Interaction<AnySelectMenuInteraction>);
+  client.interactions.addSelectMenu(
+    selectMenu as Interaction<AnySelectMenuInteraction>,
+  );
 
 // Bot logins to Discord services
 void client.login(process.env.DISCORD_TOKEN).then(() => {
@@ -61,7 +64,7 @@ void client.login(process.env.DISCORD_TOKEN).then(() => {
 
 // Express Server
 const app = express();
-const port = process.env.PORT ?? 'No port set'
+const port = process.env.PORT ?? "No port set";
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });

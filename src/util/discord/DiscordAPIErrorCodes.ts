@@ -3,6 +3,6 @@
  * @see https://discord.com/developers/docs/topics/opcodes-and-status-codes#json
  */
 export enum DiscordAPIErrorCodes {
-	UnknownChannel = 10003,
-	UnknownMember = 10007
+  UnknownChannel = 10003,
+  UnknownMember = 10007,
 }
