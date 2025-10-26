@@ -16,4 +16,7 @@ export { stateAdmin } from "./chat/state-admin.js";
 
 export { searchEvents } from "./chat/search-events.js";
 
+export {ban} from "./chat/ban.js"
+
 export { mute } from "./chat/mute.js";
+
