@@ -69,7 +69,9 @@ export const searchEvents = new ChatInputCommand({
         await interaction.respond(filtered).catch(console.error);
       } else if (focus.name === "name" && all_events !== undefined) {
         const filtered = all_events
-          .filter((event) => event.name.startsWith(focus.value))
+          .filter((event) =>
+            event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
+          )
           .map((event) => ({
             name: event.name,
             value: event.name,
@@ -137,7 +139,9 @@ async function findEventsMatchingQuery(
         startDate === null &&
         endDate === null) ||
       (id !== null && v.id.includes(id) && id !== "") ||
-      (name !== null && v.name.includes(name) && name !== "") ||
+      (name !== null &&
+        v.name.toLowerCase().includes(name.toLowerCase()) &&
+        name !== "") ||
       (startDate !== null &&
         endDate !== null &&
         endDate >= startDate &&
