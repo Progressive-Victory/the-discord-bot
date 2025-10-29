@@ -17,3 +17,5 @@ export { stateAdmin } from "./chat/state-admin.js";
 export { searchEvents } from "./chat/search-events.js";
 
 export { mute } from "./chat/mute.js";
+
+export { clock } from "./chat/clock.js";
