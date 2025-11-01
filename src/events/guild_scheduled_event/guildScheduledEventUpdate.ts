@@ -39,7 +39,7 @@ export const guildScheduledEventUpdate = new Event({
           name: newEvent.name,
           status: newEvent.status,
           attendees: evChannel.members.map((usr) => {
-            return usr.id;
+            return [usr.id, { timestamp: new Date(Date.now()), join: true }];
           }),
         })) as IScheduledEvent;
 

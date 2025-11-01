@@ -123,9 +123,14 @@ export class ScheduledEventWrapper {
   };
 
   attendees = async () => {
-    const users = this.event.attendees.map((usr) => {
-      return `<@${usr}>`;
-    });
+    const users: string[] = [];
+    this.event.attendees.forEach(
+      (value: { timestamp: Date; join: boolean }, key: string) => {
+        users.push(
+          `<@${key}> ${value.join ? "joined" : "left"} at ${value.timestamp}`,
+        );
+      },
+    );
     return users;
   };
 
@@ -146,7 +151,13 @@ export class ScheduledEventWrapper {
   };
 
   attendeesNames = async () => {
-    return await this.getAttendeeNames(this.event.attendees);
+    const usrIds: string[] = [];
+    this.event.attendees.forEach(
+      (value: { timestamp: Date; join: boolean }, key: string) => {
+        usrIds.push(key);
+      },
+    );
+    return await this.getAttendeeNames(usrIds);
   };
 
   constructor(ev: IScheduledEvent) {
