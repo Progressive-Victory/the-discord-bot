@@ -106,8 +106,9 @@ export async function logScheduledEvent(event: IScheduledEvent) {
 async function logContainer(event: IScheduledEvent) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendees = await wrapper.attendees();
+  const attendeesCount = wrapper.uniqueAttendees();
   let fileOut = false;
-  if (attendees.length > 30) {
+  if (attendees.length > 15) {
     attendees = await wrapper.attendeesNames();
     await fs.writeFile(
       "./assets/temp/attendees.txt",
@@ -119,7 +120,6 @@ async function logContainer(event: IScheduledEvent) {
   //if attendees.length > 30 then replace inline list with text file
   //todo: figure out how to generate text file
   //todo: add some file output for attachments in this function; wire it up to the main log function
-  const attendeesCount = attendees.length;
   const attendeesStr =
     attendees.length > 0 && !fileOut
       ? attendees

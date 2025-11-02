@@ -17,7 +17,13 @@ export interface IScheduledEvent extends Document {
   status: GuildScheduledEventStatus;
   startedAt: Date;
   endedAt: Date;
-  attendees: Map<Snowflake, { timestamp: Date; join: boolean }>;
+  attendees: [
+    {
+      id: Snowflake;
+      join: boolean;
+      timestamp: Date;
+    },
+  ];
   userCount?: number;
   logMessageId: Snowflake;
 }
@@ -38,11 +44,13 @@ const scheduledEventSchema = new Schema<IScheduledEvent>({
   status: { type: Number, required: true },
   startedAt: { type: Date },
   endedAt: { type: Date },
-  attendees: {
-    type: Map,
-    of: { timestamp: Date, join: Boolean },
-    required: true,
-  },
+  attendees: [
+    {
+      id: String,
+      join: Boolean,
+      timestamp: Date,
+    },
+  ],
   userCount: { type: Number },
   logMessageId: { type: String },
 });

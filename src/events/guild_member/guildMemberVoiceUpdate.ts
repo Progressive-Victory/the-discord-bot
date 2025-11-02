@@ -61,7 +61,7 @@ export const guildMemberVoiceUpdate = new Event({
       } else return;
     } else {
       if (oldState.channelId === null && newState.channelId !== null) {
-        markAttendance(newState.channelId, member, true);
+        markAttendance(newState.channelId, member, newState.channelId);
         embed = vcLogEmbed(
           member,
           "Joined Voice Channel",
@@ -69,7 +69,7 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Green,
         );
       } else if (oldState.channelId !== null && newState.channelId === null) {
-        markAttendance(oldState.channelId, member, false);
+        markAttendance(oldState.channelId, member, null);
         embed = vcLogEmbed(
           member,
           "Left Voice Channel",
@@ -84,7 +84,7 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Blue,
         );
         if (newState.channelId)
-          markAttendance(newState.channelId, member, true);
+          markAttendance(newState.channelId, member, newState.channelId);
       }
     }
 
@@ -132,7 +132,7 @@ function vcLogEmbed(
 async function markAttendance(
   channelId: string,
   member: GuildMember,
-  join: boolean,
+  newChannel: string | null,
 ) {
   try {
     await dbConnect();
@@ -146,9 +146,10 @@ async function markAttendance(
     console.log(
       `Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`,
     );
-    res.attendees.set(member.id, {
+    res.attendees.push({
+      id: member.id,
+      join: newChannel && newChannel === res.channelId ? true : false,
       timestamp: new Date(Date.now()),
-      join: join,
     });
     await res.save();
   } catch (e) {
