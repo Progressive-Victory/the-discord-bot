@@ -17,7 +17,6 @@ import {
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from "discord.js";
-import * as fs from "fs";
 import { client } from "../../index.js";
 import { IScheduledEvent } from "../../models/ScheduledEvent.js";
 import { GuildSetting } from "../../models/Setting.js";
@@ -68,12 +67,11 @@ export async function logScheduledEvent(event: IScheduledEvent) {
   if (existingPost) {
     //console.log("editing existing post...");
     //console.log("event ended at: " + event.endedAt);
-    const { fileOut, cont } = await logContainer(event);
+    const { cont } = await logContainer(event);
     const files = [];
     if (event.thumbnailUrl === "attachment://image.jpg")
       files.push(new AttachmentBuilder("./assets/image.jpg"));
-    if (fileOut)
-      files.push(new AttachmentBuilder("./assets/temp/attendees.txt"));
+    files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
     await existingPost.edit({
       components: [cont],
       files: files,
@@ -81,12 +79,11 @@ export async function logScheduledEvent(event: IScheduledEvent) {
       allowedMentions: { parse: [] },
     });
   } else {
-    const { fileOut, cont } = await logContainer(event);
+    const { cont } = await logContainer(event);
     const files = [];
     if (event.thumbnailUrl === "attachment://image.jpg")
       files.push(new AttachmentBuilder("./assets/image.jpg"));
-    if (fileOut)
-      files.push(new AttachmentBuilder("./assets/temp/attendees.txt"));
+    files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
     const post = await logChannel.send({
       components: [cont],
       flags: MessageFlags.IsComponentsV2,
@@ -107,21 +104,12 @@ async function logContainer(event: IScheduledEvent) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendees = await wrapper.attendees();
   const attendeesCount = wrapper.uniqueAttendees();
-  let fileOut = false;
-  if (attendees.length > 15) {
-    attendees = await wrapper.attendeesNames();
-    await fs.writeFile(
-      "./assets/temp/attendees.txt",
-      attendees.toString(),
-      () => {},
-    );
-    fileOut = true;
-  }
+  await wrapper.writeCsvDump();
   //if attendees.length > 30 then replace inline list with text file
   //todo: figure out how to generate text file
   //todo: add some file output for attachments in this function; wire it up to the main log function
   const attendeesStr =
-    attendees.length > 0 && !fileOut
+    attendees.length > 0 && attendees.length < 15
       ? attendees
           .map((usr) => {
             return `\n- ${usr}`;
@@ -131,98 +119,46 @@ async function logContainer(event: IScheduledEvent) {
   const separator = new SeparatorBuilder()
     .setSpacing(SeparatorSpacingSize.Small)
     .setDivider(true);
-  if (fileOut) {
-    return {
-      fileOut: fileOut,
-      cont: new ContainerBuilder()
-        .setAccentColor(wrapper.statusColor())
-        .addSectionComponents(
-          new SectionBuilder()
-            .setThumbnailAccessory(
-              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                heading(wrapper.name(), HeadingLevel.Three),
-              ),
-              new TextDisplayBuilder().setContent(
-                "Date: " + wrapper.startDate(),
-              ),
-              new TextDisplayBuilder().setContent(
-                `Time: ${wrapper.startTime()} - ${wrapper.endTime()}`,
-              ),
+  return {
+    cont: new ContainerBuilder()
+      .setAccentColor(wrapper.statusColor())
+      .addSectionComponents(
+        new SectionBuilder()
+          .setThumbnailAccessory(
+            new ThumbnailBuilder().setURL(wrapper.thumbnail()),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+              heading(wrapper.name(), HeadingLevel.Three),
             ),
-        )
-        .addSeparatorComponents(separator)
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(
-            "Description:\n" + wrapper.description(),
+            new TextDisplayBuilder().setContent("Date: " + wrapper.startDate()),
+            new TextDisplayBuilder().setContent(
+              `Time: ${wrapper.startTime()} - ${wrapper.endTime()}`,
+            ),
           ),
-          new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
-        )
-        .addFileComponents(
-          new FileBuilder().setURL("attachment://attendees.txt"),
-        )
-        .addSeparatorComponents(separator)
-        .addSectionComponents(
-          new SectionBuilder()
-            .setButtonAccessory(
-              new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel("Event Link")
-                .setURL(wrapper.eventLink()),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                `${wrapper.duration()} Minutes • ${attendeesCount} Attendees • ${wrapper.recurrence()}`,
-              ),
-            ),
+      )
+      .addSeparatorComponents(separator)
+      .addTextDisplayComponents(
+        new TextDisplayBuilder().setContent(
+          "Description:\n" + wrapper.description(),
         ),
-    };
-  } else {
-    return {
-      fileOut: fileOut,
-      cont: new ContainerBuilder()
-        .setAccentColor(wrapper.statusColor())
-        .addSectionComponents(
-          new SectionBuilder()
-            .setThumbnailAccessory(
-              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                heading(wrapper.name(), HeadingLevel.Three),
-              ),
-              new TextDisplayBuilder().setContent(
-                "Date: " + wrapper.startDate(),
-              ),
-              new TextDisplayBuilder().setContent(
-                `Time: ${wrapper.startTime()} - ${wrapper.endTime()}`,
-              ),
+        new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
+      )
+      .addFileComponents(new FileBuilder().setURL("attachment://attendees.csv"))
+      .addSeparatorComponents(separator)
+      .addSectionComponents(
+        new SectionBuilder()
+          .setButtonAccessory(
+            new ButtonBuilder()
+              .setStyle(ButtonStyle.Link)
+              .setLabel("Event Link")
+              .setURL(wrapper.eventLink()),
+          )
+          .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(
+              `${wrapper.duration()} Minutes • ${attendeesCount} Attendees • ${wrapper.recurrence()}`,
             ),
-        )
-        .addSeparatorComponents(separator)
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(
-            "Description:\n" + wrapper.description(),
           ),
-          new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
-        )
-        .addSeparatorComponents(separator)
-        .addSectionComponents(
-          new SectionBuilder()
-            .setButtonAccessory(
-              new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel("Event Link")
-                .setURL(wrapper.eventLink()),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                `${wrapper.duration()} Minutes • ${attendeesCount} Attendees • ${wrapper.recurrence()}`,
-              ),
-            ),
-        ),
-    };
-  }
+      ),
+  };
 }

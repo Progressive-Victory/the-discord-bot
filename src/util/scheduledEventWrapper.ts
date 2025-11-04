@@ -1,3 +1,4 @@
+import createCsvWriter from "csv-writer";
 import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
 import { client } from "../index.js";
 import { IScheduledEvent } from "../models/ScheduledEvent.js";
@@ -122,7 +123,7 @@ export class ScheduledEventWrapper {
     return this.event.endedAt ? time(this.event.endedAt) : "N/A";
   };
 
-  attendees = async () => {
+  attendees = () => {
     const users: string[] = [];
     this.event.attendees.map((obj) => {
       users.push(
@@ -168,6 +169,32 @@ export class ScheduledEventWrapper {
 
   constructor(ev: IScheduledEvent) {
     this.event = ev;
+  }
+
+  public async writeCsvDump() {
+    console.log("writing csv dump");
+    const names = await this.getAttendeeNames(
+      this.event.attendees.map((entry) => {
+        return entry.id;
+      }),
+    );
+    const writer = createCsvWriter.createObjectCsvWriter({
+      path: "./assets/temp/attendees.csv",
+      header: ["timestamp", "id", "displayName", "join"],
+      fieldDelimiter: ";",
+    });
+
+    const data = this.event.attendees.map((entry) => {
+      return {
+        timestamp: entry.timestamp,
+        id: entry.id,
+        displayName: names.get(entry.id) ?? "unknown",
+        join: entry.join,
+      };
+    });
+
+    await writer.writeRecords(data).catch((err) => console.error(err));
+    console.log("csv written");
   }
 
   private populateNames(entries: string[], nameMap: Map<string, string>) {
