@@ -1,4 +1,4 @@
-import { AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js';
+import { AttachmentBuilder, ChatInputCommandInteraction, MessageFlags } from 'discord.js';
 import { ns } from '../../commands/chat/state.js';
 import { localize } from '../../i18n.js';
 import { isRole } from '../../util/index.js';
@@ -9,24 +9,31 @@ import { isRole } from '../../util/index.js';
  */
 export async function memberList(interaction: ChatInputCommandInteraction) {
 	// Extract the locale and options from the interaction.
-	const { locale, options } = interaction;
+	const { locale, options, guild } = interaction;
 	const local = localize.getLocale(locale);
 	
 	// Defer the reply to indicate that the bot is processing the command.
-	await interaction.deferReply({ ephemeral: true });
+	await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 	
 
-	// Get the role option from the interaction's options, ensuring it is required.
-	const role = options.getRole('role', true);
+	// Get the role from interaction options using true to make the argument required
+	const role = options.getRole('role', true)
 
-	if(!isRole(role)) {
+	if(!isRole(role) || guild === null) {
 		return
 	}
+
+	// role.members is not a real list of members of the role so this call forces the bot to update that list with knowledge of all members currently in the server
+	await guild.members.fetch()
+
 	// Create a CSV attachment using the AttachmentBuilder class.
 	const csv = new AttachmentBuilder(
 		// Construct the CSV content using the role's members.
-		Buffer.from(`Display Name,Username,Id\n${role.members.map((member) => `${member.displayName},${member.user.username},${member.id}\n`).join('')}`),
+		Buffer.from(`Display Name,Username,Id\n${
+			role.members.map((member) =>
+				`${member.displayName},${member.user.username},${member.id}\n`
+		).join('')}`),
 		// Set the file name for the CSV attachment based on the role name and interaction ID.
 		{ name: `${role.name.replace(' ', '-')}.csv` }
 	);
