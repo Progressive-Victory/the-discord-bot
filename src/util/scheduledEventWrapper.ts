@@ -167,6 +167,17 @@ export class ScheduledEventWrapper {
     return usrIds.length;
   };
 
+  attendancePercentages = () => {
+    const users: string[] = [];
+    this.calculateAttendancePercentages()?.forEach(
+      (percentage: number, id: string) => {
+        users.push(`<@${id}> attended ${percentage}% of the event`);
+      },
+    );
+
+    return users;
+  };
+
   constructor(ev: IScheduledEvent) {
     this.event = ev;
   }
@@ -234,5 +245,79 @@ export class ScheduledEventWrapper {
     console.log(`names = ${names}`);
 
     return names;
+  }
+
+  private calculateAttendanceTime() {
+    interface joinLeavePair {
+      id: string;
+      join: Date;
+      leave: Date | null;
+    }
+
+    try {
+      const joinLeavePairs: joinLeavePair[] = [];
+      const attendanceTotals: Map<string, number> = new Map<string, number>();
+
+      this.event.attendees.forEach((entry) => {
+        if (entry.join) {
+          joinLeavePairs.push({
+            id: entry.id,
+            join: entry.timestamp,
+            leave: null,
+          });
+        } else {
+          const existingPair = joinLeavePairs.findLast(
+            (x) => x.id === entry.id,
+          );
+          if (!existingPair)
+            throw Error(
+              "Leave entry unaccompanied by join entry in attendance tracking.",
+            );
+          existingPair.leave = entry.timestamp;
+        }
+      });
+
+      joinLeavePairs.forEach((pair) => {
+        if (!pair.leave) {
+          const lastIdPair =
+            joinLeavePairs.findLast((x) => x.id === pair.id)?.join ===
+            pair.join;
+          if (!lastIdPair)
+            throw Error(
+              "Missing leave timestamp in attendance calculation pairs",
+            );
+          pair.leave = this.event.endedAt;
+        }
+
+        const pairDuration = pair.leave.getTime() - pair.join.getTime();
+
+        attendanceTotals.set(
+          pair.id,
+          attendanceTotals.get(pair.id) ?? 0 + pairDuration,
+        );
+      });
+
+      return attendanceTotals;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  private calculateAttendancePercentages() {
+    try {
+      const totals = this.calculateAttendanceTime();
+      const eventDuration =
+        this.event.endedAt.getTime() - this.event.startedAt.getTime();
+      const percentages: Map<string, number> = new Map<string, number>();
+      if (!totals) throw Error("Failed to calculate attendance totals");
+
+      totals.forEach((value: number, key: string) => {
+        percentages.set(key, (value / eventDuration) * 100);
+      });
+
+      return percentages;
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
