@@ -7,6 +7,18 @@ import {
 } from "../../models/ScheduledEvent.js";
 import dbConnect from "../../util/libmongo.js";
 
+
+/**
+ * `guildScheduledEventUpdate` handles the {@link Events.guildScheduledEventUpdate} 
+ * {@link Event}.
+ * This event is used to update or overwrite guild events.
+ * Using the oldEvent and newEvent parameters, the function updates the currently saved oldEvent with newEvent.
+ * After the update completes, the updated event is logged.
+ * If the current event is a recurring event that is active, and the updated event is scheduled. It will update the recurring event ending today and log it.
+ * If the event is one-time and the Oldevent is marked active, and the new event is marked completed. It will update the one-time event ending today and log it.
+  
+*/
+
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
