@@ -289,7 +289,7 @@ export class ScheduledEventWrapper {
           pair.leave = this.event.endedAt;
         }
 
-        const pairDuration = pair.leave.getTime() - pair.join.getTime();
+        const pairDuration = Math.round(pair.leave.getTime() - pair.join.getTime());
 
         attendanceTotals.set(
           pair.id,
