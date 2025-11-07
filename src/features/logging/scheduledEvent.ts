@@ -102,7 +102,7 @@ export async function logScheduledEvent(event: IScheduledEvent) {
  */
 async function logContainer(event: IScheduledEvent) {
   const wrapper = new ScheduledEventWrapper(event);
-  let attendees = await wrapper.attendees();
+  let attendees = wrapper.attendancePercentages();
   const attendeesCount = wrapper.uniqueAttendees();
   await wrapper.writeCsvDump();
   //if attendees.length > 30 then replace inline list with text file
