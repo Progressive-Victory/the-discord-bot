@@ -1,6 +1,8 @@
 import { GuildScheduledEventStatus, Snowflake } from "discord.js";
 import mongoose, { Document, Model, Schema } from "mongoose";
-
+/**
+ * {@link IScheduledEvent}
+ */
 export interface IScheduledEvent extends Document {
   recurrence: boolean;
   eventUrl: string;
@@ -27,64 +29,64 @@ const scheduledEventSchema = new Schema<IScheduledEvent>({
   eventUrl: {
     type: String,
     required: true,
-    immutable: true
+    immutable: true,
   },
   thumbnailUrl: {
     type: String,
-    required: true
+    required: true,
   },
   guildId: {
     type: String,
     required: true,
-    immutable: true
+    immutable: true,
   },
-  eventId: { 
-    type: String, 
-    required: true, 
-    immutable: true 
+  eventId: {
+    type: String,
+    required: true,
+    immutable: true,
   },
-  channelId: { 
-    type: String 
+  channelId: {
+    type: String,
   },
-  createdAt: { 
-    type: Date, 
-    required: true, 
-    immutable: true 
+  createdAt: {
+    type: Date,
+    required: true,
+    immutable: true,
   },
-  description: { 
-    type: String 
+  description: {
+    type: String,
   },
-  creatorId: { 
-    type: String, 
-    required: true, 
-    immutable: true 
+  creatorId: {
+    type: String,
+    required: true,
+    immutable: true,
   },
-  scheduledEnd: { 
-    type: Date 
+  scheduledEnd: {
+    type: Date,
   },
-  scheduledStart: { 
-    type: Date 
+  scheduledStart: {
+    type: Date,
   },
-  name: { 
-    type: String, 
-    required: true 
+  name: {
+    type: String,
+    required: true,
   },
-  status: { 
-    type: Number, 
-    required: true 
+  status: {
+    type: Number,
+    required: true,
   },
-  startedAt: { 
-    type: Date 
+  startedAt: {
+    type: Date,
   },
-  endedAt: { 
-    type: Date 
+  endedAt: {
+    type: Date,
   },
   attendees: [{ type: String }],
-  userCount: { 
-    type: Number 
+  userCount: {
+    type: Number,
   },
   logMessageId: {
-     type: String 
+    type: String,
   },
 });
 

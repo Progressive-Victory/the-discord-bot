@@ -11,9 +11,7 @@ import dbConnect from "../../util/libmongo.js";
  * `guildScheduledEventDelete` 
  * handles the {@link Events.guildScheduledEventDelete} 
  * {@link Event}.
- * This function is used for the deletion of a Shelude event.
- * The method uses the provided event object then flags it as canceled.
- * After the cancelation process is complete, the deleted event gets recorded in the logs.
+ * Flags scheduled event as canceled in database.
  */
 
 export const guildScheduledEventDelete = new Event({

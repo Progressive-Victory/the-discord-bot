@@ -123,13 +123,15 @@ function vcLogEmbed(
 }
 
 /**
- *
- * @param channelId
- * @param member
+ * Marks member's attendance
+ *  
+ * @param channelId Voice chatroom ID 
+ * @param member Member changing state
  */
 async function markAttendance(channelId: string, member: GuildMember) {
   try {
     await dbConnect();
+    // grabing Scheduled Event object by channel ID
     const res: IScheduledEvent = (await ScheduledEvent.findOne({
       channelId: channelId,
       status: 2,
@@ -137,10 +139,12 @@ async function markAttendance(channelId: string, member: GuildMember) {
       .sort({ _id: -1 })
       .exec()) as IScheduledEvent;
     if (!res) return;
+    //Check to see if members in alreadly in the attendees list
     if (res.attendees.find((x) => x === member.id)) return;
     console.log(
       `Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`,
     );
+    //Members id is pushed into the attendees list 
     res.attendees.push(member.id);
     await res.save();
   } catch (e) {

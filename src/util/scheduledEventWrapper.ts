@@ -1,7 +1,11 @@
 import { GuildScheduledEventStatus, time } from "discord.js";
 import { client } from "../index.js";
 import { IScheduledEvent } from "../models/ScheduledEvent.js";
-
+/**
+ * 
+ * Wrapper class that returns a Schelude event for end user comsumption
+ * @returns{@link ScheduledEventWrapper}
+ */
 export class ScheduledEventWrapper {
   event: IScheduledEvent;
 

@@ -25,23 +25,28 @@ import dbConnect from "../../util/libmongo.js";
 import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
 
 /**
- *
- * @param event
- * @param guild
- * @param forceNew
+ * Records schelude event object in logs
+ * @param event Sheduled Event Object
+ * @param guild ??
+ * @param forceNew ?? 
+ * 
  */
 export async function logScheduledEvent(event: IScheduledEvent) {
   await dbConnect();
+  //gets guild object by guild ID from event object
   const guild: Guild = await client.guilds.fetch(event.guildId);
+  //get settings by guild ID
   const settings = await GuildSetting.findOne({ guildId: guild.id }).exec();
 
   const logChannelId = settings?.logging.eventLogChannelId;
+  //checks if log channel ID exists 
   if (!logChannelId) return;
+  //finds channel from guid's channels cache by log Channel Id 
   let logChannel = guild.channels.cache.get(logChannelId);
   if (!logChannel) {
     logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
   }
-
+  //check if channel type is GuildText 
   if (logChannel?.type !== ChannelType.GuildText) return;
   let existingPost = undefined;
   if (event.logMessageId) {
