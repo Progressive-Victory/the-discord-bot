@@ -8,10 +8,10 @@ import {
 import dbConnect from "../../util/libmongo.js";
 
 /**
- * `guildScheduledEventUpdate` handles the {@link Events.guildScheduledEventUpdate} 
+ * `guildScheduledEventUpdate` handles the {@link Events.guildScheduledEventUpdate}
  * {@link Event}.
  * Updates schelude event in database.
-*/
+ */
 //Using the oldEvent and newEvent parameters, the function updates the currently saved oldEvent with newEvent.
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,

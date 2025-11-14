@@ -3,7 +3,7 @@ import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
 import { client } from "../index.js";
 import { IScheduledEvent } from "../models/ScheduledEvent.js";
 /**
- * 
+ *
  * Wrapper class that returns a Schelude event for end user comsumption
  * @returns{@link ScheduledEventWrapper}
  */
@@ -293,7 +293,9 @@ export class ScheduledEventWrapper {
           pair.leave = this.event.endedAt;
         }
 
-        const pairDuration = Math.round(pair.leave.getTime() - pair.join.getTime());
+        const pairDuration = Math.round(
+          pair.leave.getTime() - pair.join.getTime(),
+        );
 
         attendanceTotals.set(
           pair.id,

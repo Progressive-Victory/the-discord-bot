@@ -8,8 +8,8 @@ import {
 import dbConnect from "../../util/libmongo.js";
 
 /**
- * `guildScheduledEventDelete` 
- * handles the {@link Events.guildScheduledEventDelete} 
+ * `guildScheduledEventDelete`
+ * handles the {@link Events.guildScheduledEventDelete}
  * {@link Event}.
  * Flags scheduled event as canceled in database.
  */

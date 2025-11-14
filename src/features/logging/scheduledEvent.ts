@@ -27,8 +27,8 @@ import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
  * Records schelude event object in logs
  * @param event Sheduled Event Object
  * @param guild ??
- * @param forceNew ?? 
- * 
+ * @param forceNew ??
+ *
  */
 export async function logScheduledEvent(event: IScheduledEvent) {
   await dbConnect();
@@ -38,14 +38,14 @@ export async function logScheduledEvent(event: IScheduledEvent) {
   const settings = await GuildSetting.findOne({ guildId: guild.id }).exec();
 
   const logChannelId = settings?.logging.eventLogChannelId;
-  //checks if log channel ID exists 
+  //checks if log channel ID exists
   if (!logChannelId) return;
-  //finds channel from guid's channels cache by log Channel Id 
+  //finds channel from guid's channels cache by log Channel Id
   let logChannel = guild.channels.cache.get(logChannelId);
   if (!logChannel) {
     logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
   }
-  //check if channel type is GuildText 
+  //check if channel type is GuildText
   if (logChannel?.type !== ChannelType.GuildText) return;
   let existingPost = undefined;
   if (event.logMessageId) {

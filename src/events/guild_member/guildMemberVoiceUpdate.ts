@@ -126,8 +126,8 @@ function vcLogEmbed(
 
 /**
  * Marks member's attendance
- *  
- * @param channelId Voice chatroom ID 
+ *
+ * @param channelId Voice chatroom ID
  * @param member Member changing state
  */
 async function markAttendance(
