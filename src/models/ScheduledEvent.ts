@@ -19,75 +19,42 @@ export interface IScheduledEvent extends Document {
   status: GuildScheduledEventStatus;
   startedAt: Date;
   endedAt: Date;
-  attendees: [Snowflake];
+  attendees: [
+    {
+      id: Snowflake;
+      join: boolean;
+      timestamp: Date;
+    },
+  ];
   userCount?: number;
   logMessageId: Snowflake;
 }
 
 const scheduledEventSchema = new Schema<IScheduledEvent>({
   recurrence: { type: Boolean },
-  eventUrl: {
-    type: String,
-    required: true,
-    immutable: true,
-  },
-  thumbnailUrl: {
-    type: String,
-    required: true,
-  },
-  guildId: {
-    type: String,
-    required: true,
-    immutable: true,
-  },
-  eventId: {
-    type: String,
-    required: true,
-    immutable: true,
-  },
-  channelId: {
-    type: String,
-  },
-  createdAt: {
-    type: Date,
-    required: true,
-    immutable: true,
-  },
-  description: {
-    type: String,
-  },
-  creatorId: {
-    type: String,
-    required: true,
-    immutable: true,
-  },
-  scheduledEnd: {
-    type: Date,
-  },
-  scheduledStart: {
-    type: Date,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  status: {
-    type: Number,
-    required: true,
-  },
-  startedAt: {
-    type: Date,
-  },
-  endedAt: {
-    type: Date,
-  },
-  attendees: [{ type: String }],
-  userCount: {
-    type: Number,
-  },
-  logMessageId: {
-    type: String,
-  },
+  eventUrl: { type: String, required: true, immutable: true },
+  thumbnailUrl: { type: String, required: true },
+  guildId: { type: String, required: true, immutable: true },
+  eventId: { type: String, required: true, immutable: true },
+  channelId: { type: String },
+  createdAt: { type: Date, required: true, immutable: true },
+  description: { type: String },
+  creatorId: { type: String, required: true, immutable: true },
+  scheduledEnd: { type: Date },
+  scheduledStart: { type: Date },
+  name: { type: String, required: true },
+  status: { type: Number, required: true },
+  startedAt: { type: Date },
+  endedAt: { type: Date },
+  attendees: [
+    {
+      id: String,
+      join: Boolean,
+      timestamp: Date,
+    },
+  ],
+  userCount: { type: Number },
+  logMessageId: { type: String },
 });
 
 const modelName = "ScheduledEvent";

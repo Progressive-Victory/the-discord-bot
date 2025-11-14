@@ -61,7 +61,7 @@ export const guildMemberVoiceUpdate = new Event({
       } else return;
     } else {
       if (oldState.channelId === null && newState.channelId !== null) {
-        markAttendance(newState.channelId, member);
+        markAttendance(newState.channelId, member, newState.channelId);
         embed = vcLogEmbed(
           member,
           "Joined Voice Channel",
@@ -69,6 +69,7 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Green,
         );
       } else if (oldState.channelId !== null && newState.channelId === null) {
+        markAttendance(oldState.channelId, member, null);
         embed = vcLogEmbed(
           member,
           "Left Voice Channel",
@@ -82,7 +83,8 @@ export const guildMemberVoiceUpdate = new Event({
           `${member}${inlineCode(member.displayName)} switched from ${oldStateChannelMention} to ${newStateChannelMention}`,
           Colors.Blue,
         );
-        if (newState.channelId) markAttendance(newState.channelId, member);
+        if (newState.channelId)
+          markAttendance(newState.channelId, member, newState.channelId);
       }
     }
 
@@ -128,7 +130,11 @@ function vcLogEmbed(
  * @param channelId Voice chatroom ID 
  * @param member Member changing state
  */
-async function markAttendance(channelId: string, member: GuildMember) {
+async function markAttendance(
+  channelId: string,
+  member: GuildMember,
+  newChannel: string | null,
+) {
   try {
     await dbConnect();
     // grabing Scheduled Event object by channel ID
@@ -139,13 +145,14 @@ async function markAttendance(channelId: string, member: GuildMember) {
       .sort({ _id: -1 })
       .exec()) as IScheduledEvent;
     if (!res) return;
-    //Check to see if members in alreadly in the attendees list
-    if (res.attendees.find((x) => x === member.id)) return;
     console.log(
       `Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`,
     );
-    //Members id is pushed into the attendees list 
-    res.attendees.push(member.id);
+    res.attendees.push({
+      id: member.id,
+      join: newChannel && newChannel === res.channelId ? true : false,
+      timestamp: new Date(Date.now()),
+    });
     await res.save();
   } catch (e) {
     console.error(e);

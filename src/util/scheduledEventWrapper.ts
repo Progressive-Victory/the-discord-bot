@@ -1,4 +1,5 @@
-import { GuildScheduledEventStatus, time } from "discord.js";
+import createCsvWriter from "csv-writer";
+import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
 import { client } from "../index.js";
 import { IScheduledEvent } from "../models/ScheduledEvent.js";
 /**
@@ -126,9 +127,12 @@ export class ScheduledEventWrapper {
     return this.event.endedAt ? time(this.event.endedAt) : "N/A";
   };
 
-  attendees = async () => {
-    const users = this.event.attendees.map((usr) => {
-      return `<@${usr}>`;
+  attendees = () => {
+    const users: string[] = [];
+    this.event.attendees.map((obj) => {
+      users.push(
+        `<@${obj.id}> ${obj.join ? "joined" : "left"} at ${this.getFormattedTime(obj.timestamp)}`,
+      );
     });
     return users;
   };
@@ -150,16 +154,80 @@ export class ScheduledEventWrapper {
   };
 
   attendeesNames = async () => {
-    return await this.getAttendeeNames(this.event.attendees);
+    const usrIds: string[] = [];
+    this.event.attendees.map((obj) => {
+      if (!usrIds.includes(obj.id)) usrIds.push(obj.id);
+    });
+    const nameMap = await this.getAttendeeNames(usrIds);
+    const entries = await this.attendees();
+    return this.populateNames(entries, nameMap);
+  };
+
+  uniqueAttendees = () => {
+    const usrIds: string[] = [];
+    this.event.attendees.map((obj) => {
+      if (!usrIds.includes(obj.id)) usrIds.push(obj.id);
+    });
+    return usrIds.length;
+  };
+
+  attendancePercentages = () => {
+    const users: string[] = [];
+    this.calculateAttendancePercentages()?.forEach(
+      (percentage: number, id: string) => {
+        users.push(`<@${id}> attended ${percentage}% of the event`);
+      },
+    );
+
+    return users;
   };
 
   constructor(ev: IScheduledEvent) {
     this.event = ev;
   }
 
+  public async writeCsvDump() {
+    console.log("writing csv dump");
+    const names = await this.getAttendeeNames(
+      this.event.attendees.map((entry) => {
+        return entry.id;
+      }),
+    );
+    const writer = createCsvWriter.createObjectCsvWriter({
+      path: "./assets/temp/attendees.csv",
+      header: ["timestamp", "id", "displayName", "join"],
+      fieldDelimiter: ";",
+    });
+
+    const data = this.event.attendees.map((entry) => {
+      return {
+        timestamp: entry.timestamp,
+        id: entry.id,
+        displayName: names.get(entry.id) ?? "unknown",
+        join: entry.join,
+      };
+    });
+
+    await writer.writeRecords(data).catch((err) => console.error(err));
+    console.log("csv written");
+  }
+
+  private populateNames(entries: string[], nameMap: Map<string, string>) {
+    return entries.map((entry) => {
+      const id = entry.slice(2, 20);
+      console.log(id);
+      return `${entry.replace(`<@${id}>`, nameMap.get(id) ?? "undefined")}\n`;
+    });
+  }
+
+  private getFormattedTime(time: Date) {
+    const tzOffset = time.getTimezoneOffset() / 60;
+    return `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} UTC${tzOffset < 0 ? "-" : "+"}${tzOffset}`;
+  }
+
   private async getAttendeeNames(ids: string[]) {
     const buffer = [];
-    let names: string[] = [];
+    let names: Map<string, string> = new Map();
     for (let i = 0; i < Math.ceil(ids.length / 100); i++) {
       const slice = ids.slice(
         i * 100,
@@ -172,18 +240,88 @@ export class ScheduledEventWrapper {
     console.log(`buffer = ${buffer}`);
 
     for (let i = 0; i < buffer.length; i++) {
-      const res = (await guild.members.fetch({ user: buffer[i] }))
-        .values()
-        .toArray();
-      console.log(`res: ${res}`);
-      const out = res.map((usr) => {
-        return usr.displayName;
+      const res = await guild.members.fetch({ user: buffer[i] });
+      res.forEach((value: GuildMember, key: string) => {
+        names.set(key, value.displayName);
       });
-      names = [...names, ...out];
     }
 
     console.log(`names = ${names}`);
 
     return names;
+  }
+
+  private calculateAttendanceTime() {
+    interface joinLeavePair {
+      id: string;
+      join: Date;
+      leave: Date | null;
+    }
+
+    try {
+      const joinLeavePairs: joinLeavePair[] = [];
+      const attendanceTotals: Map<string, number> = new Map<string, number>();
+
+      this.event.attendees.forEach((entry) => {
+        if (entry.join) {
+          joinLeavePairs.push({
+            id: entry.id,
+            join: entry.timestamp,
+            leave: null,
+          });
+        } else {
+          const existingPair = joinLeavePairs.findLast(
+            (x) => x.id === entry.id,
+          );
+          if (!existingPair)
+            throw Error(
+              "Leave entry unaccompanied by join entry in attendance tracking.",
+            );
+          existingPair.leave = entry.timestamp;
+        }
+      });
+
+      joinLeavePairs.forEach((pair) => {
+        if (!pair.leave) {
+          const lastIdPair =
+            joinLeavePairs.findLast((x) => x.id === pair.id)?.join ===
+            pair.join;
+          if (!lastIdPair)
+            throw Error(
+              "Missing leave timestamp in attendance calculation pairs",
+            );
+          pair.leave = this.event.endedAt;
+        }
+
+        const pairDuration = Math.round(pair.leave.getTime() - pair.join.getTime());
+
+        attendanceTotals.set(
+          pair.id,
+          attendanceTotals.get(pair.id) ?? 0 + pairDuration,
+        );
+      });
+
+      return attendanceTotals;
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  private calculateAttendancePercentages() {
+    try {
+      const totals = this.calculateAttendanceTime();
+      const eventDuration =
+        this.event.endedAt.getTime() - this.event.startedAt.getTime();
+      const percentages: Map<string, number> = new Map<string, number>();
+      if (!totals) throw Error("Failed to calculate attendance totals");
+
+      totals.forEach((value: number, key: string) => {
+        percentages.set(key, (value / eventDuration) * 100);
+      });
+
+      return percentages;
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
