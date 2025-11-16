@@ -15,7 +15,8 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
 	// Defer the reply to indicate that the bot is processing the command.
 	await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-	
+  // Defer the reply to indicate that the bot is processing the command.
+  await interaction.deferReply({ ephemeral: true });
 
 	// Get the role from interaction options using true to make the argument required
 	const role = options.getRole('role', true)
@@ -38,9 +39,11 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
 		{ name: `${role.name.replace(' ', '-')}.csv` }
 	);
 
-	// Send a follow-up message with a content and the CSV file attached.
-	await interaction.followUp({
-		content: local?.t('member-list-message-followup', ns, { role: role.toString() }),
-		files: [csv]
-	});
+  // Send a follow-up message with a content and the CSV file attached.
+  await interaction.followUp({
+    content: local?.t("member-list-message-followup", ns, {
+      role: role.toString(),
+    }),
+    files: [csv],
+  });
 }

@@ -3,7 +3,7 @@
 	"files.insertFinalNewline": true,
 	"editor.tabSize": 4,
 	"editor.insertSpaces": false,
-    "editor.detectIndentation": false,
+    "editor.detectIndentation": true,
 	"editor.codeActionsOnSave": {
 		"source.fixAll": "explicit",
 		"source.organizeImports": "explicit"
@@ -14,10 +14,4 @@
 			"mode": "auto"
 		}
 	],
-	"yaml.schemas": {
-		"https://json.schemastore.org/github-issue-config.json": "/.github/ISSUE_TEMPLATE/config.yml"
-	},
-	"cSpell.words": [
-		"repliable",
-	]
 }

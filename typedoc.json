@@ -1,0 +1,60 @@
+{
+  "entryPoints": ["src"],
+  "entryPointStrategy": "expand",
+  "readme": "none",
+  "includeVersion": true,
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": true,
+  "externalSymbolLinkMappings": {
+    "discord.js": {
+      "Client": "https://discord.js.org/docs/packages/discord.js/14.21.0/Client:Class",
+      "ChatInputCommandInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/ChatInputCommandInteraction:Class",
+      "AutocompleteInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/AutocompleteInteraction:Class",
+      "UserContextMenuCommandInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/UserContextMenuCommandInteraction:Class",
+      "MessageContextMenuCommandInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/MessageContextMenuCommandInteraction:Class",
+      "ButtonInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/ButtonInteraction:Class",
+      "ModalSubmitInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/ModalSubmitInteraction:Class",
+      "AnySelectMenuInteraction": "https://discord.js.org/docs/packages/discord.js/14.21.0/AnySelectMenuInteraction:Class",
+      "ButtonBuilder": "https://discord.js.org/docs/packages/discord.js/14.21.0/ButtonBuilder:Class",
+      "EmbedBuilder": "https://discord.js.org/docs/packages/discord.js/14.21.0/EmbedBuilder:Class",
+      "GuildMember": "https://discord.js.org/docs/packages/discord.js/14.21.0/GuildMember:Class",
+      "Events": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum",
+      "Events.ClientReady": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum#ClientReady",
+      "Events.GuildAuditLogEntryCreate": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum#GuildAuditLogEntryCreate",
+      "Events.GuildMemberAdd": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum#GuildMemberAdd",
+      "Events.GuildMemberRemove": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum#GuildMemberRemove",
+      "Events.GuildMemberUpdate": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum#GuildMemberUpdate",
+      "Events.VoiceStateUpdate": "https://discord.js.org/docs/packages/discord.js/14.21.0/Events:Enum#VoiceStateUpdate"
+    },
+    "@discordjs/collection": {
+      "Collection": "https://discord.js.org/docs/packages/collection/1.3.0/Collection:Class"
+    },
+    "@discordjs/builders": {
+      "ContainerBuilder": "https://discord.js.org/docs/packages/builders/1.7.0/ContainerBuilder:Class",
+      "TextDisplayBuilder": "https://discord.js.org/docs/packages/builders/1.7.0/TextDisplayBuilder:Class"
+    },
+    "@fluent/bundle": {
+      "FluentBundle": "https://projectfluent.org/fluent.js/bundle"
+    },
+    "discord-api-types": {
+      "Locale": "https://discord.js.org/docs/packages/discord-api-types/0.37.55/Locale:TypeAlias"
+    },
+    "the-discord-bot": {
+      "Event.once": "#",
+      "Event.name": "#",
+      "Event#handler": "#",
+      "ExtendedClient.splitCustomIdOn": "#",
+      "LocaleBundle": "#",
+      "WarningRecord": "#",
+      "IUser": "#"
+    },
+    "mongoose": {
+      "SchemaTypeOptions.required": "https://mongoosejs.com/docs/api/schemaoptions.html#schematypeoptions_SchemaTypeOptions.required",
+      "SchemaTypeOptions.immutable": "https://mongoosejs.com/docs/api/schemaoptions.html#schematypeoptions_SchemaTypeOptions.immutable"
+    }
+  },
+  "categorizeByGroup": true,
+  "sort": ["source-order"]
+}
