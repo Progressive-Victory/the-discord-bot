@@ -186,12 +186,6 @@ function chatAdd(interaction: ChatInputCommandInteraction) {
       content: "You can not issue a warning to a bot",
     });
     return;
-  } else if (target.permissions.has("ManageGuild", true)) {
-    interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      content: "You can not issue a warning to Admin",
-    });
-    return;
   }
 
   const modal = warnModal(
