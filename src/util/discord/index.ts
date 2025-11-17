@@ -1,1 +1,1 @@
-export { DiscordAPIErrorCodes } from './DiscordAPIErrorCodes.js';
+export { DiscordAPIErrorCodes } from "./DiscordAPIErrorCodes.js";
