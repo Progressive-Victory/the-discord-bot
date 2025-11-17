@@ -10,6 +10,9 @@ This command has two sub commands
  ### feadback
  Directs members to [GitHub issues](https://github.com/Progressive-Victory/crm-bot/issues) page to sublit feadback and report bugs
 
+### ban
+This command allows admins to ban users while also logging the action and provided reason.
+
 # How to Contribute
 To contribute to this repo, start by forking it and working on the fork. Then when you are ready to create a pull request. The  pull request will be revied as soon as posible
 
