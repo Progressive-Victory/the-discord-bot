@@ -289,11 +289,11 @@ export class ScheduledEventWrapper {
           pair.leave = this.event.endedAt;
         }
 
-        const pairDuration = Math.round(pair.leave.getTime() - pair.join.getTime());
+        const pairDuration = pair.leave.getTime() - pair.join.getTime();
 
         attendanceTotals.set(
           pair.id,
-          attendanceTotals.get(pair.id) ?? 0 + pairDuration,
+          (attendanceTotals.get(pair.id) ?? 0) + pairDuration,
         );
       });
 
@@ -312,7 +312,7 @@ export class ScheduledEventWrapper {
       if (!totals) throw Error("Failed to calculate attendance totals");
 
       totals.forEach((value: number, key: string) => {
-        percentages.set(key, (value / eventDuration) * 100);
+        percentages.set(key, Math.round((value / eventDuration) * 100));
       });
 
       return percentages;
