@@ -114,7 +114,7 @@ async function logContainer(event: IScheduledEvent) {
   // TODO: figure out how to generate text file
   // TODO: add some file output for attachments in this function; wire it up to the main log function
   const attendeesStr =
-    attendees.length > 0 && attendees.length < 15
+    attendees.length > 0 && attendees.length < 30
       ? attendees
           .map((usr) => {
             return `\n- ${usr}`;
