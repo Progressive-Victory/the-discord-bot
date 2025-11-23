@@ -12,7 +12,7 @@ import dbConnect from "../../util/libmongo.js";
  * {@link Event}.
  * Updates schelude event in database.
  */
-//Using the oldEvent and newEvent parameters, the function updates the currently saved oldEvent with newEvent.
+// Using the oldEvent and newEvent parameters, the function updates the currently saved oldEvent with newEvent.
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
@@ -23,7 +23,7 @@ export const guildScheduledEventUpdate = new Event({
       await dbConnect();
 
       let res;
-      //After the update completes, the updated event is logged
+      // After the update completes, the updated event is logged
       if (oldEvent.isScheduled() && newEvent.isActive()) {
         console.log("Starting Event: " + newEvent.id);
         await new Promise((r) => setTimeout(r, 2000));
@@ -71,7 +71,7 @@ export const guildScheduledEventUpdate = new Event({
             scheduledStart: newEvent.scheduledStartAt,
             name: newEvent.name,
             status: newEvent.status,
-          })) as IScheduledEvent; //maybe this should return null
+          })) as IScheduledEvent; // Maybe this should return null
         } else {
           res.recurrence = newEvent.recurrenceRule ? true : false;
           res.thumbnailUrl =
@@ -86,7 +86,7 @@ export const guildScheduledEventUpdate = new Event({
         }
       }
 
-      //If the current event is a recurring event that is active, and the updated event is scheduled. It will update the recurring event ending today and log it.
+      // If the current event is a recurring event that is active, and the updated event is scheduled. It will update the recurring event ending today and log it.
 
       if (!res.recurrence) {
         if (oldEvent.isActive() && newEvent.isCompleted()) {
@@ -96,7 +96,7 @@ export const guildScheduledEventUpdate = new Event({
           await logScheduledEvent(res);
         }
       } else {
-        //If the event is one-time and the Oldevent is marked active, and the new event is marked completed. It will update the one-time event ending today and log it.
+        // If the event is one-time and the Oldevent is marked active, and the new event is marked completed. It will update the one-time event ending today and log it.
         if (oldEvent.isActive() && newEvent.isScheduled()) {
           console.log("ending recurring event: " + newEvent.id);
           res.endedAt = new Date(Date.now());

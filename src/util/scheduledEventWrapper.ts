@@ -13,19 +13,19 @@ export class ScheduledEventWrapper {
   statusColor = () => {
     let color: number;
     switch (this.event.status) {
-      case 1: // scheduled = completed = blue
+      case 1: // Scheduled = completed = blue
         color = 0x3498db;
         break;
-      case 2: // active = green
+      case 2: // Active = green
         color = 0x57f386;
         break;
-      case 3: // completed = blue
+      case 3: // Completed = blue
         color = 0x3498db;
         break;
-      case 4: // cancelled = red
+      case 4: // Cancelled = red
         color = 0xed4245;
         break;
-      default: // undefined = white
+      default: // Undefined = white
         color = 0xffffff;
     }
 
@@ -227,7 +227,7 @@ export class ScheduledEventWrapper {
 
   private async getAttendeeNames(ids: string[]) {
     const buffer = [];
-    let names: Map<string, string> = new Map();
+    const names: Map<string, string> = new Map();
     for (let i = 0; i < Math.ceil(ids.length / 100); i++) {
       const slice = ids.slice(
         i * 100,

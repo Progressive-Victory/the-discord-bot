@@ -19,14 +19,14 @@ export const guildScheduledEventDelete = new Event({
   execute: async (event) => {
     console.log("deleting");
     await dbConnect();
-    //finds event by ID
+    // Finds event by ID
     const res: IScheduledEvent = (
       await ScheduledEvent.find({ eventId: event.id }).sort({ _id: -1 }).exec()
     )[0] as IScheduledEvent;
-    //flags event for deletion and then save
+    // Flags event for deletion and then save
     res.status = GuildScheduledEventStatus.Canceled;
     res.save();
-    //old record inseted into logs
+    // Old record inseted into logs
     await logScheduledEvent(res);
   },
 });

@@ -89,11 +89,11 @@ export const guildMemberVoiceUpdate = new Event({
     }
 
     const settings = await GuildSetting.findOne({ guildId: guild.id });
-    // check that logging channel ID is set
+    // Check that logging channel ID is set
     const loggingChannelId = settings?.logging.voiceUpdatesChannelId;
     if (!loggingChannelId) return;
 
-    // check that logging channel exists in guild
+    // Check that logging channel exists in guild
     const loggingChannel = await getGuildChannel(guild, loggingChannelId);
     if (!loggingChannel?.isSendable()) return;
 
@@ -107,7 +107,7 @@ export const guildMemberVoiceUpdate = new Event({
  * @param title - Title for the embed
  * @param description - description for the embed
  * @param color - Color for the embed
- * @returns embed builder
+ * @returns - Embed builder
  */
 function vcLogEmbed(
   member: GuildMember,
@@ -137,7 +137,7 @@ async function markAttendance(
 ) {
   try {
     await dbConnect();
-    // grabing Scheduled Event object by channel ID
+    // Grabing Scheduled Event object by channel ID
     const res: IScheduledEvent = (await ScheduledEvent.findOne({
       channelId: channelId,
       status: 2,
