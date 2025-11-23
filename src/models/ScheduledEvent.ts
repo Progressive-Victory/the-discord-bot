@@ -1,6 +1,8 @@
 import { GuildScheduledEventStatus, Snowflake } from "discord.js";
 import mongoose, { Document, Model, Schema } from "mongoose";
-
+/**
+ * {@link IScheduledEvent}
+ */
 export interface IScheduledEvent extends Document {
   recurrence: boolean;
   eventUrl: string;

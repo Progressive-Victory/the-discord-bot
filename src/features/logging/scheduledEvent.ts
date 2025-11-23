@@ -24,27 +24,32 @@ import dbConnect from "../../util/libmongo.js";
 import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
 
 /**
+ * Records schelude event object in logs
+ * @param event Sheduled Event Object
+ * @param guild ??
+ * @param forceNew ??
  *
- * @param event
- * @param guild
- * @param forceNew
  */
 export async function logScheduledEvent(event: IScheduledEvent) {
   await dbConnect();
+  // Gets guild object by guild ID from event object
   const guild: Guild = await client.guilds.fetch(event.guildId);
+  // Get settings by guild ID
   const settings = await GuildSetting.findOne({ guildId: guild.id }).exec();
 
   const logChannelId = settings?.logging.eventLogChannelId;
+  // Checks if log channel ID exists
   if (!logChannelId) return;
+  // Finds channel from guid's channels cache by log Channel Id
   let logChannel = guild.channels.cache.get(logChannelId);
   if (!logChannel) {
     logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
   }
-
+  // Check if channel type is GuildText
   if (logChannel?.type !== ChannelType.GuildText) return;
   let existingPost = undefined;
   if (event.logMessageId) {
-    //console.log("finding existing post");
+    // console.log("finding existing post");
     existingPost = logChannel.messages.cache.get(event.logMessageId);
     if (!existingPost) {
       existingPost = await logChannel.messages
@@ -61,12 +66,12 @@ export async function logScheduledEvent(event: IScheduledEvent) {
     }
   }
 
-  //console.log("fetched post");
+  // console.log("fetched post");
   //console.log(existingPost);
 
   if (existingPost) {
-    //console.log("editing existing post...");
-    //console.log("event ended at: " + event.endedAt);
+    // console.log("editing existing post...");
+    // console.log("event ended at: " + event.endedAt);
     const { cont } = await logContainer(event);
     const files = [];
     if (event.thumbnailUrl === "attachment://image.jpg")
@@ -91,7 +96,7 @@ export async function logScheduledEvent(event: IScheduledEvent) {
       allowedMentions: { parse: [] },
     });
     event.logMessageId = post.id;
-    //console.log("event log message id: " + event.logMessageId);
+    // console.log("event log message id: " + event.logMessageId);
     await event.save();
   }
 }
@@ -102,12 +107,12 @@ export async function logScheduledEvent(event: IScheduledEvent) {
  */
 async function logContainer(event: IScheduledEvent) {
   const wrapper = new ScheduledEventWrapper(event);
-  let attendees = wrapper.attendancePercentages();
+  const attendees = wrapper.attendancePercentages();
   const attendeesCount = wrapper.uniqueAttendees();
   await wrapper.writeCsvDump();
-  //if attendees.length > 30 then replace inline list with text file
-  //todo: figure out how to generate text file
-  //todo: add some file output for attachments in this function; wire it up to the main log function
+  // If attendees.length > 30 then replace inline list with text file
+  // TODO: figure out how to generate text file
+  // TODO: add some file output for attachments in this function; wire it up to the main log function
   const attendeesStr =
     attendees.length > 0 && attendees.length < 30
       ? attendees
