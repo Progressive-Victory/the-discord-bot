@@ -11,16 +11,8 @@ import {
   SlashCommandBuilder,
   SlashCommandStringOption,
 } from "discord.js";
-import { FilterQuery } from "mongoose";
 import { ChatInputCommand } from "../../Classes/index.js";
-import {
-  modViewWarningHistory,
-  updateWarnById,
-} from "../../features/moderation/buttons.js";
-import {
-  viewWarningEmbed,
-  viewWarningEmbeds,
-} from "../../features/moderation/embeds.js";
+import { viewWarningEmbed } from "../../features/moderation/embeds.js";
 import {
   dateDiffInDays,
   WARN_MAX_CHAR,
@@ -30,9 +22,8 @@ import {
   WarnButtonsPrefixes,
   WarnModalPrefixes,
 } from "../../features/moderation/types.js";
-import { warnSearch } from "../../features/moderation/warnSearch.js";
-import { Warn, WarningRecord } from "../../models/Warn.js";
-import { WarningSearch } from "../../models/WarnSearch.js";
+import { Warn } from "../../models/Warn.js";
+import { apiConnService } from "../../util/api/ApiConnService.js";
 import { AddSplitCustomId, isGuildMember } from "../../util/index.js";
 // import { localize } from "../../i18n.js";
 
@@ -40,8 +31,7 @@ export const ns = "moderation";
 const idOptions = new SlashCommandStringOption()
   .setName("id")
   .setDescription("Record Id")
-  .setMinLength(24)
-  .setMaxLength(24)
+  .setMaxLength(8)
   .setRequired(true);
 
 /**
@@ -108,29 +98,31 @@ export const warn = new ChatInputCommand({
       subCommand
         .setName("view")
         .setDescription("View warnings")
-        .addStringOption(
+        /*.addStringOption(
           idOptions
             .setDescription(
               "Search by Record Id. Overrides other search options",
             )
             .setRequired(false),
-        )
+        )*/
         .addUserOption((option) =>
           option
             .setName("recipient")
-            .setDescription("Filter be the member who received the warning")
+            .setDescription("Filter by the member who received the warning")
             .setRequired(false),
         )
         .addUserOption((option) =>
           option
             .setName("issuer")
-            .setDescription("Filter be the member who issued the warning")
+            .setDescription("Filter by the member who issued the warning")
             .setRequired(false),
         )
         .addIntegerOption((option) =>
           option
             .setName("scope")
-            .setDescription("Filter warnings by date issued the last x months")
+            .setDescription(
+              "Filter warnings by date issued in the last x months",
+            )
             .addChoices(
               { name: "All", value: 0 },
               { name: "3 Months", value: 3 },
@@ -205,11 +197,37 @@ function chatAdd(interaction: ChatInputCommandInteraction) {
 async function viewWarning(interaction: ChatInputCommandInteraction) {
   const mod = interaction.options.getUser("issuer");
   const target = interaction.options.getUser("recipient");
-  const monthsAgo = interaction.options.getInteger("scope") ?? -1;
-  const id = interaction.options.getString("id");
-  const filter: FilterQuery<WarningRecord> = {};
+  const monthsAgo = interaction.options.getInteger("scope") ?? 0;
+  //const id = interaction.options.getString("id");
+  //const filter: FilterQuery<WarningRecord> = {};
+  const timeWindowDate = new Date(Date.now() - monthsAgo * 2592000000);
+  const url = new URL(process.env.API_HOST_ADDR + "/discord/warns");
+  if (mod) url.searchParams.set("mod_discord_id", mod.id);
+  if (target) url.searchParams.set("tgt_discord_id", target.id);
+  if (monthsAgo > 0)
+    url.searchParams.set("time_window", timeWindowDate.toISOString());
+  const res = await apiConnService.sendRequest(url, "GET");
+  const data = await res.json();
+  console.log(data);
+  data.length = 20;
+  const memes = data.map(
+    (entry: {
+      id: number;
+      userWarneddDiscordId: string;
+      moderatorDiscordId: string;
+      reason: string;
+      createdAtUtc: Date;
+      expiresAtUtc: Date;
+    }) => {
+      return entry.reason;
+    },
+  );
+  console.log(memes);
+  const memes2 = memes.toString().substring(0, 1999);
+  interaction.reply(memes2);
+}
 
-  if (id) {
+/*if (id) {
     const record = await Warn.findById(id);
     if (record) {
       const embeds = await viewWarningEmbeds([record], true);
@@ -268,7 +286,7 @@ async function viewWarning(interaction: ChatInputCommandInteraction) {
   reply.flags = MessageFlags.Ephemeral;
 
   interaction.reply(reply);
-}
+}*/
 
 /**
  * Update a warning
