@@ -10,6 +10,10 @@ export class Warn {
     this.api = api;
   }
 
+  get id() {
+    return this.data.id;
+  }
+
   get reason() {
     return this.data.reason;
   }
