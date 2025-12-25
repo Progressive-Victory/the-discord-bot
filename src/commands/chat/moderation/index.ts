@@ -1,6 +1,5 @@
 import {
   InteractionContextType,
-  MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
@@ -84,11 +83,19 @@ export const warn = new ChatInputCommand({
               { name: "1 year", value: 12 },
             )
             .setRequired(false),
+        )
+        .addStringOption((option) =>
+          option
+            .setName("order")
+            .setDescription("The order in which warns are displayed")
+            .setChoices(
+              { name: "Ascending", value: "asc" },
+              { name: "Descending", value: "desc" },
+            )
+            .setRequired(false),
         ),
     ),
   execute: async (interaction) => {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
     const subcommand = interaction.options.getSubcommand(true);
 
     switch (subcommand) {

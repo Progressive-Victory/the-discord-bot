@@ -55,7 +55,7 @@ for (const selectMenu of Object.values(selectMenus))
 // Bot logins to Discord services
 void client.login(process.env.DISCORD_TOKEN).then(() => {
   // Skip if no-deployment flag is set, else deploys command
-  if (!process.argv.includes("--no-deployment"))
+  if (process.argv.includes("--deploy"))
     // removes guild command from set guild
     // client.commands.deregisterGuildCommands(process.env.GUILDID);
     // deploys commands
