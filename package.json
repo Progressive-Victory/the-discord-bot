@@ -18,9 +18,11 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "pnpm format && tsc --project tsconfig.json",
-    "dev": "node --env-file=.env .",
-    "start": "node .",
     "predev": "pnpm build",
+    "dev": "node --env-file=.env .",
+    "predev-deploy": "pnpm build",
+    "dev-deploy": "node --env-file=.env . --deploy",
+    "start": "node .",
     "lint": "eslint \"src/**/*.{js,ts,jsx,tsx}\" --no-error-on-unmatched-pattern",
     "lint:fix": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\" --no-error-on-unmatched-pattern",
     "format": "prettier -w src",
@@ -32,23 +34,23 @@
   "dependencies": {
     "@fluent/bundle": "^0.19.1",
     "csv-writer": "^1.6.0",
-    "discord.js": "^14.22.1",
-    "express": "^5.1.0",
-    "mongoose": "^8.18.0"
+    "discord.js": "^14.25.1",
+    "express": "^5.2.1",
+    "mongoose": "^8.20.4"
   },
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
-    "@types/express": "^5.0.3",
-    "@types/node": "^22.18.0",
-    "@typescript-eslint/parser": "^8.41.0",
-    "eslint": "^9.34.0",
+    "@eslint/js": "^9.39.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.19.3",
+    "@typescript-eslint/parser": "^8.50.1",
+    "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-tsdoc": "^0.4.0",
-    "globals": "^16.3.0",
-    "prettier": "^3.6.2",
-    "typedoc": "^0.28.11",
-    "typedoc-plugin-markdown": "^4.8.1",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.41.0"
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4",
+    "typedoc": "^0.28.15",
+    "typedoc-plugin-markdown": "^4.9.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.1"
   }
 }

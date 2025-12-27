@@ -1,11 +1,10 @@
-import { MessageFlags, ModalSubmitInteraction } from "discord.js";
+import { ModalSubmitInteraction } from "discord.js";
 import { Interaction } from "../../../Classes/Interaction.js";
 import {
   numberRegex,
   WarnModalPrefixes,
 } from "../../../features/moderation/types.js";
 import { setDate } from "../../../models/Warn.js";
-import { apiConnService } from "../../../util/api/ApiConnService.js";
 
 /**
  * `warnUpdatedById` is a modal interaction which allows mods to update a warning by ID. It:
@@ -32,32 +31,32 @@ export const warnUpdatedById = new Interaction<ModalSubmitInteraction>({
       expireAt = setDate(duration);
     }
 
-    const res = await apiConnService.sendRequest(
-      url,
-      "PATCH",
-      {
-        "Content-Type": "application/json",
-      },
-      JSON.stringify({
-        warn_id: warnId,
-        reason: reason === "" ? undefined : reason,
-        expireAt,
-      }),
-    );
+    // const res = await apiConnService.sendRequest(
+    //   url,
+    //   "PATCH",
+    //   {
+    //     "Content-Type": "application/json",
+    //   },
+    //   JSON.stringify({
+    //     warn_id: warnId,
+    //     reason: reason === "" ? undefined : reason,
+    //     expireAt,
+    //   }),
+    // );
 
-    if (res.status === 200) {
-      interaction.reply({
-        content: "Update applied successfully.",
-        flags: MessageFlags.Ephemeral,
-      });
-    } else {
-      interaction.reply({
-        content:
-          "Update failed to apply. Send the following error to an administrator:\n" +
-          res.status +
-          (await res.text()),
-      });
-    }
+    // if (res.status === 200) {
+    //   interaction.reply({
+    //     content: "Update applied successfully.",
+    //     flags: MessageFlags.Ephemeral,
+    //   });
+    // } else {
+    //   interaction.reply({
+    //     content:
+    //       "Update failed to apply. Send the following error to an administrator:\n" +
+    //       res.status +
+    //       (await res.text()),
+    //   });
+    // }
 
     /*const record = await Warn.findById(warnId);
     if (!record || !guild) return;
