@@ -1,17 +1,32 @@
-import { Events, VoiceBasedChannel } from "discord.js";
+import { Events } from "discord.js";
 import { Event } from "../../Classes/Event.js";
-import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
-import {
+/*import {
   IScheduledEvent,
   ScheduledEvent,
-} from "../../models/ScheduledEvent.js";
-import dbConnect from "../../util/libmongo.js";
+} from "../../models/ScheduledEvent.js";*/
 
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
     try {
-      console.log("Updating Event ID: " + newEvent.id);
+      if (!oldEvent) throw Error("No old event reported");
+      console.log("update triggered");
+
+      // Event Started
+      /*if(oldEvent.isScheduled() && newEvent.isActive()) {
+
+      }
+
+      // Event Ended
+      if(oldEvent.isActive() && newEvent.isCompleted()) {
+
+      }
+
+      // Event Canceled
+      if(!oldEvent.isCanceled() && newEvent.isCanceled()) {
+
+      }*/
+      /*console.log("Updating Event ID: " + newEvent.id);
 
       if (!oldEvent) throw Error("No old event reported");
       await dbConnect();
@@ -96,7 +111,7 @@ export const guildScheduledEventUpdate = new Event({
         }
       }
 
-      await res.save();
+      await res.save();*/
     } catch (e) {
       console.error(e);
     }
