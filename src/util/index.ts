@@ -6,7 +6,10 @@ import {
   GuildChannelResolvable,
   GuildMember,
   GuildMemberResolvable,
+  RESTJSONErrorCodes,
   Role,
+  Snowflake,
+  User,
 } from "discord.js";
 import { Types } from "mongoose";
 import { client } from "../index.js";
@@ -98,4 +101,23 @@ export async function getGuildChannel(
     }
     throw error;
   }
+}
+
+export async function fetchMemberOrUser(id: Snowflake, guild: Guild) {
+  return guild.members.fetch(id).catch(async (e) => {
+    if (
+      !(e instanceof DiscordAPIError) ||
+      e.code !== RESTJSONErrorCodes.UnknownMember
+    )
+      throw e;
+    return client.users.fetch(id);
+  });
+}
+
+export function getNameToDisplay(user: GuildMember | User): string {
+  return user instanceof GuildMember
+    ? (user.nickname ?? user.displayName)
+    : user instanceof User
+      ? user.displayName
+      : "[Deleted User]";
 }

@@ -57,7 +57,7 @@ export interface ResponseLike extends Pick<
 > {
   body: Readable | ReadableStream | null;
 }
-export interface warn {
+export interface APIWarn {
   id: number;
   userWarnedDiscordId: Snowflake;
   moderatorDiscordId: Snowflake;
@@ -66,9 +66,9 @@ export interface warn {
   expiresAtUtc: string;
   updatedAtUtc: string;
 }
-export interface WarnPage {
+export interface APIWarnPage {
   page: number;
   limit: number;
   count: number;
-  data: warn[];
+  data: APIWarn[];
 }
