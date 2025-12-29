@@ -11,4 +11,5 @@ export {
   removeWarnNo,
   removeWarnYes,
 } from "./moderation/remove.js";
+export * from "./moderation/view.js";
 export { unwelcome, welcomed } from "./welcome.js";

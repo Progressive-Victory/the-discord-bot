@@ -1,11 +1,11 @@
 import { ApiConnService } from "./ApiConnService/ApiConnService.js";
-import { warn } from "./ApiConnService/types.js";
+import { APIWarn } from "./ApiConnService/types.js";
 
 export class Warn {
-  data: warn;
+  data: APIWarn;
   api: ApiConnService;
 
-  constructor(api: ApiConnService, data: warn) {
+  constructor(api: ApiConnService, data: APIWarn) {
     this.data = data;
     this.api = api;
   }

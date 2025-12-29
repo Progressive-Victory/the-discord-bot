@@ -1,34 +1,14 @@
 import {
-  ActionRowBuilder,
   APIMessageTopLevelComponent,
-  bold,
-  ButtonBuilder,
-  ButtonStyle,
-  calculateUserDefaultAvatarIndex,
   ChatInputCommandInteraction,
-  ContainerBuilder,
-  DiscordAPIError,
-  GuildMember,
-  heading,
-  HeadingLevel,
-  inlineCode,
-  Interaction,
   JSONEncodable,
   MessageFlags,
-  resolveColor,
-  RESTJSONErrorCodes,
-  SeparatorSpacingSize,
-  Snowflake,
-  subtext,
-  time,
-  TimestampStyles,
-  User,
-  userMention,
 } from "discord.js";
 import { Routes } from "../../../Classes/API/ApiConnService/routes.js";
-import { WarnPage } from "../../../Classes/API/ApiConnService/types.js";
-import { Warn } from "../../../Classes/API/Warn.js";
-import { WarnEmbedColor } from "../../../features/moderation/types.js";
+import { APIWarnPage } from "../../../Classes/API/ApiConnService/types.js";
+import {
+  viewPageRow
+} from "../../../features/moderation/warn-render.js";
 import { apiConnService } from "../../../util/api/pvapi.js";
 
 export async function view(interaction: ChatInputCommandInteraction) {
@@ -50,17 +30,9 @@ export async function view(interaction: ChatInputCommandInteraction) {
 
   const page = (await apiConnService.get(Routes.discordWarns, {
     query,
-  })) as WarnPage;
+  })) as APIWarnPage;
 
-  for (let index = 0; index < page.limit; index++) {
-    let id = page.data[index].userWarnedDiscordId;
-    await fetchMemberOrUser(interaction, id);
-
-    id = page.data[index].moderatorDiscordId;
-    await fetchMemberOrUser(interaction, id);
-  }
-
-  console.log(page);
+  // console.log(page);
   const components: JSONEncodable<APIMessageTopLevelComponent>[] =
     page.data.map((data) => {
       const record = new Warn(apiConnService, data);
@@ -166,18 +138,7 @@ ${bold("Expires")}:		  ${time(record.expiresAt, TimestampStyles.LongDateTime)}`,
   );
   interaction.editReply({
     flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
-    components: components.toReversed().concat(pageRow),
+    components: components.toReversed().concat(viewPageRow(page)),
     allowedMentions: {},
-  });
-}
-
-async function fetchMemberOrUser(interaction: Interaction, id: Snowflake) {
-  await interaction.guild?.members.fetch(id).catch(async (e) => {
-    if (
-      !(e instanceof DiscordAPIError) ||
-      e.code !== RESTJSONErrorCodes.UnknownMember
-    )
-      throw e;
-    await interaction.client.users.fetch(id);
   });
 }
