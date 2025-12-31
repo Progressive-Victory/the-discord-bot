@@ -5,16 +5,13 @@ import {
   EmbedBuilder,
   Events,
   GuildMember,
+  GuildScheduledEventStatus,
   inlineCode,
 } from "discord.js";
 import Event from "../../Classes/Event.js";
-import {
-  IScheduledEvent,
-  ScheduledEvent,
-} from "../../models/ScheduledEvent.js";
 import { GuildSetting } from "../../models/Setting.js";
+import { markAttendance } from "../../util/events/markAttendance.js";
 import { getGuildChannel } from "../../util/index.js";
-import dbConnect from "../../util/libmongo.js";
 
 /**
  * `guildMemberVoiceUpdate` handles the {@link Events.VoiceStateUpdate} {@link Event}.
@@ -31,6 +28,17 @@ export const guildMemberVoiceUpdate = new Event({
         ? await guild.members.fetch(newState.id).catch(console.error)
         : newState.member;
     if (!member) return;
+    const events = await guild.scheduledEvents.fetch();
+    const oldChannelEv = events.find(
+      (x) =>
+        x.channelId === oldState.channelId &&
+        x.status === GuildScheduledEventStatus.Active,
+    );
+    const newChannelEv = events.find(
+      (x) =>
+        x.channelId === newState.channelId &&
+        x.status === GuildScheduledEventStatus.Active,
+    );
 
     const newStateChannelMention = channelMention(
       newState.channelId ?? "error",
@@ -61,7 +69,7 @@ export const guildMemberVoiceUpdate = new Event({
       } else return;
     } else {
       if (oldState.channelId === null && newState.channelId !== null) {
-        markAttendance(newState.channelId, member, newState.channelId);
+        if (newChannelEv) await markAttendance(newChannelEv, member, true);
         embed = vcLogEmbed(
           member,
           "Joined Voice Channel",
@@ -69,7 +77,7 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Green,
         );
       } else if (oldState.channelId !== null && newState.channelId === null) {
-        markAttendance(oldState.channelId, member, null);
+        if (oldChannelEv) await markAttendance(oldChannelEv, member, false);
         embed = vcLogEmbed(
           member,
           "Left Voice Channel",
@@ -77,14 +85,16 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Red,
         );
       } else {
+        if (oldState.channelId && oldChannelEv)
+          await markAttendance(oldChannelEv, member, false);
+        if (newState.channelId && newChannelEv)
+          await markAttendance(newChannelEv, member, true);
         embed = vcLogEmbed(
           member,
           "Switched Voice Channel",
           `${member}${inlineCode(member.displayName)} switched from ${oldStateChannelMention} to ${newStateChannelMention}`,
           Colors.Blue,
         );
-        if (newState.channelId)
-          markAttendance(newState.channelId, member, newState.channelId);
       }
     }
 
@@ -129,30 +139,3 @@ function vcLogEmbed(
  * @param channelId
  * @param member
  */
-async function markAttendance(
-  channelId: string,
-  member: GuildMember,
-  newChannel: string | null,
-) {
-  try {
-    await dbConnect();
-    const res: IScheduledEvent = (await ScheduledEvent.findOne({
-      channelId: channelId,
-      status: 2,
-    })
-      .sort({ _id: -1 })
-      .exec()) as IScheduledEvent;
-    if (!res) return;
-    console.log(
-      `Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`,
-    );
-    res.attendees.push({
-      id: member.id,
-      join: newChannel && newChannel === res.channelId ? true : false,
-      timestamp: new Date(Date.now()),
-    });
-    await res.save();
-  } catch (e) {
-    console.error(e);
-  }
-}

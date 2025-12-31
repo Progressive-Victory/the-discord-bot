@@ -1,117 +1,131 @@
 import { Events } from "discord.js";
+import z from "zod";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { Event } from "../../Classes/Event.js";
-/*import {
-  IScheduledEvent,
-  ScheduledEvent,
-} from "../../models/ScheduledEvent.js";*/
+import { IEvent, zEvent } from "../../features/events/IEvent.js";
+import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
+import { apiConnService } from "../../util/api/pvapi.js";
+import { markAttendance } from "../../util/events/markAttendance.js";
 
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
     try {
       if (!oldEvent) throw Error("No old event reported");
-      console.log("update triggered");
+
+      // map event interface
+      if (!newEvent.channelId)
+        throw Error("No channel id specified for event: " + newEvent.id);
+      if (!newEvent.creatorId)
+        throw Error("No creator specified for event: " + newEvent.id);
+      if (!newEvent.scheduledStartAt)
+        throw Error("No start time specified for event: " + newEvent.id);
+      const myEvent: Partial<IEvent> = {
+        discordId: newEvent.id,
+        channelId: newEvent.channelId,
+        name: newEvent.name,
+        description: newEvent.description ?? undefined,
+        status: newEvent.status,
+        recurrent: newEvent.recurrenceRule ? true : false,
+        thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
+        createdAtUtc: newEvent.createdAt,
+        creatorDiscordId: newEvent.creatorId,
+        scheduledStartUtc: newEvent.scheduledStartAt,
+        scheduledEndUtc: newEvent.scheduledEndAt ?? undefined,
+      } satisfies Partial<IEvent>;
+
+      console.log(myEvent);
 
       // Event Started
-      /*if(oldEvent.isScheduled() && newEvent.isActive()) {
+      if (oldEvent.isScheduled() && newEvent.isActive()) {
+        myEvent.startedAtUtc = new Date();
+        myEvent.status = 2;
 
+        console.log("my event");
+        console.log(myEvent);
+        const res: Response = (await apiConnService.post(
+          Routes.discordEvents,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(myEvent),
+          },
+          true,
+        )) as Response;
+
+        if (!res.ok)
+          throw Error(
+            `API threw exception: ${res.status} ${res.statusText}\n${res.body ? await res.text() : ""}`,
+          );
+
+        const eventId = ((await res.json()) as number[])[0];
+        myEvent.id = eventId;
+
+        const myWholeEvent: IEvent = z.parse(zEvent, myEvent);
+
+        await logScheduledEvent(myWholeEvent, true);
+
+        console.log(myWholeEvent.id);
+
+        const channelFresh = await newEvent.channel?.fetch();
+
+        channelFresh?.members.forEach(async (usr) => {
+          await markAttendance(newEvent, usr, true, true);
+        });
       }
 
       // Event Ended
-      if(oldEvent.isActive() && newEvent.isCompleted()) {
+      else if (oldEvent.isActive() && !newEvent.isActive()) {
+        const resGet: Response = (await apiConnService.get(
+          Routes.latestDiscordEventByDiscordId(newEvent.id),
+          undefined,
+          true,
+        )) as Response;
 
-      }
+        if (!resGet.ok)
+          throw Error(
+            `API threw exception: ${resGet.status} ${resGet.statusText}\n${resGet.body ? await resGet.text() : ""}`,
+          );
 
-      // Event Canceled
-      if(!oldEvent.isCanceled() && newEvent.isCanceled()) {
+        const raw = await resGet.json();
 
-      }*/
-      /*console.log("Updating Event ID: " + newEvent.id);
+        const data = raw[0];
 
-      if (!oldEvent) throw Error("No old event reported");
-      await dbConnect();
-
-      let res;
-
-      if (oldEvent.isScheduled() && newEvent.isActive()) {
-        console.log("Starting Event: " + newEvent.id);
-        await new Promise((r) => setTimeout(r, 2000));
-        const evChannel =
-          (await newEvent.channel?.fetch()) as VoiceBasedChannel;
-        res = (await ScheduledEvent.insertOne({
-          thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
-          eventUrl: newEvent.url,
-          recurrence: newEvent.recurrenceRule ? true : false,
-          guildId: newEvent.guildId,
-          eventId: newEvent.id,
-          channelId: newEvent.channelId,
-          createdAt: newEvent.createdAt,
-          startedAt: new Date(Date.now()),
-          description: newEvent.description,
-          creatorId: newEvent.creatorId,
-          scheduledEnd: newEvent.scheduledEndAt,
-          scheduledStart: newEvent.scheduledStartAt,
-          name: newEvent.name,
-          status: newEvent.status,
-          attendees: evChannel.members.map((usr) => {
-            return { id: usr.id, join: true, timestamp: new Date(Date.now()) };
-          }),
-        })) as IScheduledEvent;
-
-        await logScheduledEvent(res);
-      } else {
-        res = (
-          await ScheduledEvent.find({ eventId: newEvent.id })
-            .sort({ _id: -1 })
-            .exec()
-        )[0] as IScheduledEvent;
-        if (!res) {
-          res = (await ScheduledEvent.insertOne({
-            thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
-            eventUrl: newEvent.url,
-            recurrence: newEvent.recurrenceRule ? true : false,
-            guildId: newEvent.guildId,
-            eventId: newEvent.id,
-            channelId: newEvent.channelId,
-            createdAt: newEvent.createdAt,
-            description: newEvent.description,
-            creatorId: newEvent.creatorId,
-            scheduledEnd: newEvent.scheduledEndAt,
-            scheduledStart: newEvent.scheduledStartAt,
-            name: newEvent.name,
-            status: newEvent.status,
-          })) as IScheduledEvent; //maybe this should return null
-        } else {
-          res.recurrence = newEvent.recurrenceRule ? true : false;
-          res.thumbnailUrl =
-            newEvent.coverImageURL() ?? "attachment://image.jpg";
-          res.channelId = newEvent.channelId ?? undefined;
-          res.name = newEvent.name;
-          res.description = newEvent.description ?? "";
-          res.scheduledEnd = newEvent.scheduledEndAt ?? undefined;
-          res.scheduledStart = newEvent.scheduledStartAt ?? undefined;
-          res.status = newEvent.status;
-          res.userCount = newEvent.userCount ?? undefined;
+        data.endedAtUtc = new Date();
+        switch (newEvent.status) {
+          case 1:
+            data.status = 3;
+            break;
+          case 3:
+            data.status = 3;
+            break;
+          case 4:
+            data.status = 4;
+            break;
         }
+
+        console.log(data);
+        const myWholeEvent = z.parse(zEvent, data);
+
+        const resPatch: Response = (await apiConnService.patch(
+          Routes.discordEventPatch(myWholeEvent.id),
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(myWholeEvent),
+          },
+          true,
+        )) as Response;
+
+        if (!resPatch.ok)
+          throw Error(
+            `API threw exception: ${resPatch.status} ${resPatch.statusText}\n${resPatch.body ? await resPatch.text() : ""}`,
+          );
+
+        logScheduledEvent(myWholeEvent, false);
       }
-
-      if (!res.recurrence) {
-        if (oldEvent.isActive() && newEvent.isCompleted()) {
-          console.log("ending one time event: " + newEvent.id);
-          res.endedAt = new Date(Date.now());
-
-          await logScheduledEvent(res);
-        }
-      } else {
-        if (oldEvent.isActive() && newEvent.isScheduled()) {
-          console.log("ending recurring event: " + newEvent.id);
-          res.endedAt = new Date(Date.now());
-
-          await logScheduledEvent(res);
-        }
-      }
-
-      await res.save();*/
     } catch (e) {
       console.error(e);
     }

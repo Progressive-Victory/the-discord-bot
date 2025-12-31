@@ -112,8 +112,8 @@ export async function view(interaction: ChatInputCommandInteraction) {
                 `${heading(`Warning # ${record.id}`)}
 ${bold("Target")}:			${inlineCode(targetName) + " " + userMention(record.targetId)}
 ${bold("Moderator")}:	${inlineCode(moderatorName) + " " + userMention(record.moderatorId)}
-${bold("Issued")}:			${time(record.createdAt, TimestampStyles.LongDateShortTime)}
-${bold("Expires")}:		  ${time(record.expiresAt, TimestampStyles.LongDateShortTime)}`,
+${bold("Issued")}:			${time(record.createdAt, TimestampStyles.LongDateTime)}
+${bold("Expires")}:		  ${time(record.expiresAt, TimestampStyles.LongDateTime)}`,
               ),
             ),
         )
