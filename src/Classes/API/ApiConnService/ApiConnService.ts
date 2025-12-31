@@ -38,27 +38,28 @@ export class ApiConnService {
       .catch(console.error);
   }
 
-  async request(options: InternalRequest): Promise<unknown> {
+  async request(options: InternalRequest, rtrnRaw?: boolean): Promise<unknown> {
     if (!this.jwt) throw Error("run auth function");
     // console.log(this.host, options.fullRoute, options.query?.toString());
-    const res = await fetch(
-      `${this.host + options.fullRoute}?${options.query?.toString()}`,
-      {
-        method: options.method,
-        body: options.body,
-        headers: {
-          ...options.headers,
-          Authorization: "Bot " + this.jwt,
-        },
+    const url = new URL(this.host + options.fullRoute);
+    options.query?.forEach((val: string, key: string) => {
+      url.searchParams.append(key, val);
+    });
+    const res = await fetch(url, {
+      method: options.method,
+      body: options.body,
+      headers: {
+        ...options.headers,
+        Authorization: "Bot " + this.jwt,
       },
-    );
+    });
     if (res.status === 401 && options.attempt && options.attempt > 2) {
       this.jwt = null;
       options.attempt++;
       return this.request(options) as Promise<ResponseLike>;
     }
 
-    return parseResponse(res);
+    return rtrnRaw ? res : parseResponse(res);
   }
 
   /**
@@ -67,8 +68,15 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async get(fullRoute: RouteLike, options: RequestData = {}) {
-    return this.request({ ...options, fullRoute, method: RequestMethod.Get });
+  public async get(
+    fullRoute: RouteLike,
+    options: RequestData = {},
+    rtrnRaw?: boolean,
+  ) {
+    return this.request(
+      { ...options, fullRoute, method: RequestMethod.Get },
+      rtrnRaw,
+    );
   }
 
   /**
@@ -77,12 +85,19 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async delete(fullRoute: RouteLike, options: RequestData = {}) {
-    return this.request({
-      ...options,
-      fullRoute,
-      method: RequestMethod.Delete,
-    });
+  public async delete(
+    fullRoute: RouteLike,
+    options: RequestData = {},
+    rtrnRaw?: boolean,
+  ) {
+    return this.request(
+      {
+        ...options,
+        fullRoute,
+        method: RequestMethod.Delete,
+      },
+      rtrnRaw,
+    );
   }
 
   /**
@@ -91,8 +106,15 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async post(fullRoute: RouteLike, options: RequestData = {}) {
-    return this.request({ ...options, fullRoute, method: RequestMethod.Post });
+  public async post(
+    fullRoute: RouteLike,
+    options: RequestData = {},
+    rtrnRaw?: boolean,
+  ) {
+    return this.request(
+      { ...options, fullRoute, method: RequestMethod.Post },
+      rtrnRaw,
+    );
   }
 
   /**
@@ -111,7 +133,14 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async patch(fullRoute: RouteLike, options: RequestData = {}) {
-    return this.request({ ...options, fullRoute, method: RequestMethod.Patch });
+  public async patch(
+    fullRoute: RouteLike,
+    options: RequestData = {},
+    rtrnRaw?: boolean,
+  ) {
+    return this.request(
+      { ...options, fullRoute, method: RequestMethod.Patch },
+      rtrnRaw,
+    );
   }
 }

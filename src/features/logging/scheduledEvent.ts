@@ -17,11 +17,12 @@ import {
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { client } from "../../index.js";
-import { IScheduledEvent } from "../../models/ScheduledEvent.js";
-import { GuildSetting } from "../../models/Setting.js";
-import dbConnect from "../../util/libmongo.js";
+import { apiConnService } from "../../util/api/pvapi.js";
+import { eventLogMessageCache } from "../../util/cache/eventLogMessageCache.js";
 import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
+import { IEvent } from "../events/IEvent.js";
 
 /**
  *
@@ -29,70 +30,84 @@ import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
  * @param guild
  * @param forceNew
  */
-export async function logScheduledEvent(event: IScheduledEvent) {
-  await dbConnect();
-  const guild: Guild = await client.guilds.fetch(event.guildId);
-  const settings = await GuildSetting.findOne({ guildId: guild.id }).exec();
+export async function logScheduledEvent(event: IEvent, init: boolean) {
+  try {
+    if (!process.env.PV_GUILD_ID)
+      throw Error("Set 'PV_GUILD_ID' in the env file");
+    const guild: Guild = await client.guilds.fetch(process.env.PV_GUILD_ID);
 
-  const logChannelId = settings?.logging.eventLogChannelId;
-  if (!logChannelId) return;
-  let logChannel = guild.channels.cache.get(logChannelId);
-  if (!logChannel) {
-    logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
-  }
+    const url = Routes.getSettingValue("event_log_channel_id");
+    console.log(url);
 
-  if (logChannel?.type !== ChannelType.GuildText) return;
-  let existingPost = undefined;
-  if (event.logMessageId) {
-    //console.log("finding existing post");
-    existingPost = logChannel.messages.cache.get(event.logMessageId);
-    if (!existingPost) {
-      existingPost = await logChannel.messages
-        .fetch(event.logMessageId)
-        .catch((e) => {
-          if (
-            e instanceof DiscordAPIError &&
-            e.code === RESTJSONErrorCodes.UnknownMessage
-          ) {
-            return undefined;
-          }
-          throw e;
-        });
+    const res: Response = (await apiConnService.get(
+      url,
+      undefined,
+      true,
+    )) as Response;
+
+    if (!res.ok)
+      throw Error(
+        `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+      );
+
+    const logChannelId = (await res.json())[0];
+    if (!logChannelId) throw Error("Set the log channel id in the settings!");
+    let logChannel = guild.channels.cache.get(logChannelId);
+    if (!logChannel) {
+      logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
     }
-  }
 
-  //console.log("fetched post");
-  //console.log(existingPost);
+    if (logChannel?.type !== ChannelType.GuildText) return;
+    let existingPost = undefined;
+    const logMessageId = eventLogMessageCache.fetch(event.id);
+    if (logMessageId) {
+      existingPost = logChannel.messages.cache.get(logMessageId);
+      if (!existingPost) {
+        existingPost = await logChannel.messages
+          .fetch(logMessageId)
+          .catch((e) => {
+            if (
+              e instanceof DiscordAPIError &&
+              e.code === RESTJSONErrorCodes.UnknownMessage
+            ) {
+              return undefined;
+            }
+            throw e;
+          });
+      }
+    }
 
-  if (existingPost) {
-    //console.log("editing existing post...");
-    //console.log("event ended at: " + event.endedAt);
-    const { cont } = await logContainer(event);
-    const files = [];
-    if (event.thumbnailUrl === "attachment://image.jpg")
-      files.push(new AttachmentBuilder("./assets/image.jpg"));
-    files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
-    await existingPost.edit({
-      components: [cont],
-      files: files,
-      flags: MessageFlags.IsComponentsV2,
-      allowedMentions: { parse: [] },
-    });
-  } else {
-    const { cont } = await logContainer(event);
-    const files = [];
-    if (event.thumbnailUrl === "attachment://image.jpg")
-      files.push(new AttachmentBuilder("./assets/image.jpg"));
-    files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
-    const post = await logChannel.send({
-      components: [cont],
-      flags: MessageFlags.IsComponentsV2,
-      files: files,
-      allowedMentions: { parse: [] },
-    });
-    event.logMessageId = post.id;
-    //console.log("event log message id: " + event.logMessageId);
-    await event.save();
+    if (existingPost) {
+      const { cont } = await logContainer(event, init);
+      const files = [];
+      if (event.thumbnailUrl === "attachment://image.jpg")
+        files.push(new AttachmentBuilder("./assets/image.jpg"));
+      if (!init)
+        files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
+      await existingPost.edit({
+        components: [cont],
+        files: files,
+        flags: MessageFlags.IsComponentsV2,
+        allowedMentions: { parse: [] },
+      });
+      if (logMessageId) eventLogMessageCache.delete(logMessageId);
+    } else {
+      const { cont } = await logContainer(event, init);
+      const files = [];
+      if (event.thumbnailUrl === "attachment://image.jpg")
+        files.push(new AttachmentBuilder("./assets/image.jpg"));
+      if (!init)
+        files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
+      const post = await logChannel.send({
+        components: [cont],
+        flags: MessageFlags.IsComponentsV2,
+        files: files,
+        allowedMentions: { parse: [] },
+      });
+      eventLogMessageCache.push(post.id, event);
+    }
+  } catch (err) {
+    console.error(err);
   }
 }
 
@@ -100,65 +115,120 @@ export async function logScheduledEvent(event: IScheduledEvent) {
  *
  * @param event
  */
-async function logContainer(event: IScheduledEvent) {
+// rewrite this function
+async function logContainer(event: IEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
-  let attendees = wrapper.attendancePercentages();
-  const attendeesCount = wrapper.uniqueAttendees();
-  await wrapper.writeCsvDump();
-  //if attendees.length > 30 then replace inline list with text file
-  //todo: figure out how to generate text file
-  //todo: add some file output for attachments in this function; wire it up to the main log function
-  const attendeesStr =
-    attendees.length > 0 && attendees.length < 30
-      ? attendees
-          .map((usr) => {
-            return `\n- ${usr}`;
-          })
-          .toString()
-      : "";
+  let attendeesCount;
+  let attendeesStr;
+  console.log("building log container");
+  if (!init) {
+    const attendees = wrapper.attendancePercentages();
+    attendeesCount = wrapper.uniqueAttendees();
+    await wrapper.writeCsvDump();
+    //if attendees.length > 30 then replace inline list with text file
+    //todo: figure out how to generate text file
+    //todo: add some file output for attachments in this function; wire it up to the main log function
+    attendeesStr =
+      attendees.length > 0 && attendees.length < 30
+        ? attendees
+            .map((usr) => {
+              return `\n- ${usr}`;
+            })
+            .toString()
+        : "";
+  }
+  console.log("proceeding");
   const separator = new SeparatorBuilder()
     .setSpacing(SeparatorSpacingSize.Small)
     .setDivider(true);
-  return {
-    cont: new ContainerBuilder()
-      .setAccentColor(wrapper.statusColor())
-      .addSectionComponents(
-        new SectionBuilder()
-          .setThumbnailAccessory(
-            new ThumbnailBuilder().setURL(wrapper.thumbnail()),
-          )
-          .addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(
-              heading(wrapper.name(), HeadingLevel.Three),
+  if (init) {
+    return {
+      cont: new ContainerBuilder()
+        .setAccentColor(wrapper.statusColor())
+        .addSectionComponents(
+          new SectionBuilder()
+            .setThumbnailAccessory(
+              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                heading(wrapper.name(), HeadingLevel.Three),
+              ),
+              new TextDisplayBuilder().setContent(
+                "Date: " + wrapper.startDate(),
+              ),
+              new TextDisplayBuilder().setContent(`Time: N/A`),
             ),
-            new TextDisplayBuilder().setContent("Date: " + wrapper.startDate()),
-            new TextDisplayBuilder().setContent(
-              `Time: ${wrapper.startTime()} - ${wrapper.endTime()}`,
-            ),
+        )
+        .addSeparatorComponents(separator)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            "Description:\n" + wrapper.description(),
           ),
-      )
-      .addSeparatorComponents(separator)
-      .addTextDisplayComponents(
-        new TextDisplayBuilder().setContent(
-          "Description:\n" + wrapper.description(),
+          new TextDisplayBuilder().setContent("Attendees: N/A"),
+        )
+        .addSeparatorComponents(separator)
+        .addSectionComponents(
+          new SectionBuilder()
+            .setButtonAccessory(
+              new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel("Event Link")
+                .setURL(await wrapper.eventLink()),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                `N/A Minutes • N/A Attendees • ${wrapper.recurrence()}`,
+              ),
+            ),
         ),
-        new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
-      )
-      .addFileComponents(new FileBuilder().setURL("attachment://attendees.csv"))
-      .addSeparatorComponents(separator)
-      .addSectionComponents(
-        new SectionBuilder()
-          .setButtonAccessory(
-            new ButtonBuilder()
-              .setStyle(ButtonStyle.Link)
-              .setLabel("Event Link")
-              .setURL(wrapper.eventLink()),
-          )
-          .addTextDisplayComponents(
-            new TextDisplayBuilder().setContent(
-              `${wrapper.duration()} Minutes • ${attendeesCount} Attendees • ${wrapper.recurrence()}`,
+    };
+  } else {
+    return {
+      cont: new ContainerBuilder()
+        .setAccentColor(wrapper.statusColor())
+        .addSectionComponents(
+          new SectionBuilder()
+            .setThumbnailAccessory(
+              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                heading(wrapper.name(), HeadingLevel.Three),
+              ),
+              new TextDisplayBuilder().setContent(
+                "Date: " + wrapper.startDate(),
+              ),
+              new TextDisplayBuilder().setContent(
+                `Time: ${wrapper.startTime()} - ${wrapper.endTime()}`,
+              ),
             ),
+        )
+        .addSeparatorComponents(separator)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            "Description:\n" + wrapper.description(),
           ),
-      ),
-  };
+          new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
+        )
+        .addFileComponents(
+          new FileBuilder().setURL("attachment://attendees.csv"),
+        )
+        .addSeparatorComponents(separator)
+        .addSectionComponents(
+          new SectionBuilder()
+            .setButtonAccessory(
+              new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel("Event Link")
+                .setURL(await wrapper.eventLink()),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                `${wrapper.duration()} Minutes • ${attendeesCount} Attendees • ${wrapper.recurrence()}`,
+              ),
+            ),
+        ),
+    };
+  }
 }
