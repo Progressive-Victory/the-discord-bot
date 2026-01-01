@@ -37,7 +37,6 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
     const guild: Guild = await client.guilds.fetch(process.env.PV_GUILD_ID);
 
     const url = Routes.getSettingValue("event_log_channel_id");
-    console.log(url);
 
     const res: Response = (await apiConnService.get(
       url,
@@ -120,7 +119,6 @@ async function logContainer(event: IEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendeesCount;
   let attendeesStr;
-  console.log("building log container");
   if (!init) {
     const attendees = wrapper.attendancePercentages();
     attendeesCount = wrapper.uniqueAttendees();
@@ -137,7 +135,6 @@ async function logContainer(event: IEvent, init: boolean) {
             .toString()
         : "";
   }
-  console.log("proceeding");
   const separator = new SeparatorBuilder()
     .setSpacing(SeparatorSpacingSize.Small)
     .setDivider(true);

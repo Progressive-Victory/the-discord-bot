@@ -16,9 +16,10 @@ import {
   TimestampStyles,
 } from "discord.js";
 
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import Event from "../../Classes/Event.js";
 import { welcomeButton, welcomeColors } from "../../features/welcome.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { footer } from "../../util/components.js";
 import { getGuildChannel } from "../../util/index.js";
 
@@ -37,10 +38,18 @@ export const guildMemberUpdate = new Event({
   execute: async (oldMember, newMember) => {
     if (oldMember.pending && oldMember.pending !== newMember.pending) {
       const { guild } = newMember;
-      const settings = await GuildSetting.findOne({ guildId: guild.id });
-      // check that Join channel ID is set
-      const joinChannelId = settings?.welcome.channelId;
-      if (!joinChannelId) return;
+      const res: Response = (await apiConnService.get(
+        Routes.getSettingValue("welcome_channel_id"),
+        undefined,
+        true,
+      )) as Response;
+      if (!res.ok)
+        throw Error(
+          `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+        );
+
+      const data = await res.json();
+      const joinChannelId = data[0];
 
       // check that Join channel exists in guild
       const joinChannel = await getGuildChannel(guild, joinChannelId);
@@ -89,11 +98,18 @@ export const guildMemberUpdate = new Event({
 
       if (oldMember.nickname !== newMember.nickname) {
         const { guild } = newMember;
-        const settings = await GuildSetting.findOne({ guildId: guild.id });
+        const res: Response = (await apiConnService.get(
+          Routes.getSettingValue("nickname_updates_log_channel_id"),
+          undefined,
+          true,
+        )) as Response;
+        if (!res.ok)
+          throw Error(
+            `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+          );
 
-        const nicknameUpdatesChannelId =
-          settings?.logging.nicknameUpdatesChannelId;
-        if (!nicknameUpdatesChannelId) return;
+        const data = await res.json();
+        const nicknameUpdatesChannelId = data[0];
 
         const nicknameLogChannel = await getGuildChannel(
           guild,

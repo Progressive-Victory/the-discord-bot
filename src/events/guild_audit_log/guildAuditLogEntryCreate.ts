@@ -5,9 +5,10 @@ import {
   GuildAuditLogsEntry,
   User,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import Event from "../../Classes/Event.js";
 import { timeoutEmbed } from "../../features/timeout.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { getGuildChannel } from "../../util/index.js";
 
 /**
@@ -18,9 +19,19 @@ export const guildAuditLogEntryCreate = new Event({
   name: Events.GuildAuditLogEntryCreate,
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
+    const res: Response = (await apiConnService.get(
+      Routes.getSettingValue("timeout_log_channel_id"),
+      undefined,
+      true,
+    )) as Response;
+    if (!res.ok)
+      throw Error(
+        `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+      );
+
+    const data = await res.json();
+    const timeoutChannelId = data[0];
     if (
-      settings?.logging.timeoutChannelId &&
       auditLogEntry.action == AuditLogEvent.MemberUpdate &&
       changes[0].key == "communication_disabled_until" &&
       target instanceof User &&
@@ -31,10 +42,7 @@ export const guildAuditLogEntryCreate = new Event({
 
       if (executorMember?.user.bot || !(targetMember && executorMember)) return;
 
-      const timeoutChannel = await getGuildChannel(
-        guild,
-        settings.logging.timeoutChannelId,
-      );
+      const timeoutChannel = await getGuildChannel(guild, timeoutChannelId);
 
       if (!timeoutChannel?.isSendable()) return;
 

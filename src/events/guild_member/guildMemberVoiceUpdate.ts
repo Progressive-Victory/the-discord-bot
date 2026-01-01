@@ -8,8 +8,9 @@ import {
   GuildScheduledEventStatus,
   inlineCode,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import Event from "../../Classes/Event.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { markAttendance } from "../../util/events/markAttendance.js";
 import { getGuildChannel } from "../../util/index.js";
 
@@ -98,10 +99,18 @@ export const guildMemberVoiceUpdate = new Event({
       }
     }
 
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
-    // check that logging channel ID is set
-    const loggingChannelId = settings?.logging.voiceUpdatesChannelId;
-    if (!loggingChannelId) return;
+    const res: Response = (await apiConnService.get(
+      Routes.getSettingValue("voice_updates_log_channel_id"),
+      undefined,
+      true,
+    )) as Response;
+    if (!res.ok)
+      throw Error(
+        `API threw exception: ${res.status} ${res.statusText}${res.body ? await res.text() : ""}`,
+      );
+
+    const data = await res.json();
+    const loggingChannelId = data[0];
 
     // check that logging channel exists in guild
     const loggingChannel = await getGuildChannel(guild, loggingChannelId);

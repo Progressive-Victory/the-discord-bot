@@ -59,8 +59,8 @@ export const guildScheduledEventUpdate = new Event({
             `API threw exception: ${res.status} ${res.statusText}\n${res.body ? await res.text() : ""}`,
           );
 
-        const eventId = ((await res.json()) as number[])[0];
-        myEvent.id = eventId;
+        const { id } = await res.json();
+        myEvent.id = id;
 
         const myWholeEvent: IEvent = z.parse(zEvent, myEvent);
 
