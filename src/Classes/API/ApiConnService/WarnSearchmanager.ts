@@ -58,7 +58,7 @@ export class WarnSearch {
   }
 
   async fetchPage() {
-    console.log(this.toQuery());
+    // console.log(this.toQuery());
     const page = (await this.client.get(Routes.discordWarns, {
       query: this.toQuery(),
     })) as APIWarnPage;
