@@ -24,4 +24,7 @@ export const Routes = {
   getAttendance(eventId: number): `/discord/events/${string}/attendance` {
     return `/discord/events/${eventId}/attendance`;
   },
+  updateSettingValue(name: string): `/settings/${string}` {
+    return `/settings/${name}`;
+  },
 };
