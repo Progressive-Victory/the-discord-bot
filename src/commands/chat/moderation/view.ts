@@ -2,11 +2,14 @@ import {
   APIMessageTopLevelComponent,
   ChatInputCommandInteraction,
   JSONEncodable,
-  MessageFlags
+  MessageFlags,
 } from "discord.js";
 import { Routes } from "../../../Classes/API/ApiConnService/routes.js";
 import { APIWarnPage } from "../../../Classes/API/ApiConnService/types.js";
-import { viewPageRow, warnContainer } from "../../../features/moderation/warn-render.js";
+import {
+  viewPageRow,
+  warnContainer,
+} from "../../../features/moderation/warn-render.js";
 import { apiConnService } from "../../../util/api/pvapi.js";
 
 export async function view(interaction: ChatInputCommandInteraction) {
@@ -36,7 +39,6 @@ export async function view(interaction: ChatInputCommandInteraction) {
       page.data.map((data) => warnContainer(interaction.client, data)),
     );
 
-  
   interaction.editReply({
     flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral,
     components: components.toReversed().concat(viewPageRow(page)),
