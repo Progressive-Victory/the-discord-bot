@@ -13,7 +13,6 @@ import {
 } from "discord.js";
 import { Types } from "mongoose";
 import { client } from "../index.js";
-import { DiscordAPIErrorCodes } from "./discord/DiscordAPIErrorCodes.js";
 
 /**
  * Check is full GuildMember object is present
@@ -67,7 +66,7 @@ export async function getMember(guild: Guild, member: GuildMemberResolvable) {
   } catch (error) {
     if (
       error instanceof DiscordAPIError &&
-      error.code === DiscordAPIErrorCodes.UnknownMember
+      error.code === RESTJSONErrorCodes.UnknownMember
     ) {
       return undefined;
     }
@@ -95,7 +94,7 @@ export async function getGuildChannel(
   } catch (error) {
     if (
       error instanceof DiscordAPIError &&
-      error.code === DiscordAPIErrorCodes.UnknownChannel
+      error.code === RESTJSONErrorCodes.UnknownChannel
     ) {
       return undefined;
     }
