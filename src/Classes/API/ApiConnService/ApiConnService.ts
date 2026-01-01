@@ -38,7 +38,10 @@ export class ApiConnService {
       .catch(console.error);
   }
 
-  async request(options: InternalRequest, rtrnRaw?: boolean): Promise<unknown> {
+  async request(
+    options: InternalRequest,
+    rtrnRaw?: boolean,
+  ): Promise<Response | unknown> {
     if (!this.jwt) throw Error("run auth function");
     // console.log(this.host, options.fullRoute, options.query?.toString());
     const url = new URL(this.host + options.fullRoute);
@@ -58,6 +61,8 @@ export class ApiConnService {
       options.attempt++;
       return this.request(options) as Promise<ResponseLike>;
     }
+
+    // console.log(res);
 
     return rtrnRaw ? res : parseResponse(res);
   }
