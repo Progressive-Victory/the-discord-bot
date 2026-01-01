@@ -6,13 +6,15 @@ import {
 } from "discord.js";
 import { Routes } from "../../../Classes/API/ApiConnService/routes.js";
 import { APIWarnPage } from "../../../Classes/API/ApiConnService/types.js";
-import {
-  viewPageRow
-} from "../../../features/moderation/warn-render.js";
+import { viewPageRow } from "../../../features/moderation/warn-render.js";
 import { apiConnService } from "../../../util/api/pvapi.js";
 
 export async function view(interaction: ChatInputCommandInteraction) {
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  await interaction.deferReply({
+    flags: MessageFlags.Ephemeral,
+    // withResponse: true,
+  });
+  if (!interaction.inCachedGuild()) return;
 
   const mod = interaction.options.getUser("moderator");
   const target = interaction.options.getUser("recipient");
