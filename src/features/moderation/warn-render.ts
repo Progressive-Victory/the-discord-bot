@@ -38,7 +38,7 @@ export async function warnContainer(
   warn: APIWarn,
   searchId: Snowflake,
 ) {
-  const guild = client.guilds.cache.get(process.env.GUILD_ID!)!;
+  const guild = client.guilds.cache.get(process.env.PV_GUILD_ID!)!;
   const record = new Warn(apiConnService, warn);
 
   // color of the container
@@ -144,7 +144,7 @@ export async function soloWarn(
   warn: APIWarn,
   client: Client,
 ) {
-  const guild = client.guilds.cache.get(process.env.GUILD_ID!)!;
+  const guild = client.guilds.cache.get(process.env.PV_GUILD_ID!)!;
   const record = new Warn(apiConnService, warn);
 
   // color of the container
