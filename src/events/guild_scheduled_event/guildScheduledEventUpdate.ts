@@ -34,16 +34,12 @@ export const guildScheduledEventUpdate = new Event({
         scheduledEndUtc: newEvent.scheduledEndAt ?? undefined,
       } satisfies Partial<IEvent>;
 
-      console.log(myEvent);
-
       // Event Started
       if (oldEvent.isScheduled() && newEvent.isActive()) {
         myEvent.startedAtUtc = new Date();
         myEvent.status = 2;
 
-        console.log("my event");
-        console.log(myEvent);
-        const res: Response = (await apiConnService.post(
+        const res: { id: number } = (await apiConnService.post(
           Routes.discordEvents,
           {
             headers: {
@@ -51,15 +47,9 @@ export const guildScheduledEventUpdate = new Event({
             },
             body: JSON.stringify(myEvent),
           },
-          true,
-        )) as Response;
+        )) as { id: number };
 
-        if (!res.ok)
-          throw Error(
-            `API threw exception: ${res.status} ${res.statusText}\n${res.body ? await res.text() : ""}`,
-          );
-
-        const { id } = await res.json();
+        const { id } = res;
         myEvent.id = id;
 
         const myWholeEvent: IEvent = z.parse(zEvent, myEvent);
@@ -77,20 +67,11 @@ export const guildScheduledEventUpdate = new Event({
 
       // Event Ended
       else if (oldEvent.isActive() && !newEvent.isActive()) {
-        const resGet: Response = (await apiConnService.get(
+        const resGet: { data: IEvent } = (await apiConnService.get(
           Routes.latestDiscordEventByDiscordId(newEvent.id),
-          undefined,
-          true,
-        )) as Response;
+        )) as { data: IEvent };
 
-        if (!resGet.ok)
-          throw Error(
-            `API threw exception: ${resGet.status} ${resGet.statusText}\n${resGet.body ? await resGet.text() : ""}`,
-          );
-
-        const raw = await resGet.json();
-
-        const data = raw[0];
+        const { data } = resGet;
 
         data.endedAtUtc = new Date();
         switch (newEvent.status) {
@@ -105,24 +86,14 @@ export const guildScheduledEventUpdate = new Event({
             break;
         }
 
-        console.log(data);
         const myWholeEvent = z.parse(zEvent, data);
 
-        const resPatch: Response = (await apiConnService.patch(
-          Routes.discordEventPatch(myWholeEvent.id),
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(myWholeEvent),
+        await apiConnService.patch(Routes.discordEventPatch(myWholeEvent.id), {
+          headers: {
+            "Content-Type": "application/json",
           },
-          true,
-        )) as Response;
-
-        if (!resPatch.ok)
-          throw Error(
-            `API threw exception: ${resPatch.status} ${resPatch.statusText}\n${resPatch.body ? await resPatch.text() : ""}`,
-          );
+          body: JSON.stringify(myWholeEvent),
+        });
 
         logScheduledEvent(myWholeEvent, false);
       }

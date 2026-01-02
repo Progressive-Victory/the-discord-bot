@@ -38,18 +38,11 @@ export const guildMemberUpdate = new Event({
   execute: async (oldMember, newMember) => {
     if (oldMember.pending && oldMember.pending !== newMember.pending) {
       const { guild } = newMember;
-      const res: Response = (await apiConnService.get(
+      const res: { data: string } = (await apiConnService.get(
         Routes.getSettingValue("welcome_channel_id"),
-        undefined,
-        true,
-      )) as Response;
-      if (!res.ok)
-        throw Error(
-          `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
-        );
+      )) as { data: string };
 
-      const data = await res.json();
-      const joinChannelId = data[0];
+      const joinChannelId = res.data;
 
       // check that Join channel exists in guild
       const joinChannel = await getGuildChannel(guild, joinChannelId);
@@ -98,18 +91,11 @@ export const guildMemberUpdate = new Event({
 
       if (oldMember.nickname !== newMember.nickname) {
         const { guild } = newMember;
-        const res: Response = (await apiConnService.get(
+        const res: { data: string } = (await apiConnService.get(
           Routes.getSettingValue("nickname_updates_log_channel_id"),
-          undefined,
-          true,
-        )) as Response;
-        if (!res.ok)
-          throw Error(
-            `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
-          );
+        )) as { data: string };
 
-        const data = await res.json();
-        const nicknameUpdatesChannelId = data[0];
+        const nicknameUpdatesChannelId = res.data;
 
         const nicknameLogChannel = await getGuildChannel(
           guild,

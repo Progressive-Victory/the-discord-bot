@@ -38,18 +38,11 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
 
     const url = Routes.getSettingValue("event_log_channel_id");
 
-    const res: Response = (await apiConnService.get(
-      url,
-      undefined,
-      true,
-    )) as Response;
+    const res: { data: string } = (await apiConnService.get(url)) as {
+      data: string;
+    };
 
-    if (!res.ok)
-      throw Error(
-        `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
-      );
-
-    const logChannelId = (await res.json())[0];
+    const logChannelId = res.data;
     if (!logChannelId) throw Error("Set the log channel id in the settings!");
     let logChannel = guild.channels.cache.get(logChannelId);
     if (!logChannel) {

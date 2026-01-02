@@ -140,18 +140,23 @@ export const settings = new ChatInputCommand({
           ChannelType.GuildText,
           ChannelType.PublicThread,
         ]);
-        const res: Response = (await apiConnService.patch(
-          Routes.updateSettingValue("welcome_channel_id"),
-          {
-            headers: {
-              "Content-Type": "application/json",
+
+        try {
+          await apiConnService.patch(
+            Routes.updateSettingValue("welcome_channel_id"),
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ value: channel.id }),
             },
-            body: JSON.stringify({ value: channel.id }),
-          },
-          true,
-        )) as Response;
-        if (res.ok) reply.content = `welcome channel set to ${channel}`;
-        else reply.content = `failed to modify welcome channel to ${channel}`;
+          );
+
+          reply.content = `welcome channel set to ${channel}`;
+        } catch (err) {
+          console.error(err);
+          reply.content = `failed to modify welcome channel to ${channel}`;
+        }
       }
 
       // else if (subCommand === 'role') {
@@ -173,21 +178,20 @@ export const settings = new ChatInputCommand({
         ChannelType.PublicThread,
       ]);
 
-      const res: Response = (await apiConnService.patch(
-        Routes.updateSettingValue(setting),
-        {
+      let msg;
+      try {
+        await apiConnService.patch(Routes.updateSettingValue(setting), {
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ value: channel.id }),
-        },
-        true,
-      )) as Response;
+        });
 
-      let msg;
-      if (res.ok) msg = `${inlineCode(setting)} has been updated to ${channel}`;
-      else
+        msg = `${inlineCode(setting)} has been updated to ${channel}`;
+      } catch (err) {
+        console.error(err);
         msg = `${inlineCode(setting)} has encountered an error and has not been updated to ${channel}`;
+      }
 
       interaction.reply({
         flags: MessageFlags.Ephemeral,

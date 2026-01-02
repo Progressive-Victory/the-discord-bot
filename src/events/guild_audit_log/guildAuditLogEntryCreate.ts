@@ -19,18 +19,11 @@ export const guildAuditLogEntryCreate = new Event({
   name: Events.GuildAuditLogEntryCreate,
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
-    const res: Response = (await apiConnService.get(
+    const res: { data: string } = (await apiConnService.get(
       Routes.getSettingValue("timeout_log_channel_id"),
-      undefined,
-      true,
-    )) as Response;
-    if (!res.ok)
-      throw Error(
-        `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
-      );
+    )) as { data: string };
 
-    const data = await res.json();
-    const timeoutChannelId = data[0];
+    const timeoutChannelId = res.data;
     if (
       auditLogEntry.action == AuditLogEvent.MemberUpdate &&
       changes[0].key == "communication_disabled_until" &&
