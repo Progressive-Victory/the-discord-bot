@@ -38,10 +38,7 @@ export class ApiConnService {
       .catch(console.error);
   }
 
-  async request(
-    options: InternalRequest,
-    rtrnRaw?: boolean,
-  ): Promise<Response | unknown> {
+  async request(options: InternalRequest): Promise<Response | unknown> {
     if (!this.jwt) throw Error("run auth function");
     // console.log(this.host, options.fullRoute, options.query?.toString());
     const url = new URL(this.host + options.fullRoute);
@@ -62,9 +59,12 @@ export class ApiConnService {
       return this.request(options) as Promise<ResponseLike>;
     }
 
-    // console.log(res);
+    if (!res.ok)
+      throw Error(
+        `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+      );
 
-    return rtrnRaw ? res : parseResponse(res);
+    return parseResponse(res);
   }
 
   /**
@@ -73,15 +73,8 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async get(
-    fullRoute: RouteLike,
-    options: RequestData = {},
-    rtrnRaw?: boolean,
-  ) {
-    return this.request(
-      { ...options, fullRoute, method: RequestMethod.Get },
-      rtrnRaw,
-    );
+  public async get(fullRoute: RouteLike, options: RequestData = {}) {
+    return this.request({ ...options, fullRoute, method: RequestMethod.Get });
   }
 
   /**
@@ -90,19 +83,12 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async delete(
-    fullRoute: RouteLike,
-    options: RequestData = {},
-    rtrnRaw?: boolean,
-  ) {
-    return this.request(
-      {
-        ...options,
-        fullRoute,
-        method: RequestMethod.Delete,
-      },
-      rtrnRaw,
-    );
+  public async delete(fullRoute: RouteLike, options: RequestData = {}) {
+    return this.request({
+      ...options,
+      fullRoute,
+      method: RequestMethod.Delete,
+    });
   }
 
   /**
@@ -111,15 +97,8 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async post(
-    fullRoute: RouteLike,
-    options: RequestData = {},
-    rtrnRaw?: boolean,
-  ) {
-    return this.request(
-      { ...options, fullRoute, method: RequestMethod.Post },
-      rtrnRaw,
-    );
+  public async post(fullRoute: RouteLike, options: RequestData = {}) {
+    return this.request({ ...options, fullRoute, method: RequestMethod.Post });
   }
 
   /**
@@ -138,14 +117,7 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async patch(
-    fullRoute: RouteLike,
-    options: RequestData = {},
-    rtrnRaw?: boolean,
-  ) {
-    return this.request(
-      { ...options, fullRoute, method: RequestMethod.Patch },
-      rtrnRaw,
-    );
+  public async patch(fullRoute: RouteLike, options: RequestData = {}) {
+    return this.request({ ...options, fullRoute, method: RequestMethod.Patch });
   }
 }

@@ -11,19 +11,11 @@ export async function markAttendance(
   preventRedundant: boolean = false,
 ) {
   try {
-    const resGet: Response = (await apiConnService.get(
+    const resGet: { data: IEvent } = (await apiConnService.get(
       Routes.latestDiscordEventByDiscordId(event.id),
-      undefined,
-      true,
-    )) as Response;
+    )) as { data: IEvent };
 
-    if (!resGet.ok)
-      throw Error(
-        `API threw exception: ${resGet.status} ${resGet.statusText}\n${resGet.body ? await resGet.text() : ""}`,
-      );
-
-    const raw = await resGet.json();
-    const data = raw[0] as IEvent;
+    const { data } = resGet;
 
     if (data.status !== 2)
       throw Error(`event with id: ${data.id} is not active`);
@@ -34,7 +26,7 @@ export async function markAttendance(
       isJoin,
     } satisfies Partial<IAttendee>;
 
-    const resPost: Response = (await apiConnService.post(
+    await apiConnService.post(
       Routes.discordEventAttendancePost(data.id, preventRedundant),
       {
         headers: {
@@ -42,13 +34,7 @@ export async function markAttendance(
         },
         body: JSON.stringify(myAttendee),
       },
-      true,
-    )) as Response;
-
-    if (!resPost.ok)
-      throw Error(
-        `API threw exception: ${resPost.status} ${resPost.statusText}\n${resPost.body ? await resPost.text() : ""}`,
-      );
+    );
   } catch (e) {
     console.error(e);
   }

@@ -99,18 +99,11 @@ export const guildMemberVoiceUpdate = new Event({
       }
     }
 
-    const res: Response = (await apiConnService.get(
+    const res: { data: string } = (await apiConnService.get(
       Routes.getSettingValue("voice_updates_log_channel_id"),
-      undefined,
-      true,
-    )) as Response;
-    if (!res.ok)
-      throw Error(
-        `API threw exception: ${res.status} ${res.statusText}${res.body ? await res.text() : ""}`,
-      );
+    )) as { data: string };
 
-    const data = await res.json();
-    const loggingChannelId = data[0];
+    const loggingChannelId = res.data;
 
     // check that logging channel exists in guild
     const loggingChannel = await getGuildChannel(guild, loggingChannelId);
