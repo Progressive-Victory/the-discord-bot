@@ -7,32 +7,23 @@ export const Routes = {
 
   discordEvents: "/discord/events" as const,
 
-  latestDiscordEventByDiscordId(
+  latestDiscordEvent(
     eventDiscordId: string,
   ): `/discord/events/latest/${string}` {
     return `/discord/events/latest/${eventDiscordId}`;
   },
 
-  discordEventPatch(id: number): `/discord/events/${string}` {
+  discordEvent(id: number): `/discord/events/${string}` {
     return `/discord/events/${id}`;
   },
 
-  discordEventAttendancePost(
+  discordEventAttendance(
     eventId: number,
-    preventRedundant: boolean,
-  ): `/discord/events/${string}/attendance?prevent_redundant=${string}` {
-    return `/discord/events/${eventId}/attendance?prevent_redundant=${preventRedundant}`;
-  },
-
-  getSettingValue(name: string): `/settings/${string}` {
-    return `/settings/${name}`;
-  },
-
-  getAttendance(eventId: number): `/discord/events/${string}/attendance` {
+  ): `/discord/events/${string}/attendance` {
     return `/discord/events/${eventId}/attendance`;
   },
 
-  updateSettingValue(name: string): `/settings/${string}` {
+  setting(name: string): `/settings/${string}` {
     return `/settings/${name}`;
   },
 

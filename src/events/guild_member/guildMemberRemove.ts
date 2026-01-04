@@ -28,7 +28,7 @@ export const GuildMemberRemove = new Event({
   execute: async (member) => {
     const { guild } = member;
     const res: { data: string } = (await apiConnService.get(
-      Routes.getSettingValue("leave_log_channel_id"),
+      Routes.setting("leave_log_channel_id"),
     )) as { data: string };
 
     const leaveChannelId = res.data;

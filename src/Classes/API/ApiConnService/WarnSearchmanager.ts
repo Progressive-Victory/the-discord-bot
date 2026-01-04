@@ -1,5 +1,6 @@
 import { DiscordSnowflake } from "@sapphire/snowflake";
 import { Collection, GuildMember, Snowflake } from "discord.js";
+import { Warn } from "../Warn.js";
 import { ApiConnService } from "./ApiConnService.js";
 import { Routes } from "./routes.js";
 import { APIWarn, APIWarnPage } from "./types.js";
@@ -15,6 +16,13 @@ export interface FetchWarnOptions {
   limit?: number;
   sort?: WarnSortOption;
   page?: number;
+}
+
+interface CreateWarnOptions {
+  moderatorId: Snowflake;
+  targetId: Snowflake;
+  reason: string;
+  expires: Date;
 }
 
 export class WarnSearch {
@@ -64,7 +72,7 @@ export class WarnSearch {
     })) as APIWarnPage;
 
     this.currentPageWarns.clear();
-
+    // console.log(this.toQuery(), page);
     page.data.forEach((warn) =>
       this.currentPageWarns.set(warn.id.toString(), warn),
     );
@@ -105,6 +113,7 @@ export class WarnSearchManager {
     this.sweep();
     return warn;
   }
+
   private async sweep() {
     this.cache.forEach((search) => {
       const now = new Date();
@@ -112,6 +121,31 @@ export class WarnSearchManager {
       if (search.lastQuery <= now) {
         this.cache.delete(search.id);
       }
+    });
+  }
+
+  async createWarn(options: CreateWarnOptions) {
+    const res = (await this.client.post(Routes.discordWarns, {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mod_discord_id: options.moderatorId,
+        tgt_discord_id: options.targetId,
+        reason: options.reason,
+        expires_at_utc: options.expires.toISOString(),
+      }),
+    })) as { id: number };
+
+    // console.log(res);
+
+    const now = new Date().toISOString();
+    return new Warn(this.client, {
+      id: res.id,
+      moderatorDiscordId: options.moderatorId,
+      userWarnedDiscordId: options.targetId,
+      reason: options.reason,
+      expiresAtUtc: options.expires.toISOString(),
+      createdAtUtc: now,
+      updatedAtUtc: now,
     });
   }
 }
