@@ -36,9 +36,11 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
       throw Error("Set 'PV_GUILD_ID' in the env file");
     const guild: Guild = await client.guilds.fetch(process.env.PV_GUILD_ID);
 
-    const url = Routes.getSettingValue("event_log_channel_id");
+    const setting = "event_log_channel_id";
 
-    const res: { data: string } = (await apiConnService.get(url)) as {
+    const res: { data: string } = (await apiConnService.get(
+      Routes.setting(setting),
+    )) as {
       data: string;
     };
 

@@ -51,7 +51,7 @@ export const warnPageButton = new Interaction<ButtonInteraction>({
     const searchId = args[1];
     await interaction.deferUpdate();
     const search = warnSearchManger.cache.get(searchId);
-    console.log(args);
+    // console.log(args);
     switch (args[2]) {
       case "l":
         await search?.fetchLastPage();

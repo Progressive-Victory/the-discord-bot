@@ -12,7 +12,7 @@ export async function markAttendance(
 ) {
   try {
     const resGet: { data: IEvent } = (await apiConnService.get(
-      Routes.latestDiscordEventByDiscordId(event.id),
+      Routes.latestDiscordEvent(event.id),
     )) as { data: IEvent };
 
     const { data } = resGet;
@@ -26,15 +26,16 @@ export async function markAttendance(
       isJoin,
     } satisfies Partial<IAttendee>;
 
-    await apiConnService.post(
-      Routes.discordEventAttendancePost(data.id, preventRedundant),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(myAttendee),
+    const query = new URLSearchParams();
+    query.set("prevent_redundant", preventRedundant.toString());
+
+    await apiConnService.post(Routes.discordEventAttendance(data.id), {
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      query,
+      body: JSON.stringify(myAttendee),
+    });
   } catch (e) {
     console.error(e);
   }

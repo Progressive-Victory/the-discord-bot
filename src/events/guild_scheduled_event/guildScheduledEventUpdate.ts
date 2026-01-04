@@ -68,7 +68,7 @@ export const guildScheduledEventUpdate = new Event({
       // Event Ended
       else if (oldEvent.isActive() && !newEvent.isActive()) {
         const resGet: { data: IEvent } = (await apiConnService.get(
-          Routes.latestDiscordEventByDiscordId(newEvent.id),
+          Routes.latestDiscordEvent(newEvent.id),
         )) as { data: IEvent };
 
         const { data } = resGet;
@@ -88,7 +88,7 @@ export const guildScheduledEventUpdate = new Event({
 
         const myWholeEvent = z.parse(zEvent, data);
 
-        await apiConnService.patch(Routes.discordEventPatch(myWholeEvent.id), {
+        await apiConnService.patch(Routes.discordEvent(myWholeEvent.id), {
           headers: {
             "Content-Type": "application/json",
           },

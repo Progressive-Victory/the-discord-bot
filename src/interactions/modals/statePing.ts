@@ -43,14 +43,16 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    let state
+    let state;
     try {
-      const { data }: { data: IDiscordStateRole } = (await apiConnService.get(Routes.discordStateRole(stateAbbreviation))) as { data: IDiscordStateRole }
-      state = data
+      const { data }: { data: IDiscordStateRole } = (await apiConnService.get(
+        Routes.discordStateRole(stateAbbreviation),
+      )) as { data: IDiscordStateRole };
+      state = data;
     } catch (err) {
-      console.error(err)
+      console.error(err);
       //@ts-expect-error can't type error args
-      return interaction.reply(err.message)
+      return interaction.reply(err.message);
     }
 
     const content = fields.getTextInputValue("message");

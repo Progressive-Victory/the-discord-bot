@@ -100,7 +100,7 @@ export const guildMemberVoiceUpdate = new Event({
     }
 
     const res: { data: string } = (await apiConnService.get(
-      Routes.getSettingValue("voice_updates_log_channel_id"),
+      Routes.setting("voice_updates_log_channel_id"),
     )) as { data: string };
 
     const loggingChannelId = res.data;

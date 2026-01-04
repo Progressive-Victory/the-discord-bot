@@ -6,14 +6,15 @@ import {
   Client,
   Colors,
   ContainerBuilder,
+  Guild,
   HeadingLevel,
   JSONEncodable,
   SeparatorSpacingSize,
   Snowflake,
   bold,
-  calculateUserDefaultAvatarIndex,
   heading,
   inlineCode,
+  resolveColor,
   subtext,
   time,
 } from "discord.js";
@@ -22,6 +23,7 @@ import { WarnSearch } from "../../Classes/API/ApiConnService/WarnSearchmanager.j
 import { Warn } from "../../Classes/API/Warn.js";
 import { apiConnService } from "../../util/api/pvapi.js";
 import { fetchMemberOrUser, getNameToDisplay } from "../../util/index.js";
+import { WarnEmbedColor } from "./types.js";
 
 export async function warnPage(client: Client, search: WarnSearch) {
   const components: JSONEncodable<APIMessageTopLevelComponent>[] =
@@ -61,19 +63,7 @@ export async function warnContainer(
       .setAccentColor(color)
       .addSectionComponents((top) =>
         top
-          .setThumbnailAccessory((pfp) =>
-            pfp.setURL(
-              guild.members.cache
-                .get(record.targetId)
-                ?.displayAvatarURL({ forceStatic: false }) ??
-                client.users.cache
-                  .get(record.targetId)
-                  ?.displayAvatarURL({ forceStatic: false }) ??
-                client.rest.cdn.defaultAvatar(
-                  calculateUserDefaultAvatarIndex(record.targetId),
-                ),
-            ),
-          )
+          .setThumbnailAccessory((pfp) => pfp.setURL(target.displayAvatarURL()))
           .addTextDisplayComponents((text) =>
             text.setContent(
               [
@@ -100,8 +90,7 @@ export async function warnContainer(
           .addTextDisplayComponents((text) =>
             text.setContent(
               [
-                `Last Updated: ${time(record.updatedAt)}`,
-                // `Discord Id:	${record.targetId}`,
+                `Last Updated: ${time(record.updatedAt)} | Warn Id: ${inlineCode(record.id.toString())}`,
               ]
                 .map(subtext)
                 .join("\n"),
@@ -160,19 +149,7 @@ export async function soloWarn(
     .setAccentColor(color)
     .addSectionComponents((top) =>
       top
-        .setThumbnailAccessory((pfp) =>
-          pfp.setURL(
-            guild.members.cache
-              .get(record.targetId)
-              ?.displayAvatarURL({ forceStatic: false }) ??
-              client.users.cache
-                .get(record.targetId)
-                ?.displayAvatarURL({ forceStatic: false }) ??
-              client.rest.cdn.defaultAvatar(
-                calculateUserDefaultAvatarIndex(record.targetId),
-              ),
-          ),
-        )
+        .setThumbnailAccessory((pfp) => pfp.setURL(target.displayAvatarURL()))
         .addTextDisplayComponents((text) =>
           text.setContent(
             [
@@ -197,8 +174,7 @@ export async function soloWarn(
     .addTextDisplayComponents((text) =>
       text.setContent(
         [
-          `Last Updated: ${time(record.updatedAt)}`,
-          // `Discord Id:	${record.targetId}`,
+          `Last Updated: ${time(record.updatedAt)} | Warn Id: ${inlineCode(record.id.toString())}`,
         ]
           .map(subtext)
           .join("\n"),
@@ -212,4 +188,91 @@ export async function soloWarn(
       .setStyle(ButtonStyle.Secondary),
   );
   return [container, row];
+}
+
+export function warnDMContainer(record: Warn) {
+  return new ContainerBuilder()
+    .setAccentColor(resolveColor(WarnEmbedColor.updated))
+    .addTextDisplayComponents((text) =>
+      text.setContent(
+        [
+          heading("You Have Received a Warning"),
+          heading("Reason", HeadingLevel.Three),
+          `${record.reason}`,
+        ].join("\n"),
+      ),
+    )
+    .addSeparatorComponents((line) =>
+      line.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addSectionComponents((footer) =>
+      footer
+        .addTextDisplayComponents((text) =>
+          text.setContent(
+            [`Issued At: ${time(record.createdAt)}`].map(subtext).join("\n"),
+          ),
+        )
+        .setButtonAccessory((button) =>
+          button
+            .setCustomId("vuw")
+            .setLabel("View Your Warns")
+            .setStyle(ButtonStyle.Secondary),
+        ),
+    );
+}
+
+export async function warnModContainer(
+  record: Warn,
+  guild: Guild,
+  receivedByUser: boolean,
+) {
+  // member or user of related to the action
+  const [target, moderator] = await Promise.all([
+    fetchMemberOrUser(record.targetId, guild),
+    fetchMemberOrUser(record.moderatorId, guild),
+  ]);
+  const topText = [
+    heading(`Member Warn`),
+    `${bold("Member")}:		${[target.toString(), inlineCode(getNameToDisplay(target))].join(" ")}`,
+    `${bold("Moderator")}:	${[moderator.toString(), inlineCode(getNameToDisplay(moderator))].join(" ")}`,
+  ];
+  if (receivedByUser) {
+    topText.splice(
+      1,
+      0,
+      subtext("Member did not receive DM of warn due to privacy settings"),
+    );
+  }
+
+  return new ContainerBuilder()
+    .setAccentColor(resolveColor(WarnEmbedColor.updated))
+    .addSectionComponents((top) =>
+      top
+        .setThumbnailAccessory((pfp) => pfp.setURL(target.displayAvatarURL()))
+        .addTextDisplayComponents((text) =>
+          text.setContent(topText.join("\n")),
+        ),
+    )
+    .addTextDisplayComponents((reason) =>
+      reason.setContent(
+        [heading("Reason", HeadingLevel.Three), record.reason].join("\n"),
+      ),
+    )
+    .addSeparatorComponents((line) =>
+      line.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
+    )
+    .addSectionComponents((footer) =>
+      footer
+        .addTextDisplayComponents((text) =>
+          text.setContent(
+            [`Issued At: ${time(record.createdAt)}`].map(subtext).join("\n"),
+          ),
+        )
+        .setButtonAccessory((button) =>
+          button
+            .setCustomId(`vuw_${target.id}`)
+            .setLabel("View Member Warns")
+            .setStyle(ButtonStyle.Secondary),
+        ),
+    );
 }
