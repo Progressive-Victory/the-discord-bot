@@ -38,10 +38,6 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
     const expires = new Date();
     expires.setHours(expires.getHours() + duration * 24);
 
-    const search = warnSearchManger.newSearch(member, {
-      targetId: targetMember.id,
-    });
-
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_res, newWarn, targetDM, logChannel] = await Promise.all([
       interaction.deferReply({ flags: MessageFlags.Ephemeral }),
@@ -64,7 +60,12 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
             "data" in u &&
             typeof u.data === "string"
           ) {
-            const channel = await interaction.guild.channels.fetch(u.data);
+            const channel = await interaction.guild.channels
+              .fetch(u.data)
+              .catch((e) => {
+                if (e instanceof DiscordAPIError) return null;
+                throw e;
+              });
             if (channel?.isSendable()) {
               return channel;
             }
@@ -72,7 +73,6 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
           return null;
         }),
     ]);
-    await search.fetchPage();
     let sentToUser: boolean = true;
     if (targetDM) {
       targetDM
@@ -98,6 +98,7 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
       message = await logChannel.send({
         flags: MessageFlags.IsComponentsV2,
         components: [modContainer],
+        allowedMentions: {},
       });
     }
 
@@ -117,6 +118,7 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
       await interaction.editReply({
         flags: MessageFlags.IsComponentsV2,
         components: [modContainer],
+        allowedMentions: {},
       });
     }
   },
