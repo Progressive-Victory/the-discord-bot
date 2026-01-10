@@ -142,7 +142,7 @@ export const settings = new ChatInputCommand({
         ]);
 
         try {
-          await apiConnService.patch(Routes.setting("welcome_channel_id"), {
+          await apiConnService.put(Routes.setting("welcome_channel_id"), {
             headers: {
               "Content-Type": "application/json",
             },
@@ -177,7 +177,7 @@ export const settings = new ChatInputCommand({
 
       let msg;
       try {
-        await apiConnService.patch(Routes.setting(setting), {
+        await apiConnService.put(Routes.setting(setting), {
           headers: {
             "Content-Type": "application/json",
           },

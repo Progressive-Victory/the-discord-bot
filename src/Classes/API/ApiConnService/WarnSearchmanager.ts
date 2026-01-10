@@ -1,5 +1,5 @@
 import { DiscordSnowflake } from "@sapphire/snowflake";
-import { Collection, GuildMember, Snowflake } from "discord.js";
+import { Collection, GuildMember, Snowflake, User } from "discord.js";
 import { Warn } from "../Warn.js";
 import { ApiConnService } from "./ApiConnService.js";
 import { Routes } from "./routes.js";
@@ -31,13 +31,14 @@ export class WarnSearch {
   private count: number | null = null;
   constructor(
     readonly id: Snowflake,
-    readonly member: GuildMember,
+    readonly searcher: GuildMember | User,
     readonly client: ApiConnService,
     private options: FetchWarnOptions,
   ) {}
 
   get guild() {
-    return this.member.guild;
+    if (this.searcher instanceof GuildMember) return this.searcher.guild;
+    return null;
   }
   get page() {
     return this.options.page;
@@ -106,7 +107,7 @@ export class WarnSearchManager {
 
   constructor(readonly client: ApiConnService) {}
 
-  newSearch(member: GuildMember, options: FetchWarnOptions) {
+  newSearch(member: GuildMember | User, options: FetchWarnOptions) {
     const id = DiscordSnowflake.generate().toString();
     const warn = new WarnSearch(id, member, this.client, options);
     this.cache.set(id, warn);

@@ -25,11 +25,11 @@ import { apiConnService } from "../../util/api/pvapi.js";
 import { fetchMemberOrUser, getNameToDisplay } from "../../util/index.js";
 import { WarnEmbedColor } from "./types.js";
 
-export async function warnPage(client: Client, search: WarnSearch) {
+export async function warnPage(search: WarnSearch) {
   const components: JSONEncodable<APIMessageTopLevelComponent>[] =
     await Promise.all(
       search.currentPageWarns.map((warn) =>
-        warnContainer(client, warn, search.id),
+        warnContainer(search.searcher.client, warn, search.id),
       ),
     );
   return components.toReversed().concat(viewPageRow(search));
@@ -90,7 +90,7 @@ export async function warnContainer(
           .addTextDisplayComponents((text) =>
             text.setContent(
               [
-                `Last Updated: ${time(record.updatedAt)} | Warn Id: ${inlineCode(record.id.toString())}`,
+                `Created At: ${time(record.createdAt)} | Warn Id: ${inlineCode(record.id.toString())}`,
               ]
                 .map(subtext)
                 .join("\n"),
@@ -205,19 +205,10 @@ export function warnDMContainer(record: Warn) {
     .addSeparatorComponents((line) =>
       line.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
     )
-    .addSectionComponents((footer) =>
-      footer
-        .addTextDisplayComponents((text) =>
-          text.setContent(
-            [`Issued At: ${time(record.createdAt)}`].map(subtext).join("\n"),
-          ),
-        )
-        .setButtonAccessory((button) =>
-          button
-            .setCustomId("vuw")
-            .setLabel("View Your Warns")
-            .setStyle(ButtonStyle.Secondary),
-        ),
+    .addTextDisplayComponents((footer) =>
+      footer.setContent(
+        [`Issued At: ${time(record.createdAt)}`].map(subtext).join("\n"),
+      ),
     );
 }
 
@@ -236,7 +227,7 @@ export async function warnModContainer(
     `${bold("Member")}:		${[target.toString(), inlineCode(getNameToDisplay(target))].join(" ")}`,
     `${bold("Moderator")}:	${[moderator.toString(), inlineCode(getNameToDisplay(moderator))].join(" ")}`,
   ];
-  if (receivedByUser) {
+  if (!receivedByUser) {
     topText.splice(
       1,
       0,
@@ -270,7 +261,7 @@ export async function warnModContainer(
         )
         .setButtonAccessory((button) =>
           button
-            .setCustomId(`vuw_${target.id}`)
+            .setCustomId(`vumw_${target.id}`)
             .setLabel("View Member Warns")
             .setStyle(ButtonStyle.Secondary),
         ),
