@@ -4,8 +4,8 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { ChatInputCommand } from "../../../Classes/index.js";
-import { WARN_MAX_CHAR } from "../../../features/moderation/index.js";
 // import { create } from "./create.js";
+import { create } from "./create.js";
 import { view } from "./view.js";
 
 /**
@@ -33,23 +33,7 @@ export const warn = new ChatInputCommand({
         .addUserOption((option) =>
           option
             .setName("member")
-            .setDescription("The member that will receive the warning")
-            .setRequired(true),
-        )
-        .addStringOption((option) =>
-          option
-            .setName("reason")
-            .setDescription("Add reason for the warning")
-            .setMaxLength(WARN_MAX_CHAR)
-            .setRequired(false),
-        )
-        .addIntegerOption((option) =>
-          option
-            .setName("duration")
-            .setDescription("Number of days, the warning till end of the warn")
-            .setMinValue(0)
-            .setMaxValue(999)
-            .setRequired(false),
+            .setDescription("The member that will receive the warning"),
         ),
     )
     .addSubcommand((subCommand) =>
@@ -100,7 +84,7 @@ export const warn = new ChatInputCommand({
 
     switch (subcommand) {
       case "create":
-        // create(interaction);
+        create(interaction);
         break;
       case "view":
         view(interaction);

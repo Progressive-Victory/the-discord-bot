@@ -39,7 +39,7 @@ export const guildMemberUpdate = new Event({
     if (oldMember.pending && oldMember.pending !== newMember.pending) {
       const { guild } = newMember;
       const res: { data: string } = (await apiConnService.get(
-        Routes.getSettingValue("welcome_channel_id"),
+        Routes.setting("welcome_channel_id"),
       )) as { data: string };
 
       const joinChannelId = res.data;
@@ -92,7 +92,7 @@ export const guildMemberUpdate = new Event({
       if (oldMember.nickname !== newMember.nickname) {
         const { guild } = newMember;
         const res: { data: string } = (await apiConnService.get(
-          Routes.getSettingValue("nickname_updates_log_channel_id"),
+          Routes.setting("nickname_updates_log_channel_id"),
         )) as { data: string };
 
         const nicknameUpdatesChannelId = res.data;

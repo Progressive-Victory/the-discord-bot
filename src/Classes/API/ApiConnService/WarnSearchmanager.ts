@@ -1,5 +1,6 @@
 import { DiscordSnowflake } from "@sapphire/snowflake";
-import { Collection, GuildMember, Snowflake } from "discord.js";
+import { Collection, GuildMember, Snowflake, User } from "discord.js";
+import { Warn } from "../Warn.js";
 import { ApiConnService } from "./ApiConnService.js";
 import { Routes } from "./routes.js";
 import { APIWarn, APIWarnPage } from "./types.js";
@@ -17,19 +18,27 @@ export interface FetchWarnOptions {
   page?: number;
 }
 
+interface CreateWarnOptions {
+  moderatorId: Snowflake;
+  targetId: Snowflake;
+  reason: string;
+  expires: Date;
+}
+
 export class WarnSearch {
   private lastRead = new Date();
   readonly currentPageWarns = new Collection<string, APIWarn>();
   private count: number | null = null;
   constructor(
     readonly id: Snowflake,
-    readonly member: GuildMember,
+    readonly searcher: GuildMember | User,
     readonly client: ApiConnService,
     private options: FetchWarnOptions,
   ) {}
 
   get guild() {
-    return this.member.guild;
+    if (this.searcher instanceof GuildMember) return this.searcher.guild;
+    return null;
   }
   get page() {
     return this.options.page;
@@ -64,7 +73,7 @@ export class WarnSearch {
     })) as APIWarnPage;
 
     this.currentPageWarns.clear();
-
+    // console.log(this.toQuery(), page);
     page.data.forEach((warn) =>
       this.currentPageWarns.set(warn.id.toString(), warn),
     );
@@ -98,13 +107,14 @@ export class WarnSearchManager {
 
   constructor(readonly client: ApiConnService) {}
 
-  newSearch(member: GuildMember, options: FetchWarnOptions) {
+  newSearch(member: GuildMember | User, options: FetchWarnOptions) {
     const id = DiscordSnowflake.generate().toString();
     const warn = new WarnSearch(id, member, this.client, options);
     this.cache.set(id, warn);
     this.sweep();
     return warn;
   }
+
   private async sweep() {
     this.cache.forEach((search) => {
       const now = new Date();
@@ -112,6 +122,31 @@ export class WarnSearchManager {
       if (search.lastQuery <= now) {
         this.cache.delete(search.id);
       }
+    });
+  }
+
+  async createWarn(options: CreateWarnOptions) {
+    const res = (await this.client.post(Routes.discordWarns, {
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mod_discord_id: options.moderatorId,
+        tgt_discord_id: options.targetId,
+        reason: options.reason,
+        expires_at_utc: options.expires.toISOString(),
+      }),
+    })) as { id: number };
+
+    // console.log(res);
+
+    const now = new Date().toISOString();
+    return new Warn(this.client, {
+      id: res.id,
+      moderatorDiscordId: options.moderatorId,
+      userWarnedDiscordId: options.targetId,
+      reason: options.reason,
+      expiresAtUtc: options.expires.toISOString(),
+      createdAtUtc: now,
+      updatedAtUtc: now,
     });
   }
 }

@@ -142,15 +142,12 @@ export const settings = new ChatInputCommand({
         ]);
 
         try {
-          await apiConnService.patch(
-            Routes.updateSettingValue("welcome_channel_id"),
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ value: channel.id }),
+          await apiConnService.put(Routes.setting("welcome_channel_id"), {
+            headers: {
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({ value: channel.id }),
+          });
 
           reply.content = `welcome channel set to ${channel}`;
         } catch (err) {
@@ -180,7 +177,7 @@ export const settings = new ChatInputCommand({
 
       let msg;
       try {
-        await apiConnService.patch(Routes.updateSettingValue(setting), {
+        await apiConnService.put(Routes.setting(setting), {
           headers: {
             "Content-Type": "application/json",
           },

@@ -20,7 +20,7 @@ export const guildAuditLogEntryCreate = new Event({
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
     const res: { data: string } = (await apiConnService.get(
-      Routes.getSettingValue("timeout_log_channel_id"),
+      Routes.setting("timeout_log_channel_id"),
     )) as { data: string };
 
     const timeoutChannelId = res.data;

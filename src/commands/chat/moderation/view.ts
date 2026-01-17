@@ -28,7 +28,7 @@ export async function view(interaction: ChatInputCommandInteraction) {
 
   await interaction.editReply({
     flags: MessageFlags.IsComponentsV2,
-    components: await warnPage(interaction.client, search),
+    components: await warnPage(search),
     allowedMentions: {},
   });
 }

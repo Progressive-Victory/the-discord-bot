@@ -1,4 +1,8 @@
-import { ButtonInteraction, TextDisplayBuilder } from "discord.js";
+import {
+  ButtonInteraction,
+  MessageFlags,
+  TextDisplayBuilder,
+} from "discord.js";
 import { Interaction } from "../../../Classes/index.js";
 import {
   soloWarn,
@@ -51,7 +55,7 @@ export const warnPageButton = new Interaction<ButtonInteraction>({
     const searchId = args[1];
     await interaction.deferUpdate();
     const search = warnSearchManger.cache.get(searchId);
-    console.log(args);
+    // console.log(args);
     switch (args[2]) {
       case "l":
         await search?.fetchLastPage();
@@ -64,7 +68,28 @@ export const warnPageButton = new Interaction<ButtonInteraction>({
     }
     // console.log(search?.currentPageWarns);
     await interaction.editReply({
-      components: await warnPage(interaction.client, search!),
+      components: await warnPage(search!),
+      allowedMentions: {},
+    });
+  },
+});
+
+export const viewUserWarns = new Interaction<ButtonInteraction>({
+  customIdPrefix: "vumw",
+  run: async (interaction) => {
+    if (!interaction.inCachedGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const args = interaction.customId.split(
+      interaction.client.splitCustomIdOn!,
+    );
+    const targetId = args[1];
+
+    const search = warnSearchManger.newSearch(interaction.member, { targetId });
+    await search.fetchPage();
+
+    await interaction.editReply({
+      flags: MessageFlags.IsComponentsV2,
+      components: await warnPage(search),
       allowedMentions: {},
     });
   },
