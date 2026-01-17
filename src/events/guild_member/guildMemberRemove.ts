@@ -13,8 +13,9 @@ import {
   ThumbnailBuilder,
   TimestampStyles,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import Event from "../../Classes/Event.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { footer } from "../../util/components.js";
 import { getGuildChannel } from "../../util/index.js";
 
@@ -26,11 +27,11 @@ export const GuildMemberRemove = new Event({
   name: Events.GuildMemberRemove,
   execute: async (member) => {
     const { guild } = member;
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
+    const res: { data: string } = (await apiConnService.get(
+      Routes.setting("leave_log_channel_id"),
+    )) as { data: string };
 
-    // check that leave channel ID is set
-    const leaveChannelId = settings?.logging.leaveChannelId;
-    if (!leaveChannelId) return;
+    const leaveChannelId = res.data;
 
     // check that Join channel exists in guild
     const leaveChannel = await getGuildChannel(guild, leaveChannelId);
