@@ -108,14 +108,16 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  let state
+  let state;
   try {
-    const { data }: { data: IDiscordStateRole } = (await apiConnService.get(Routes.discordStateRole(stateAbbreviation))) as { data: IDiscordStateRole }
-    state = data
+    const { data }: { data: IDiscordStateRole } = (await apiConnService.get(
+      Routes.discordStateRole(stateAbbreviation),
+    )) as { data: IDiscordStateRole };
+    state = data;
   } catch (err) {
-    console.error(err)
+    console.error(err);
     //@ts-expect-error error args can't be typed
-    return interaction.reply(err.message)
+    return interaction.reply(err.message);
   }
 
   // check to see if the person trying to use the command has the role being pinged
