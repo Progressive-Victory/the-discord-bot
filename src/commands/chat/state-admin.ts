@@ -108,7 +108,7 @@ export const stateAdmin = new ChatInputCommand()
     const name = stateNames.get(abbreviation)?.name;
 
     const updatePkg: Partial<IDiscordStateRole> =
-      {} as Partial<IDiscordStateRole>;
+      new Object() as Partial<IDiscordStateRole>;
 
     if (!role && !channel) {
       message.content = `No update made to ${name} settings`;
@@ -127,7 +127,7 @@ export const stateAdmin = new ChatInputCommand()
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ updatePkg }),
+        body: JSON.stringify(updatePkg),
       });
     } catch (err) {
       console.error(err);

@@ -43,12 +43,11 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    let state;
+    let state: IDiscordStateRole;
     try {
-      const { data }: { data: IDiscordStateRole } = (await apiConnService.get(
+      state = (await apiConnService.get(
         Routes.discordStateRole(stateAbbreviation),
-      )) as { data: IDiscordStateRole };
-      state = data;
+      )) as IDiscordStateRole;
     } catch (err) {
       console.error(err);
       //@ts-expect-error can't type error args
@@ -66,7 +65,7 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     if (legacyOption)
       stateMessageCreateOptions = legacyStateMessageCreate(
-        state.teamRoleId,
+        state.memberRoleId,
         user.id,
         content,
         title,
