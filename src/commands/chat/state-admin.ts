@@ -121,7 +121,7 @@ export const stateAdmin = new ChatInputCommand()
       if (channel?.id) updatePkg.memberChannelId = channel.id;
       message.content = `updated state for ${name} settings`;
     }
-    console.log(JSON.stringify(updatePkg));
+
     try {
       await apiConnService.patch(Routes.discordStateRole(abbreviation), {
         headers: {
