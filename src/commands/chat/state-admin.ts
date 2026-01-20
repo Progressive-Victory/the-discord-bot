@@ -108,7 +108,7 @@ export const stateAdmin = new ChatInputCommand()
     const name = stateNames.get(abbreviation)?.name;
 
     const updatePkg: Partial<IDiscordStateRole> =
-      {} as Partial<IDiscordStateRole>;
+      new Object() as Partial<IDiscordStateRole>;
 
     if (!role && !channel) {
       message.content = `No update made to ${name} settings`;
@@ -121,13 +121,13 @@ export const stateAdmin = new ChatInputCommand()
       if (channel?.id) updatePkg.memberChannelId = channel.id;
       message.content = `updated state for ${name} settings`;
     }
-
+    console.log(JSON.stringify(updatePkg));
     try {
       await apiConnService.patch(Routes.discordStateRole(abbreviation), {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ updatePkg }),
+        body: JSON.stringify(updatePkg),
       });
     } catch (err) {
       console.error(err);

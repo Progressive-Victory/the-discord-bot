@@ -7,6 +7,7 @@ import {
   Guild,
   GuildMember,
   heading,
+  LabelBuilder,
   Message,
   MessageCreateOptions,
   MessageFlags,
@@ -72,35 +73,36 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   const legacyOption = !(options.getBoolean("usecomponents") ?? false);
 
   if (!messageOption) {
-    const title = new TextInputBuilder()
+    const titleInput = new TextInputBuilder()
       .setCustomId("title")
-      .setLabel("Title")
       .setMaxLength(titleMaxLength)
       .setPlaceholder(`State Announcement`)
       .setRequired(true)
       .setStyle(TextInputStyle.Short);
 
-    if (titleOption) title.setValue(titleOption);
+    if (titleOption) titleInput.setValue(titleOption);
 
-    const message = new TextInputBuilder()
+    const messageInput = new TextInputBuilder()
       .setCustomId("message")
-      .setLabel("Message")
       .setPlaceholder(`Your message to state member`)
       .setMaxLength(messageMaxLength)
       .setRequired(true)
       .setStyle(TextInputStyle.Paragraph);
 
-    const titleRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
-      title,
-    );
-    const messageRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
-      message,
-    );
+    if (messageOption) messageInput.setValue(messageOption);
+
+    const titleLabel = new LabelBuilder()
+      .setLabel("Title")
+      .setTextInputComponent(titleInput);
+
+    const messageLabel = new LabelBuilder()
+      .setLabel("Message")
+      .setTextInputComponent(messageInput);
 
     const modal = new ModalBuilder()
       .setCustomId(AddSplitCustomId("sp", stateAbbreviation, legacyOption))
       .setTitle("State Ping Message")
-      .setComponents(titleRow, messageRow);
+      .addLabelComponents(titleLabel, messageLabel);
 
     await interaction.showModal(modal);
     return;
@@ -108,22 +110,32 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  let state;
+  let state: IDiscordStateRole | undefined = undefined;
+
   try {
-    const { data }: { data: IDiscordStateRole } = (await apiConnService.get(
+    state = (await apiConnService.get(
       Routes.discordStateRole(stateAbbreviation),
-    )) as { data: IDiscordStateRole };
-    state = data;
+    )) as IDiscordStateRole;
+
+    // console.log(state);
   } catch (err) {
     console.error(err);
-    //@ts-expect-error error args can't be typed
-    return interaction.reply(err.message);
+    if (
+      typeof err === "object" &&
+      err &&
+      "message" in err &&
+      typeof err.message === "string"
+    )
+      return interaction.reply(err.message);
   }
+
+  if (!state) return;
 
   // check to see if the person trying to use the command has the role being pinged
   if (!member.roles.cache.has(state.memberRoleId)) {
     await interaction.editReply({
-      content: `You are not allowed to run this command to ${state.stateName}`,
+      content: `You are missing the ${roleMention(state.memberRoleId)} state role.`,
+      allowedMentions: {},
     });
     return;
   }
