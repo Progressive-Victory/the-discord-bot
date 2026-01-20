@@ -10,9 +10,6 @@ import * as events from "./events/index.js";
 import * as buttons from "./interactions/buttons/index.js";
 import * as modals from "./interactions/modals/index.js";
 import * as selectMenus from "./interactions/select_menus/index.js";
-import dbConnect from "./util/libmongo.js";
-
-dbConnect();
 
 // Initialization (specify intents and partials)
 export const client = new Client({
