@@ -1,70 +1,13 @@
 import { ButtonBuilder, ButtonStyle, Guild, Snowflake } from "discord.js";
-import { HydratedDocument } from "mongoose";
-import { IWarn, WarningRecord } from "../../models/Warn.js";
-import { IWarnSearch } from "../../models/WarnSearch.js";
+import { APIWarn } from "../../Classes/API/ApiConnService/types.js";
 import { AddSplitCustomId } from "../../util/index.js";
-import { numberOfWarnEmbedsOnPage, WarnButtonsPrefixes } from "./types.js";
+import { WarnButtonsPrefixes } from "./types.js";
 
 /**
  * Create move left button for viewing warnings
  * @param searchRecord - Warning Search document
  * @returns ButtonBuilder for the move left button
  */
-export function leftButton(searchRecord: HydratedDocument<IWarnSearch>) {
-  return new ButtonBuilder()
-    .setCustomId(
-      AddSplitCustomId(WarnButtonsPrefixes.viewWarningsLeft, searchRecord.id),
-    )
-    .setEmoji("⬅️")
-    .setStyle(ButtonStyle.Secondary)
-    .setDisabled(searchRecord.pageStart === 0);
-}
-
-/**
- * Create move right button for viewing warnings
- * @param searchRecord - Warning Search document
- * @param records - Array of warn documents
- * @returns ButtonBuilder
- */
-export function rightButton(
-  searchRecord: HydratedDocument<IWarnSearch>,
-  records: HydratedDocument<IWarn>[],
-) {
-  // button is disabled if the start page plus the number of warn embeds on page is greater than the number of records
-  const isDisabled =
-    searchRecord.pageStart + numberOfWarnEmbedsOnPage >= records.length;
-  return new ButtonBuilder()
-    .setCustomId(
-      AddSplitCustomId(WarnButtonsPrefixes.viewWarningsRight, searchRecord.id),
-    )
-    .setEmoji("➡️")
-    .setStyle(ButtonStyle.Secondary)
-    .setDisabled(isDisabled);
-}
-
-/**
- * Creates button for viewing page number
- * @param searchRecord - warn search document
- * @param records - Array of warn documents
- * @returns ButtonBuilder
- */
-export function pageNumber(
-  searchRecord: HydratedDocument<IWarnSearch>,
-  records: HydratedDocument<IWarn>[],
-) {
-  const currentPage =
-    (searchRecord.pageStart + numberOfWarnEmbedsOnPage) /
-    numberOfWarnEmbedsOnPage;
-
-  // round up the record length divided by the number of warn embeds on page
-  const totalPages = Math.ceil(records.length / numberOfWarnEmbedsOnPage);
-
-  return new ButtonBuilder()
-    .setDisabled(true)
-    .setCustomId("Button does not use ID")
-    .setLabel(`${currentPage}/${totalPages}`)
-    .setStyle(ButtonStyle.Primary);
-}
 
 /**
  * Provide a button to allow mods to view the warn history of another guild member
@@ -107,7 +50,7 @@ function viewWarnHistory() {
  * @param record - the warning object witch to update
  * @returns {@link ButtonBuilder} object
  */
-export function warnUpdateFromIssue(record: WarningRecord) {
+export function warnUpdateFromIssue(record: APIWarn) {
   return updateWarn(record, WarnButtonsPrefixes.updateWarnById);
 }
 
@@ -116,7 +59,7 @@ export function warnUpdateFromIssue(record: WarningRecord) {
  * @param record - the warning object witch to update
  * @returns {@link ButtonBuilder} object
  */
-export function warnUpdateFromLog(record: WarningRecord) {
+export function warnUpdateFromLog(record: APIWarn) {
   return updateWarn(record, WarnButtonsPrefixes.updateWarnById);
 }
 
@@ -125,7 +68,7 @@ export function warnUpdateFromLog(record: WarningRecord) {
  * @param code - The {@link WarnButtonsPrefixes} denoting the type of update to perform
  * @returns a button used to trigger the event to update a user's warning
  */
-function updateWarn(record: WarningRecord, code: WarnButtonsPrefixes) {
+function updateWarn(record: APIWarn, code: WarnButtonsPrefixes) {
   return new ButtonBuilder()
     .setCustomId(AddSplitCustomId(code, record.id))
     .setEmoji("📝")
@@ -138,7 +81,7 @@ function updateWarn(record: WarningRecord, code: WarnButtonsPrefixes) {
  * @param record - record of the warning
  * @returns ButtonBuilder
  */
-export function appealWarn(record: WarningRecord) {
+export function appealWarn(record: APIWarn) {
   return new ButtonBuilder()
     .setCustomId(AddSplitCustomId(WarnButtonsPrefixes.appealWarn, record.id))
     .setLabel("Appeal")
@@ -164,7 +107,7 @@ export function appealDmSubmitted() {
  * @param record - The {@link WarningRecord} that contains the information of the warning to update
  * @returns a {@link ButtonBuilder} instance that can be used to construct an update-warn-by-ID button
  */
-export function updateWarnById(record: WarningRecord) {
+export function updateWarnById(record: APIWarn) {
   return new ButtonBuilder()
     .setCustomId(
       AddSplitCustomId(WarnButtonsPrefixes.updateWarnById, record.id),

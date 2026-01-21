@@ -99,11 +99,11 @@ export const guildMemberVoiceUpdate = new Event({
       }
     }
 
-    const res: { data: string } = (await apiConnService.get(
+    const res: string = (await apiConnService.get(
       Routes.setting("voice_updates_log_channel_id"),
-    )) as { data: string };
+    )) as string;
 
-    const loggingChannelId = res.data;
+    const loggingChannelId = res;
 
     // check that logging channel exists in guild
     const loggingChannel = await getGuildChannel(guild, loggingChannelId);

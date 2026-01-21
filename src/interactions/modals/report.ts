@@ -8,6 +8,7 @@ import {
   MessageFlags,
   ModalSubmitInteraction,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { Interaction } from "../../Classes/Interaction.js";
 import { getAuthorOptions } from "../../features/moderation/embeds.js";
 import {
@@ -15,7 +16,7 @@ import {
   reportModalPrefix,
   userReportColor,
 } from "../../features/report.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { getGuildChannel, getMember } from "../../util/index.js";
 
 /**
@@ -31,7 +32,7 @@ export const userReport = new Interaction<ModalSubmitInteraction>({
   run: async (interaction) => {
     if (!interaction.inGuild()) return;
 
-    const { guild, guildId, customId, client, member } = interaction;
+    const { guild, customId, client, member } = interaction;
 
     const targetId = customId.split(client.splitCustomIdOn!)[1];
     if (!guild) return;
@@ -45,15 +46,14 @@ export const userReport = new Interaction<ModalSubmitInteraction>({
         : await getMember(guild, member.user.id);
     if (!reporter) return;
 
-    const setting = await GuildSetting.findOne({ guildId });
+    const logChannelId = (await apiConnService.get(
+      Routes.setting("report_log_channel_id"),
+    )) as string;
 
     const comment = interaction.fields.getTextInputValue("comment");
 
-    if (setting?.report.logChannelId) {
-      const logChannel = await getGuildChannel(
-        guild,
-        setting.report.logChannelId,
-      );
+    if (logChannelId) {
+      const logChannel = await getGuildChannel(guild, logChannelId);
       if (!logChannel?.isSendable()) return;
       logChannel.send({
         embeds: [
@@ -90,7 +90,7 @@ export const messageReport = new Interaction<ModalSubmitInteraction>({
   run: async (interaction) => {
     if (!interaction.inGuild()) return;
 
-    const { guild, guildId, customId, client, member } = interaction;
+    const { guild, customId, client, member } = interaction;
 
     const channelId = customId.split(client.splitCustomIdOn!)[1];
     if (!guild) return;
@@ -117,15 +117,14 @@ export const messageReport = new Interaction<ModalSubmitInteraction>({
 
     if (!reporter) return;
 
-    const setting = await GuildSetting.findOne({ guildId });
+    const logChannelId = (await apiConnService.get(
+      Routes.setting("report_log_channel_id"),
+    )) as string;
 
     const comment = interaction.fields.getTextInputValue("comment");
 
-    if (setting?.report.logChannelId) {
-      const logChannel = await getGuildChannel(
-        guild,
-        setting.report.logChannelId,
-      );
+    if (logChannelId) {
+      const logChannel = await getGuildChannel(guild, logChannelId);
       if (!logChannel?.isSendable()) return;
       const embed = new EmbedBuilder()
         .setTitle("Message Report")

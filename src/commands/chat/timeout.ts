@@ -5,10 +5,11 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { ChatInputCommand } from "../../Classes/index.js";
 import { timeoutEmbed } from "../../features/timeout.js";
 import { localize } from "../../i18n.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { getGuildChannel, isGuildMember } from "../../util/index.js";
 
 export const ns = "timeout";
@@ -124,15 +125,12 @@ export const timeout = new ChatInputCommand()
       flags: MessageFlags.Ephemeral,
     });
 
-    const settings = await GuildSetting.findOne({
-      guildId: interaction.guild?.id,
-    });
-    if (!settings?.logging.timeoutChannelId || !guild) return;
+    const timeoutLogChannelId = (await apiConnService.get(
+      Routes.setting("timeout_log_channel_id"),
+    )) as string;
+    if (timeoutLogChannelId || !guild) return;
 
-    const timeoutChannel = await getGuildChannel(
-      guild,
-      settings.logging.timeoutChannelId,
-    );
+    const timeoutChannel = await getGuildChannel(guild, timeoutLogChannelId);
 
     if (!timeoutChannel?.isSendable() || !(member instanceof GuildMember))
       return;

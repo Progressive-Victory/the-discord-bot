@@ -38,13 +38,11 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
 
     const setting = "event_log_channel_id";
 
-    const res: { data: string } = (await apiConnService.get(
+    const res: string = (await apiConnService.get(
       Routes.setting(setting),
-    )) as {
-      data: string;
-    };
+    )) as string;
 
-    const logChannelId = res.data;
+    const logChannelId = res;
     if (!logChannelId) throw Error("Set the log channel id in the settings!");
     let logChannel = guild.channels.cache.get(logChannelId);
     if (!logChannel) {
