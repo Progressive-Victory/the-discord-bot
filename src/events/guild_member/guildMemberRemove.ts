@@ -27,11 +27,11 @@ export const GuildMemberRemove = new Event({
   name: Events.GuildMemberRemove,
   execute: async (member) => {
     const { guild } = member;
-    const res: { data: string } = (await apiConnService.get(
+    const res: string = (await apiConnService.get(
       Routes.setting("leave_log_channel_id"),
-    )) as { data: string };
+    )) as string;
 
-    const leaveChannelId = res.data;
+    const leaveChannelId = res;
 
     // check that Join channel exists in guild
     const leaveChannel = await getGuildChannel(guild, leaveChannelId);

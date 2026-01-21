@@ -11,7 +11,6 @@ import {
   Snowflake,
   User,
 } from "discord.js";
-import { Types } from "mongoose";
 import { client } from "../index.js";
 
 /**
@@ -38,9 +37,7 @@ export function isRole(data: Role | APIRole | null): data is Role {
  * @param args - strings
  * @returns string with arguments separated by client.splitCustomIdOn
  */
-export function AddSplitCustomId(
-  ...args: (string | number | boolean | Types.ObjectId)[]
-) {
+export function AddSplitCustomId(...args: (string | number | boolean)[]) {
   if (!client.splitCustomIdOn) {
     throw Error("client.splitCustomIdOn not set in index");
   }

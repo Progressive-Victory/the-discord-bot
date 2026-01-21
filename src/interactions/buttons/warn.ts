@@ -1,4 +1,4 @@
-import {
+/*import {
   ActionRow,
   ActionRowBuilder,
   ButtonBuilder,
@@ -16,10 +16,10 @@ import {
   WarnModalPrefixes,
 } from "../../features/moderation/types.js";
 import { warnSearch } from "../../features/moderation/warnSearch.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { Warn } from "../../models/Warn.js";
-import { WarningSearch } from "../../models/WarnSearch.js";
 import { AddSplitCustomId, getGuildChannel } from "../../util/index.js";
+import { apiConnService } from "../../util/api/pvapi.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
+import { APIWarn } from "../../Classes/API/ApiConnService/types.js";
 
 // button to move warn view left
 export const warnViewLeft = new Interaction<ButtonInteraction>({
@@ -58,7 +58,7 @@ export const updateById = new Interaction<ButtonInteraction>({
     const warnId = customId.split(client.splitCustomIdOn!)[1];
 
     // check that warning exists
-    const record = await Warn.findById(warnId);
+    const record = await apiConnService.get(Routes.discordWarn(warnId)) as APIWarn
     if (!record) {
       interaction.update({
         content: "Warning does not exist",
@@ -71,7 +71,7 @@ export const updateById = new Interaction<ButtonInteraction>({
       AddSplitCustomId(WarnModalPrefixes.updateById, warnId),
       "Update Warning",
       record.reason,
-      dateDiffInDays(new Date(), record.expireAt),
+      dateDiffInDays(new Date(), new Date(record.expiresAtUtc)),
     );
 
     interaction.showModal(modal);
@@ -161,4 +161,4 @@ export const banAppeal = new Interaction<ButtonInteraction>({
       components: [actionRow],
     });
   },
-});
+});*/

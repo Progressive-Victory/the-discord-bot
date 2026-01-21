@@ -8,11 +8,12 @@ import {
   GuildMember,
   ImageURLOptions,
   inlineCode,
+  Snowflake,
   TimestampStyles,
   User,
 } from "discord.js";
+import { APIWarn } from "../../Classes/API/ApiConnService/types.js";
 import { client } from "../../index.js";
-import { WarningRecord } from "../../models/Warn.js";
 import { getMember } from "../../util/index.js";
 import { numberOfWarnEmbedsOnPage, WarnEmbedColor } from "./types.js";
 
@@ -24,7 +25,7 @@ import { numberOfWarnEmbedsOnPage, WarnEmbedColor } from "./types.js";
  * @returns the created new warning {@link EmbedBuilder}
  */
 export function newWarnModEmbed(
-  record: WarningRecord,
+  record: APIWarn,
   moderator: GuildMember,
   target: GuildMember,
 ) {
@@ -51,7 +52,7 @@ export function newWarnModEmbed(
  * @returns the created warning update {@link EmbedBuilder}
  */
 export function warnLogUpdateEmbed(
-  record: WarningRecord,
+  record: APIWarn,
   moderator: GuildMember,
   target: GuildMember,
   updater: GuildMember,
@@ -80,10 +81,7 @@ export function warnLogUpdateEmbed(
  * @param target - the {@link GuildMember} to whom the warning was issued
  * @returns the created {@link EmbedBuilder}
  */
-export function warnIssueUpdateEmbed(
-  record: WarningRecord,
-  target: GuildMember,
-) {
+export function warnIssueUpdateEmbed(record: APIWarn, target: GuildMember) {
   const embed = new EmbedBuilder()
     .setTitle("Warning updated")
     .setColor(WarnEmbedColor.updated)
@@ -106,7 +104,7 @@ export function warnIssueUpdateEmbed(
  * @returns the created {@link EmbedBuilder}
  */
 export function newWarningDmEmbed(
-  record: WarningRecord,
+  record: APIWarn,
   count: number,
   guild: Guild,
 ) {
@@ -131,7 +129,7 @@ export function newWarningDmEmbed(
  * @returns an {@link EmbedBuilder} that acts as a notification that the warning was created
  */
 export function newWarningLogEmbed(
-  record: WarningRecord,
+  record: APIWarn,
   moderator: GuildMember,
   target: GuildMember,
 ) {
@@ -147,7 +145,7 @@ export function newWarningLogEmbed(
       expireAtField(record),
     )
     .setFooter(documentIdFooter(record))
-    .setTimestamp(record.createdAt);
+    .setTimestamp(new Date(record.createdAtUtc));
   return embed;
 }
 
@@ -159,7 +157,8 @@ export function newWarningLogEmbed(
  * @returns Array of EmbedBuilders
  */
 export async function viewWarningEmbeds(
-  records: WarningRecord[],
+  guildId: Snowflake,
+  records: APIWarn[],
   isMod: boolean,
   start: number = 0,
 ) {
@@ -177,12 +176,12 @@ export async function viewWarningEmbeds(
 
     // Embed color based on the status of the warning
     const color =
-      record.expireAt > new Date()
+      new Date(record.expiresAtUtc) > new Date()
         ? WarnEmbedColor.Active
         : WarnEmbedColor.Inactive;
 
     // Render embed
-    const embed = await viewWarningEmbed(record, isMod, color);
+    const embed = await viewWarningEmbed(guildId, record, isMod, color);
 
     // If embed is undefined is is not added to the embeds array
     if (!embed) continue;
@@ -200,14 +199,15 @@ export async function viewWarningEmbeds(
  * @returns EmbedBuilder or undefined
  */
 export async function viewWarningEmbed(
-  record: WarningRecord,
+  guildId: Snowflake,
+  record: APIWarn,
   isMod: boolean,
   embedColor: ColorResolvable = WarnEmbedColor.updated,
 ) {
   // Get guild from cache or fetch
   const guild =
-    client.guilds.cache.get(record.guildId) ??
-    (await client.guilds.fetch(record.guildId).catch(console.error));
+    client.guilds.cache.get(guildId) ??
+    (await client.guilds.fetch(guildId).catch(console.error));
   if (!guild) return;
 
   const embed = new EmbedBuilder()
@@ -216,16 +216,16 @@ export async function viewWarningEmbed(
     .setFooter(documentIdFooter(record));
   if (isMod) {
     // Get target from cache or fetch
-    const target = await getMember(guild, record.target.discordId);
+    const target = await getMember(guild, record.userWarnedDiscordId);
 
     // Get moderator from cache or fetch
-    const moderator = await getMember(guild, record.moderator.discordId);
+    const moderator = await getMember(guild, record.moderatorDiscordId);
 
     const targetFieldName = "Member";
 
     // Check if target present if target is not present uses username from warning document
     if (!target)
-      embed.addFields(userField(targetFieldName, record.target.username));
+      embed.addFields(userField(targetFieldName, record.userWarnedDiscordId));
     // if target is present use GuildMember for username and avatar
     else
       embed
@@ -237,25 +237,14 @@ export async function viewWarningEmbed(
 
     // Check if target present if moderator is not present uses username from warning document
     if (!moderator)
-      embed.addFields(userField(moderatorFieldName, record.moderator.username));
+      embed.addFields(userField(moderatorFieldName, record.moderatorDiscordId));
     // if moderator is present use GuildMember for username
     else embed.addFields(userField(moderatorFieldName, moderator.user));
-
-    // Check if warning document updater fields present
-    if (record.updater?.discordId && record.updater?.username) {
-      // Get updater from cache or fetch
-      const updater = await getMember(guild, record.updater.discordId);
-      const updaterFieldName = "Last Updated By";
-
-      // If updater is present add felid to embed
-      if (updater) embed.addFields(userField(updaterFieldName, updater.user));
-      else
-        embed.addFields(userField(updaterFieldName, record.updater.username));
-    }
-    embed.addFields(expireAtField(record)).setTimestamp(record.createdAt);
-  } else {
-    embed.setTimestamp(record.createdAt);
   }
+  embed
+    .addFields(expireAtField(record))
+    .setTimestamp(new Date(record.createdAtUtc));
+  embed.setTimestamp(new Date(record.createdAtUtc));
 
   return embed;
 }
@@ -265,7 +254,7 @@ export async function viewWarningEmbed(
  * @param record - Warning record
  * @returns footer option
  */
-export function documentIdFooter(record: WarningRecord): EmbedFooterOptions {
+export function documentIdFooter(record: APIWarn): EmbedFooterOptions {
   return { text: `Warn ID: ${record.id}` };
 }
 
@@ -275,12 +264,12 @@ export function documentIdFooter(record: WarningRecord): EmbedFooterOptions {
  * @returns an embed field showing the time until a warning expires
  */
 export function expireAtField(
-  record: WarningRecord,
+  record: APIWarn,
   inline: boolean = false,
 ): APIEmbedField {
   return {
     name: "Remaining Time",
-    value: `Expire ${record.expireAt.toDiscordString(TimestampStyles.RelativeTime)} On ${record.expireAt.toDiscordString(TimestampStyles.LongDate)}`,
+    value: `Expire ${new Date(record.expiresAtUtc).toDiscordString(TimestampStyles.RelativeTime)} On ${new Date(record.expiresAtUtc).toDiscordString(TimestampStyles.LongDate)}`,
     inline,
   };
 }

@@ -38,11 +38,11 @@ export const guildMemberUpdate = new Event({
   execute: async (oldMember, newMember) => {
     if (oldMember.pending && oldMember.pending !== newMember.pending) {
       const { guild } = newMember;
-      const res: { data: string } = (await apiConnService.get(
+      const res: string = (await apiConnService.get(
         Routes.setting("welcome_channel_id"),
-      )) as { data: string };
+      )) as string;
 
-      const joinChannelId = res.data;
+      const joinChannelId = res;
 
       // check that Join channel exists in guild
       const joinChannel = await getGuildChannel(guild, joinChannelId);
@@ -91,11 +91,11 @@ export const guildMemberUpdate = new Event({
 
       if (oldMember.nickname !== newMember.nickname) {
         const { guild } = newMember;
-        const res: { data: string } = (await apiConnService.get(
+        const res: string = (await apiConnService.get(
           Routes.setting("nickname_updates_log_channel_id"),
-        )) as { data: string };
+        )) as string;
 
-        const nicknameUpdatesChannelId = res.data;
+        const nicknameUpdatesChannelId = res;
 
         const nicknameLogChannel = await getGuildChannel(
           guild,

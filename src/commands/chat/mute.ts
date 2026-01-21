@@ -15,8 +15,9 @@ import {
   time,
   TimestampStyles,
 } from "discord.js";
+import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { ChatInputCommand } from "../../Classes/index.js";
-import { GuildSetting } from "../../models/Setting.js";
+import { apiConnService } from "../../util/api/pvapi.js";
 import { getGuildChannel } from "../../util/index.js";
 
 const MUTE_COLOR = 0x7c018c;
@@ -144,15 +145,15 @@ async function logMessage(
   reason: string,
 ) {
   // check if log channel is set
-  const settings = await GuildSetting.findOne({
-    guildId: targetMember.guild.id,
-  });
-  if (!settings?.logging.timeoutChannelId) return;
+  const timeoutLogChannelId = (await apiConnService.get(
+    Routes.setting("timeout_log_channel_id"),
+  )) as string;
+  if (timeoutLogChannelId) return;
 
   // check that channel is real
   const timeoutChannel = await getGuildChannel(
     targetMember.guild,
-    settings.logging.timeoutChannelId,
+    timeoutLogChannelId,
   );
   if (!timeoutChannel?.isSendable()) return;
 
