@@ -131,6 +131,10 @@ Admin tools for managing the server structure for states. This command has two s
 
 Moderation tool to mute a user for a specified duration.
 
+### ban
+
+This command allows admins to ban users while also logging the action and provided reason.
+
 ### Context Menus
 
 Context menus provide actions that can be taken on users and messages.
