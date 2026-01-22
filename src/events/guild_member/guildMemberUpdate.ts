@@ -16,6 +16,10 @@ import {
   TimestampStyles,
 } from "discord.js";
 
+import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse.js";
 import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import Event from "../../Classes/Event.js";
 import { welcomeButton, welcomeColors } from "../../features/welcome.js";
@@ -38,11 +42,12 @@ export const guildMemberUpdate = new Event({
   execute: async (oldMember, newMember) => {
     if (oldMember.pending && oldMember.pending !== newMember.pending) {
       const { guild } = newMember;
-      const res: string = (await apiConnService.get(
+      const res = await apiConnService.get<SettingsResponse>(
         Routes.setting("welcome_channel_id"),
-      )) as string;
+        zSettingsResponse,
+      );
 
-      const joinChannelId = res;
+      const joinChannelId = res.data;
 
       // check that Join channel exists in guild
       const joinChannel = await getGuildChannel(guild, joinChannelId);
@@ -91,11 +96,12 @@ export const guildMemberUpdate = new Event({
 
       if (oldMember.nickname !== newMember.nickname) {
         const { guild } = newMember;
-        const res: string = (await apiConnService.get(
+        const res = await apiConnService.get<SettingsResponse>(
           Routes.setting("nickname_updates_log_channel_id"),
-        )) as string;
+          zSettingsResponse,
+        );
 
-        const nicknameUpdatesChannelId = res;
+        const nicknameUpdatesChannelId = res.data;
 
         const nicknameLogChannel = await getGuildChannel(
           guild,

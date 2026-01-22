@@ -1,9 +1,10 @@
 import { DiscordSnowflake } from "@sapphire/snowflake";
 import { Collection, GuildMember, Snowflake, User } from "discord.js";
+import z from "zod";
 import { Warn } from "../Warn.js";
 import { ApiConnService } from "./ApiConnService.js";
 import { Routes } from "./routes.js";
-import { APIWarn, APIWarnPage } from "./types.js";
+import { APIWarn, APIWarnPage, zAPIWarnPage } from "./types.js";
 
 export enum WarnSortOption {
   Descending = "desc",
@@ -68,9 +69,13 @@ export class WarnSearch {
 
   async fetchPage() {
     // console.log(this.toQuery());
-    const page = (await this.client.get(Routes.discordWarns, {
-      query: this.toQuery(),
-    })) as APIWarnPage;
+    const page = await this.client.get<APIWarnPage>(
+      Routes.discordWarns,
+      zAPIWarnPage,
+      {
+        query: this.toQuery(),
+      },
+    );
 
     this.currentPageWarns.clear();
     // console.log(this.toQuery(), page);
@@ -126,21 +131,25 @@ export class WarnSearchManager {
   }
 
   async createWarn(options: CreateWarnOptions) {
-    const res = (await this.client.post(Routes.discordWarns, {
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mod_discord_id: options.moderatorId,
-        tgt_discord_id: options.targetId,
-        reason: options.reason,
-        expires_at_utc: options.expires.toISOString(),
-      }),
-    })) as { id: number };
+    const id = await this.client.post<number>(
+      Routes.discordWarns,
+      {
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mod_discord_id: options.moderatorId,
+          tgt_discord_id: options.targetId,
+          reason: options.reason,
+          expires_at_utc: options.expires.toISOString(),
+        }),
+      },
+      z.number(),
+    );
 
     // console.log(res);
 
     const now = new Date().toISOString();
     return new Warn(this.client, {
-      id: res.id,
+      id,
       moderatorDiscordId: options.moderatorId,
       userWarnedDiscordId: options.targetId,
       reason: options.reason,

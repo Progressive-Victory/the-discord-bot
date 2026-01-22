@@ -1,4 +1,8 @@
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse.js";
+import {
   AuditLogEvent,
   Events,
   Guild,
@@ -19,11 +23,12 @@ export const guildAuditLogEntryCreate = new Event({
   name: Events.GuildAuditLogEntryCreate,
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
-    const res: string = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("timeout_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
-    const timeoutChannelId = res;
+    const timeoutChannelId = res.data;
     if (
       auditLogEntry.action == AuditLogEvent.MemberUpdate &&
       changes[0].key == "communication_disabled_until" &&

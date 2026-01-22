@@ -1,4 +1,8 @@
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse.js";
+import {
   ContainerBuilder,
   EmbedBuilder,
   Guild,
@@ -105,6 +109,12 @@ export const mute = new ChatInputCommand({
       mutingMember = await guild.members.fetch(interaction.user);
     }
 
+    if (!targetMember.voice.channel)
+      return interaction.reply({
+        flags: MessageFlags.Ephemeral,
+        content: "User is not in a vc.",
+      });
+
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
     const reason = interaction.options.getString("reason", true);
@@ -145,9 +155,12 @@ async function logMessage(
   reason: string,
 ) {
   // check if log channel is set
-  const timeoutLogChannelId = (await apiConnService.get(
+  const res = await apiConnService.get<SettingsResponse>(
     Routes.setting("timeout_log_channel_id"),
-  )) as string;
+    zSettingsResponse,
+  );
+
+  const timeoutLogChannelId = res.data;
   if (timeoutLogChannelId) return;
 
   // check that channel is real

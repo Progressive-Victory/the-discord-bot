@@ -39,7 +39,7 @@ export const guildScheduledEventUpdate = new Event({
         myEvent.startedAtUtc = new Date();
         myEvent.status = 2;
 
-        const res: { id: number } = (await apiConnService.post(
+        const id: number = await apiConnService.post<number>(
           Routes.discordEvents,
           {
             headers: {
@@ -47,9 +47,9 @@ export const guildScheduledEventUpdate = new Event({
             },
             body: JSON.stringify(myEvent),
           },
-        )) as { id: number };
+          z.number(),
+        );
 
-        const { id } = res;
         myEvent.id = id;
 
         const myWholeEvent: IEvent = z.parse(zEvent, myEvent);
@@ -67,11 +67,10 @@ export const guildScheduledEventUpdate = new Event({
 
       // Event Ended
       else if (oldEvent.isActive() && !newEvent.isActive()) {
-        const resGet: { data: IEvent } = (await apiConnService.get(
+        const data: IEvent = await apiConnService.get<IEvent>(
           Routes.latestDiscordEvent(newEvent.id),
-        )) as { data: IEvent };
-
-        const { data } = resGet;
+          zEvent,
+        );
 
         data.endedAtUtc = new Date();
         switch (newEvent.status) {

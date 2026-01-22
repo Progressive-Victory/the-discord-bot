@@ -12,7 +12,10 @@ import {
   statePingReply,
 } from "../../features/state/ping.js";
 import { apiConnService } from "../../util/api/pvapi.js";
-import { IDiscordStateRole } from "../../util/states/discordStateRole.js";
+import {
+  IDiscordStateRole,
+  zDiscordStateRole,
+} from "../../util/states/discordStateRole.js";
 import { isStateAbbreviations } from "../../util/states/types.js";
 
 /**
@@ -45,9 +48,10 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     let state: IDiscordStateRole;
     try {
-      state = (await apiConnService.get(
+      state = await apiConnService.get<IDiscordStateRole>(
         Routes.discordStateRole(stateAbbreviation),
-      )) as IDiscordStateRole;
+        zDiscordStateRole,
+      );
     } catch (err) {
       console.error(err);
       //@ts-expect-error can't type error args

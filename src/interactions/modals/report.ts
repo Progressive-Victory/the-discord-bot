@@ -1,4 +1,8 @@
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse.js";
+import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -46,10 +50,12 @@ export const userReport = new Interaction<ModalSubmitInteraction>({
         : await getMember(guild, member.user.id);
     if (!reporter) return;
 
-    const logChannelId = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("report_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
+    const logChannelId = res.data;
     const comment = interaction.fields.getTextInputValue("comment");
 
     if (logChannelId) {
@@ -117,10 +123,12 @@ export const messageReport = new Interaction<ModalSubmitInteraction>({
 
     if (!reporter) return;
 
-    const logChannelId = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("report_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
+    const logChannelId = res.data;
     const comment = interaction.fields.getTextInputValue("comment");
 
     if (logChannelId) {

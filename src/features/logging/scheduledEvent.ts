@@ -1,4 +1,8 @@
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse.js";
+import {
   AttachmentBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -38,11 +42,12 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
 
     const setting = "event_log_channel_id";
 
-    const res: string = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting(setting),
-    )) as string;
+      zSettingsResponse,
+    );
 
-    const logChannelId = res;
+    const logChannelId = res.data;
     if (!logChannelId) throw Error("Set the log channel id in the settings!");
     let logChannel = guild.channels.cache.get(logChannelId);
     if (!logChannel) {

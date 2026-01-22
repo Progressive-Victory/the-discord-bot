@@ -1,7 +1,7 @@
 import { GuildMember, GuildScheduledEvent } from "discord.js";
 import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { IAttendee } from "../../features/events/IAttendee.js";
-import { IEvent } from "../../features/events/IEvent.js";
+import { IEvent, zEvent } from "../../features/events/IEvent.js";
 import { apiConnService } from "../api/pvapi.js";
 
 export async function markAttendance(
@@ -11,11 +11,10 @@ export async function markAttendance(
   preventRedundant: boolean = false,
 ) {
   try {
-    const resGet: { data: IEvent } = (await apiConnService.get(
+    const data: IEvent = await apiConnService.get<IEvent>(
       Routes.latestDiscordEvent(event.id),
-    )) as { data: IEvent };
-
-    const { data } = resGet;
+      zEvent,
+    );
 
     if (data.status !== 2)
       throw Error(`event with id: ${data.id} is not active`);

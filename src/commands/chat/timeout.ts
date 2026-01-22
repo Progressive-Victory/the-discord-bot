@@ -1,4 +1,8 @@
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/src/contracts/responses/SettingsResponse.js";
+import {
   DiscordAPIError,
   Events,
   GuildMember,
@@ -134,9 +138,11 @@ export const timeout = new ChatInputCommand()
       }),
     });
 
-    const timeoutLogChannelId = (await apiConnService.get(
+    const timeoutLogChannelId = await apiConnService.get<SettingsResponse>(
       Routes.setting("timeout_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
+    console.log("api response", timeoutLogChannelId);
     if (timeoutLogChannelId || !guild) return;
 
     const timeoutChannel = await getGuildChannel(guild, timeoutLogChannelId);

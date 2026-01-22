@@ -1,4 +1,8 @@
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse.js";
+import {
   bold,
   Colors,
   ContainerBuilder,
@@ -27,11 +31,12 @@ export const GuildMemberRemove = new Event({
   name: Events.GuildMemberRemove,
   execute: async (member) => {
     const { guild } = member;
-    const res: string = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("leave_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
-    const leaveChannelId = res;
+    const leaveChannelId = res.data;
 
     // check that Join channel exists in guild
     const leaveChannel = await getGuildChannel(guild, leaveChannelId);

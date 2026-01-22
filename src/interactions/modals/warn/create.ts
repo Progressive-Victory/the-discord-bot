@@ -1,3 +1,4 @@
+import { SettingsResponse, zSettingsResponse } from "@/contracts/responses";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -52,23 +53,19 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
         throw e;
       }),
       apiConnService
-        .get(Routes.setting("warn_log_channel_id"))
+        .get<SettingsResponse>(
+          Routes.setting("warn_log_channel_id"),
+          zSettingsResponse,
+        )
         .then(async (u) => {
-          if (
-            typeof u === "object" &&
-            u &&
-            "data" in u &&
-            typeof u.data === "string"
-          ) {
-            const channel = await interaction.guild.channels
-              .fetch(u.data)
-              .catch((e) => {
-                if (e instanceof DiscordAPIError) return null;
-                throw e;
-              });
-            if (channel?.isSendable()) {
-              return channel;
-            }
+          const channel = await interaction.guild.channels
+            .fetch(u.data)
+            .catch((e) => {
+              if (e instanceof DiscordAPIError) return null;
+              throw e;
+            });
+          if (channel?.isSendable()) {
+            return channel;
           }
           return null;
         }),
