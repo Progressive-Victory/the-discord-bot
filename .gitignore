@@ -114,4 +114,4 @@ package-lock.json
 docs/
 
 # Temp Folder
-temp/*
+assets/temp/*
