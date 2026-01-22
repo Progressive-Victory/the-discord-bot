@@ -127,7 +127,7 @@ export const timeout = new ChatInputCommand()
       return;
     }
 
-    interaction.editReply({
+    interaction.followUp({
       content: localize.t("reply_timeout", ns, locale, {
         member: target.toString(),
         endDate: durationText[duration.toString() as durationValue],
