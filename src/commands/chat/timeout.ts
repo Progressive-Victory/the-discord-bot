@@ -1,6 +1,8 @@
 import {
+  DiscordAPIError,
   Events,
   GuildMember,
+  inlineCode,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
@@ -111,18 +113,25 @@ export const timeout = new ChatInputCommand()
     const reason = options.getString("reason", false) ?? "No reason given";
     const duration = options.getNumber("duration", true);
     // const endNumber = Math.floor(new Date().getTime() / 1000) + duration;
+    interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    try {
+      target = await target.timeout(
+        duration * 1000,
+        `Member was timed out by ${user.username} for ${reason}`,
+      );
+    } catch (error) {
+      if (!(error instanceof DiscordAPIError)) throw error;
+      await interaction.editReply({
+        content: `Command could not be completed because: ${inlineCode(error.message)}`,
+      });
+      return;
+    }
 
-    target = await target.timeout(
-      duration * 1000,
-      `Member was timed out by ${user.username} for ${reason}`,
-    );
-
-    interaction.reply({
+    interaction.editReply({
       content: localize.t("reply_timeout", ns, locale, {
         member: target.toString(),
         endDate: durationText[duration.toString() as durationValue],
       }),
-      flags: MessageFlags.Ephemeral,
     });
 
     const timeoutLogChannelId = (await apiConnService.get(
