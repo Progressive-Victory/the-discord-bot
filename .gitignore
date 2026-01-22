@@ -112,3 +112,6 @@ package-lock.json
 
 # Documentation
 docs/
+
+# Temp Folder
+temp/*
