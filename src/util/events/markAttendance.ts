@@ -1,9 +1,6 @@
 import { Routes } from "@/Classes/API/ApiConnService/routes";
-import {
-  DiscordEvent,
-  DiscordEventAttendee,
-  zDiscordEvent,
-} from "@/contracts/data";
+import { DiscordEvent, zDiscordEvent } from "@/contracts/data";
+import { CreateDiscordEventAttendeeRequest } from "@/contracts/requests/CreateDiscordEventAttendeeRequest";
 import { GuildMember, GuildScheduledEvent } from "discord.js";
 import { apiConnService } from "../api/pvapi";
 
@@ -30,14 +27,14 @@ export async function markAttendance(
     if (Date.now() - data.startedAtUtc.getTime() < 5000)
       preventRedundant = true;
 
-    const myAttendee: Partial<DiscordEventAttendee> = {
+    const myAttendee: CreateDiscordEventAttendeeRequest = {
       userDiscordId: member.id,
       dateAttendedUtc: new Date(),
       isJoin,
-    } satisfies Partial<DiscordEventAttendee>;
+    };
 
     const query = new URLSearchParams();
-    query.set("prevent_redundant", preventRedundant.toString());
+    query.set("preventRedundant", preventRedundant.toString());
 
     await apiConnService.post(Routes.discordEventAttendance(data.id), {
       headers: {
