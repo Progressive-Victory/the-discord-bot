@@ -1,3 +1,8 @@
+import { APIWarn } from "@/Classes/API/ApiConnService";
+import { WarnSearch } from "@/Classes/API/ApiConnService/WarnSearchmanager";
+import { Warn } from "@/Classes/API/Warn";
+import { fetchMemberOrUser, getNameToDisplay } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   APIMessageTopLevelComponent,
   ActionRowBuilder,
@@ -18,12 +23,7 @@ import {
   subtext,
   time,
 } from "discord.js";
-import { APIWarn } from "../../Classes/API/ApiConnService/index.js";
-import { WarnSearch } from "../../Classes/API/ApiConnService/WarnSearchmanager.js";
-import { Warn } from "../../Classes/API/Warn.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { fetchMemberOrUser, getNameToDisplay } from "../../util/index.js";
-import { WarnEmbedColor } from "./types.js";
+import { WarnEmbedColor } from "./types";
 
 export async function warnPage(search: WarnSearch) {
   const components: JSONEncodable<APIMessageTopLevelComponent>[] =

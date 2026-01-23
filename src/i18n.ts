@@ -1,5 +1,5 @@
 import { Locale } from "discord.js";
-import { i18n } from "./Classes/index.js";
+import { i18n } from "./Classes";
 
 // Load locales
 // Note: setGlobalResource should always be set first

@@ -1,12 +1,12 @@
+import { ZodType } from "zod";
 import {
   ApiConnServiceOptions,
   InternalRequest,
   RequestData,
   RequestMethod,
-  ResponseLike,
   RouteLike,
-} from "./types.js";
-import { parseResponse } from "./utils.js";
+} from "./types";
+import { parseResponse } from "./utils";
 
 export class ApiConnService {
   jwt: string | null = null;
@@ -38,7 +38,10 @@ export class ApiConnService {
       .catch(console.error);
   }
 
-  async request(options: InternalRequest): Promise<Response | unknown> {
+  async request<R = void>(
+    options: InternalRequest,
+    schema?: ZodType,
+  ): Promise<R | void> {
     if (!this.jwt) throw Error("run auth function");
     // console.log(this.host, options.fullRoute, options.query?.toString());
     const url = new URL(this.host + options.fullRoute);
@@ -56,7 +59,7 @@ export class ApiConnService {
     if (res.status === 401 && options.attempt && options.attempt > 2) {
       this.jwt = null;
       options.attempt++;
-      return this.request(options) as Promise<ResponseLike>;
+      return this.request<R>(options, schema);
     }
 
     if (!res.ok)
@@ -64,7 +67,7 @@ export class ApiConnService {
         `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
       );
 
-    return parseResponse(res);
+    return parseResponse<R>(res, schema);
   }
 
   /**
@@ -73,8 +76,19 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async get(fullRoute: RouteLike, options: RequestData = {}) {
-    return this.request({ ...options, fullRoute, method: RequestMethod.Get });
+  public async get<R>(
+    fullRoute: RouteLike,
+    schema: ZodType,
+    options: RequestData = {},
+  ): Promise<R> {
+    return (await this.request<R>(
+      {
+        ...options,
+        fullRoute,
+        method: RequestMethod.Get,
+      },
+      schema,
+    )) as R;
   }
 
   /**
@@ -97,8 +111,15 @@ export class ApiConnService {
    * @param fullRoute - The full route to query
    * @param options - Optional request options
    */
-  public async post(fullRoute: RouteLike, options: RequestData = {}) {
-    return this.request({ ...options, fullRoute, method: RequestMethod.Post });
+  public async post<R = void>(
+    fullRoute: RouteLike,
+    options: RequestData = {},
+    schema?: ZodType,
+  ) {
+    return (await this.request<R>(
+      { ...options, fullRoute, method: RequestMethod.Post },
+      schema,
+    )) as R;
   }
 
   /**

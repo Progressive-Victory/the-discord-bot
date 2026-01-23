@@ -1,3 +1,17 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { Interaction } from "@/Classes/Interaction";
+import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse";
+import { getAuthorOptions } from "@/features/moderation/embeds";
+import {
+  messageReportColor,
+  reportModalPrefix,
+  userReportColor,
+} from "@/features/report";
+import { getGuildChannel, getMember } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -8,16 +22,6 @@ import {
   MessageFlags,
   ModalSubmitInteraction,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { Interaction } from "../../Classes/Interaction.js";
-import { getAuthorOptions } from "../../features/moderation/embeds.js";
-import {
-  messageReportColor,
-  reportModalPrefix,
-  userReportColor,
-} from "../../features/report.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { getGuildChannel, getMember } from "../../util/index.js";
 
 /**
  * `userReport` is a modal interaction which allows users to report other users. It:
@@ -46,10 +50,12 @@ export const userReport = new Interaction<ModalSubmitInteraction>({
         : await getMember(guild, member.user.id);
     if (!reporter) return;
 
-    const logChannelId = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("report_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
+    const logChannelId = res.data;
     const comment = interaction.fields.getTextInputValue("comment");
 
     if (logChannelId) {
@@ -117,10 +123,12 @@ export const messageReport = new Interaction<ModalSubmitInteraction>({
 
     if (!reporter) return;
 
-    const logChannelId = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("report_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
+    const logChannelId = res.data;
     const comment = interaction.fields.getTextInputValue("comment");
 
     if (logChannelId) {

@@ -1,3 +1,6 @@
+import { ChatInputCommand } from "@/Classes";
+import { localize } from "@/i18n";
+import { getMember } from "@/util";
 import {
   ActionRowBuilder,
   ChannelType,
@@ -5,10 +8,7 @@ import {
   PermissionsBitField,
   UserSelectMenuBuilder,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { localize } from "../../i18n.js";
-import { client } from "../../index.js";
-import { getMember } from "../../util/index.js";
+import { client } from "../..";
 
 export const ns = "move";
 

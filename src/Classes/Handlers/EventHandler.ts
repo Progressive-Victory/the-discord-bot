@@ -1,5 +1,5 @@
 import { Client, Collection } from "discord.js";
-import { Event } from "../Event.js";
+import { Event } from "../Event";
 
 /**
  * Manages all events that the PV bot supports. The EventHandler:

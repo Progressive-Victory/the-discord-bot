@@ -1,3 +1,4 @@
+import { WARN_MAX_CHAR } from "@/features/moderation";
 import {
   ChatInputCommandInteraction,
   LabelBuilder,
@@ -6,7 +7,6 @@ import {
   TextInputStyle,
   UserSelectMenuBuilder,
 } from "discord.js";
-import { WARN_MAX_CHAR } from "../../../features/moderation/index.js";
 
 export async function create(interaction: ChatInputCommandInteraction) {
   const targetMenu = new UserSelectMenuBuilder()

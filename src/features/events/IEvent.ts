@@ -1,5 +1,5 @@
 import z from "zod";
-import { zAttendee } from "./IAttendee.js";
+import { zAttendee } from "./IAttendee";
 
 export const zEvent = z.object({
   id: z.coerce.number(),

@@ -1,7 +1,7 @@
-import createCsvWriter from "csv-writer";
+import { createObjectCsvWriter } from "csv-writer";
 import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
-import { IEvent } from "../features/events/IEvent.js";
-import { client } from "../index.js";
+import { client } from "..";
+import { IEvent } from "../features/events/IEvent";
 
 export class ScheduledEventWrapper {
   event: IEvent;
@@ -214,7 +214,7 @@ export class ScheduledEventWrapper {
         return entry.userDiscordId;
       }),
     );
-    const writer = createCsvWriter.createObjectCsvWriter({
+    const writer = createObjectCsvWriter({
       path: "./assets/temp/attendees.csv",
       header: ["timestamp", "id", "displayName", "join"],
       fieldDelimiter: ";",

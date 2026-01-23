@@ -3,6 +3,7 @@ import {
   APIRole,
   DiscordAPIError,
   Guild,
+  GuildBasedChannel,
   GuildChannelResolvable,
   GuildMember,
   GuildMemberResolvable,
@@ -11,7 +12,7 @@ import {
   Snowflake,
   User,
 } from "discord.js";
-import { client } from "../index.js";
+import { client } from "..";
 
 /**
  * Check is full GuildMember object is present
@@ -80,20 +81,27 @@ export async function getGuildChannel(
   guild: Guild,
   channel: GuildChannelResolvable,
 ) {
-  let resolvedChannel = guild.channels.resolve(channel) ?? null;
+  let resolvedChannel: GuildBasedChannel | null | undefined =
+    guild.channels.resolve(channel);
+  resolvedChannel ??= undefined;
   if (resolvedChannel) return resolvedChannel ?? undefined;
   try {
     if (typeof channel === "string") {
+      console.log("channel", channel);
       resolvedChannel = await guild.channels.fetch(channel);
     } else {
+      console.log("channel", channel);
       resolvedChannel = await channel.fetch();
     }
+
+    console.log(resolvedChannel);
+    return resolvedChannel;
   } catch (error) {
     if (
       error instanceof DiscordAPIError &&
       error.code === RESTJSONErrorCodes.UnknownChannel
     ) {
-      return undefined;
+      console.error(error);
     }
     throw error;
   }

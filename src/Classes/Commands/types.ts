@@ -6,7 +6,7 @@ import {
   SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
-import { BaseCommand } from "./BaseCommand.js";
+import { BaseCommand } from "./BaseCommand";
 
 export type builders = SlashCommandBuilder | ContextMenuCommandBuilder;
 

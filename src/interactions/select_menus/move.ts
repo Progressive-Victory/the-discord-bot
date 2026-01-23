@@ -1,8 +1,8 @@
+import { Interaction } from "@/Classes";
+import { ns } from "@/commands/chat/move";
+import { localize } from "@/i18n";
 import { UserSelectMenuInteraction, VoiceChannel } from "discord.js";
-import { Interaction } from "../../Classes/index.js";
-import { ns } from "../../commands/chat/move.js";
-import { localize } from "../../i18n.js";
-import { client } from "../../index.js";
+import { client } from "../..";
 
 /**
  * `usermove` is a modal interaction that allows one user to move another from one voice

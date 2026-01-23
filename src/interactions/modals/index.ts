@@ -1,5 +1,5 @@
-export { warnCreate } from "./warn/create.js";
+export { warnCreate } from "./warn/create";
 
-export { messageReport, userReport } from "./report.js";
+export { messageReport, userReport } from "./report";
 
-export { statePing } from "./statePing.js";
+export { statePing } from "./statePing";

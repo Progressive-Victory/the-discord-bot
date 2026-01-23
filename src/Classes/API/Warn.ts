@@ -1,5 +1,5 @@
-import { ApiConnService } from "./ApiConnService/ApiConnService.js";
-import { APIWarn } from "./ApiConnService/types.js";
+import { ApiConnService } from "./ApiConnService/ApiConnService";
+import { APIWarn } from "./ApiConnService/types";
 
 export class Warn {
   data: APIWarn;

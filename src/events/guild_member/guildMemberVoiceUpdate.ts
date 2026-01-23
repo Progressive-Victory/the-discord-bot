@@ -1,3 +1,12 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import Event from "@/Classes/Event";
+import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse";
+import { getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
+import { markAttendance } from "@/util/events/markAttendance";
 import {
   channelMention,
   ColorResolvable,
@@ -8,11 +17,6 @@ import {
   GuildScheduledEventStatus,
   inlineCode,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import Event from "../../Classes/Event.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { markAttendance } from "../../util/events/markAttendance.js";
-import { getGuildChannel } from "../../util/index.js";
 
 /**
  * `guildMemberVoiceUpdate` handles the {@link Events.VoiceStateUpdate} {@link Event}.
@@ -23,7 +27,8 @@ export const guildMemberVoiceUpdate = new Event({
   execute: async (oldState, newState) => {
     // console.log(oldState.toJSON(), newState.toJSON())
 
-    const { guild } = newState;
+    let guild = newState.guild;
+    if (!guild) guild = oldState.guild;
     const member =
       newState.member === null
         ? await guild.members.fetch(newState.id).catch(console.error)
@@ -99,15 +104,20 @@ export const guildMemberVoiceUpdate = new Event({
       }
     }
 
-    const res: string = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting("voice_updates_log_channel_id"),
-    )) as string;
+      zSettingsResponse,
+    );
 
-    const loggingChannelId = res;
+    console.log("res", res);
+
+    const loggingChannelId = res.data;
 
     // check that logging channel exists in guild
     const loggingChannel = await getGuildChannel(guild, loggingChannelId);
     if (!loggingChannel?.isSendable()) return;
+
+    console.log("sending vc update");
 
     loggingChannel.send({ embeds: [embed] });
   },
@@ -135,9 +145,3 @@ function vcLogEmbed(
     .setFooter({ text: `User ID: ${member.id}` })
     .setColor(color);
 }
-
-/**
- *
- * @param channelId
- * @param member
- */

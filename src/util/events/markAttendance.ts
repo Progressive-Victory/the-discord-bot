@@ -1,8 +1,8 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { IAttendee } from "@/features/events/IAttendee";
+import { IEvent, zEvent } from "@/features/events/IEvent";
 import { GuildMember, GuildScheduledEvent } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { IAttendee } from "../../features/events/IAttendee.js";
-import { IEvent } from "../../features/events/IEvent.js";
-import { apiConnService } from "../api/pvapi.js";
+import { apiConnService } from "../api/pvapi";
 
 export async function markAttendance(
   event: GuildScheduledEvent,
@@ -11,11 +11,10 @@ export async function markAttendance(
   preventRedundant: boolean = false,
 ) {
   try {
-    const resGet: { data: IEvent } = (await apiConnService.get(
+    const data: IEvent = await apiConnService.get<IEvent>(
       Routes.latestDiscordEvent(event.id),
-    )) as { data: IEvent };
-
-    const { data } = resGet;
+      zEvent,
+    );
 
     if (data.status !== 2)
       throw Error(`event with id: ${data.id} is not active`);

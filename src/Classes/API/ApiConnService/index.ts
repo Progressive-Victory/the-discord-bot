@@ -1,3 +1,3 @@
-export * from "./ApiConnService.js";
-export * from "./routes.js";
-export type * from "./types.js";
+export * from "./ApiConnService";
+export * from "./routes";
+export type * from "./types";

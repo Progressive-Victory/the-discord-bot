@@ -5,7 +5,7 @@ import {
   GuildMember,
   TimestampStyles,
 } from "discord.js";
-import { getAuthorOptions } from "./moderation/embeds.js";
+import { getAuthorOptions } from "./moderation/embeds";
 
 /**
  * @param member - The member to display the information of

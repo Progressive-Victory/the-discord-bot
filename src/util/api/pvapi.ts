@@ -1,5 +1,5 @@
-import { ApiConnService } from "../../Classes/API/ApiConnService/index.js";
-import { WarnSearchManager } from "../../Classes/API/ApiConnService/WarnSearchmanager.js";
+import { ApiConnService } from "@/Classes/API/ApiConnService";
+import { WarnSearchManager } from "@/Classes/API/ApiConnService/WarnSearchmanager";
 
 const host = process.env.API_HOST_ADDR!;
 

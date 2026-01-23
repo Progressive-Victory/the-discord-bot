@@ -1,16 +1,13 @@
+import { ChatInputCommand } from "@/Classes";
+import { lead } from "@/features/state";
+import { messageMaxLength, titleMaxLength } from "@/features/state/constants";
+import { localize } from "@/i18n";
+import { states } from "@/util/states/types";
 import {
   ApplicationCommandOptionType,
   InteractionContextType,
   PermissionFlagsBits,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import {
-  messageMaxLength,
-  titleMaxLength,
-} from "../../features/state/constants.js";
-import { lead } from "../../features/state/index.js";
-import { localize } from "../../i18n.js";
-import { states } from "../../util/states/types.js";
 
 export const ns = "state";
 

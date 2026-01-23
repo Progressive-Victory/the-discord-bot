@@ -1,7 +1,7 @@
+import { ns } from "@/commands/chat/state";
+import { localize } from "@/i18n";
+import { isRole } from "@/util";
 import { AttachmentBuilder, ChatInputCommandInteraction } from "discord.js";
-import { ns } from "../../commands/chat/state.js";
-import { localize } from "../../i18n.js";
-import { isRole } from "../../util/index.js";
 
 /**
  * Executes a chat input command interaction to export role members to a CSV file.

@@ -1,3 +1,9 @@
+import { Interaction } from "@/Classes";
+import {
+  unWelcomeButton,
+  welcomeButton,
+  welcomeColors,
+} from "@/features/welcome";
 import {
   ActionRowBuilder,
   bold,
@@ -9,12 +15,6 @@ import {
   MessageFlags,
   TextDisplayBuilder,
 } from "discord.js";
-import { Interaction } from "../../Classes/index.js";
-import {
-  unWelcomeButton,
-  welcomeButton,
-  welcomeColors,
-} from "../../features/welcome.js";
 
 export const welcomed = new Interaction<ButtonInteraction>({
   customIdPrefix: "welcomed",

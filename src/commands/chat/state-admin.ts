@@ -1,3 +1,8 @@
+import { ChatInputCommand } from "@/Classes";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { apiConnService } from "@/util/api/pvapi";
+import { IDiscordStateRole } from "@/util/states/discordStateRole";
+import { isStateAbbreviations, stateNames, states } from "@/util/states/types";
 import {
   ApplicationCommandOptionType,
   ChannelType,
@@ -6,15 +11,6 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { IDiscordStateRole } from "../../util/states/discordStateRole.js";
-import {
-  isStateAbbreviations,
-  stateNames,
-  states,
-} from "../../util/states/types.js";
 
 /**
  * The `state-admin` allows a guild manager to configure the state system:

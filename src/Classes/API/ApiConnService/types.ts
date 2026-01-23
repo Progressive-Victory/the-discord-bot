@@ -1,5 +1,5 @@
-import { Snowflake } from "discord.js";
 import { Readable } from "node:stream";
+import z from "zod";
 
 export interface ApiConnServiceOptions {
   host: string;
@@ -57,18 +57,24 @@ export interface ResponseLike extends Pick<
 > {
   body: Readable | ReadableStream | null;
 }
-export interface APIWarn {
-  id: number;
-  userWarnedDiscordId: Snowflake;
-  moderatorDiscordId: Snowflake;
-  reason: string;
-  createdAtUtc: string;
-  expiresAtUtc: string;
-  updatedAtUtc: string;
-}
-export interface APIWarnPage {
-  page: number;
-  limit: number;
-  count: number;
-  data: APIWarn[];
-}
+
+export const zAPIWarn = z.object({
+  id: z.number(),
+  userWarnedDiscordId: z.string(),
+  moderatorDiscordId: z.string(),
+  reason: z.string(),
+  createdAtUtc: z.string(),
+  expiresAtUtc: z.string(),
+  updatedAtUtc: z.string(),
+});
+
+export type APIWarn = z.infer<typeof zAPIWarn>;
+
+export const zAPIWarnPage = z.object({
+  page: z.number(),
+  limit: z.number(),
+  count: z.number(),
+  data: z.array(zAPIWarn),
+});
+
+export type APIWarnPage = z.infer<typeof zAPIWarnPage>;
