@@ -1,10 +1,10 @@
 import { DiscordSnowflake } from "@sapphire/snowflake";
 import { Collection, GuildMember, Snowflake, User } from "discord.js";
 import z from "zod";
-import { Warn } from "../Warn.js";
-import { ApiConnService } from "./ApiConnService.js";
-import { Routes } from "./routes.js";
-import { APIWarn, APIWarnPage, zAPIWarnPage } from "./types.js";
+import { Warn } from "../Warn";
+import { ApiConnService } from "./ApiConnService";
+import { Routes } from "./routes";
+import { APIWarn, APIWarnPage, zAPIWarnPage } from "./types";
 
 export enum WarnSortOption {
   Descending = "desc",

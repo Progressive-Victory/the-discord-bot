@@ -7,30 +7,33 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-    pluginJs.configs.recommended,
-    tseslint.configs.recommended,
-    {
-        files: ["**/*.ts", "**/*.tsx"],
-        plugins: { tsdoc },
-        rules: {
-            "tsdoc/syntax": "warn",
-        },
+  {
+    ignores: ["dist/**", "docs/**"],
+  },
+  pluginJs.configs.recommended,
+  tseslint.configs.recommended,
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    plugins: { tsdoc },
+    rules: {
+      "tsdoc/syntax": "warn",
     },
-    {
-        languageOptions: {
-            globals: globals.node,
-            parser: parserTs,
-            parserOptions: {
-                projectService: true,
-                tsconfigRootDir: import.meta.dirname,
-                ecmaVersion: "latest",
-                sourceType: "module",
-            },
-        },
+  },
+  {
+    languageOptions: {
+      globals: globals.node,
+      parser: parserTs,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
     },
-    {
-        files: ["**/*.js"],
-        extends: [tseslint.configs.disableTypeChecked],
-    },
-    eslintConfigPrettier,
+  },
+  {
+    files: ["**/*.js"],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
+  eslintConfigPrettier,
 ]);

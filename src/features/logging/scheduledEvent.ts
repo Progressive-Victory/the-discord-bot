@@ -1,7 +1,11 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
 import {
   SettingsResponse,
   zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse.js";
+} from "@/contracts/responses/SettingsResponse";
+import { apiConnService } from "@/util/api/pvapi";
+import { eventLogMessageCache } from "@/util/cache/eventLogMessageCache";
+import { ScheduledEventWrapper } from "@/util/scheduledEventWrapper";
 import {
   AttachmentBuilder,
   ButtonBuilder,
@@ -21,12 +25,8 @@ import {
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { client } from "../../index.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { eventLogMessageCache } from "../../util/cache/eventLogMessageCache.js";
-import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
-import { IEvent } from "../events/IEvent.js";
+import { client } from "../..";
+import { IEvent } from "../events/IEvent";
 
 export async function logScheduledEvent(event: IEvent, init: boolean) {
   try {

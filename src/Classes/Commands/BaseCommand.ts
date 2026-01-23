@@ -4,7 +4,7 @@ import {
   ContextMenuCommandInteraction,
   Snowflake,
 } from "discord.js";
-import { AnySlashCommandBuilder } from "./types.js";
+import { AnySlashCommandBuilder } from "./types";
 
 /**
  * BaseCommand represents a command that the PV bot can handle. This is a combination of a

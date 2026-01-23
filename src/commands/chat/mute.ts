@@ -1,7 +1,11 @@
+import { ChatInputCommand } from "@/Classes";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
 import {
   SettingsResponse,
   zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse.js";
+} from "@/contracts/responses/SettingsResponse";
+import { getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   ContainerBuilder,
   EmbedBuilder,
@@ -19,10 +23,6 @@ import {
   time,
   TimestampStyles,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { getGuildChannel } from "../../util/index.js";
 
 const MUTE_COLOR = 0x7c018c;
 

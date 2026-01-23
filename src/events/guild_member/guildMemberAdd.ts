@@ -1,5 +1,5 @@
+import Event from "@/Classes/Event";
 import { Events } from "discord.js";
-import Event from "../../Classes/Event.js";
 
 /**
  * `guildMemberAdd` handles the {@link Events.GuildMemberAdd} {@link Event}. Currently,

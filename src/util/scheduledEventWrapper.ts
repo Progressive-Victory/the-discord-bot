@@ -1,7 +1,7 @@
 import { createObjectCsvWriter } from "csv-writer";
 import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
-import { IEvent } from "../features/events/IEvent.js";
-import { client } from "../index.js";
+import { client } from "..";
+import { IEvent } from "../features/events/IEvent";
 
 export class ScheduledEventWrapper {
   event: IEvent;

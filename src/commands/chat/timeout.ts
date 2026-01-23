@@ -1,7 +1,13 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { ChatInputCommand } from "@/Classes/index";
 import {
   SettingsResponse,
   zSettingsResponse,
-} from "@/src/contracts/responses/SettingsResponse.js";
+} from "@/contracts/responses/SettingsResponse";
+import { timeoutEmbed } from "@/features/timeout";
+import { localize } from "@/i18n";
+import { getGuildChannel, isGuildMember } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   DiscordAPIError,
   Events,
@@ -11,12 +17,6 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { timeoutEmbed } from "../../features/timeout.js";
-import { localize } from "../../i18n.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { getGuildChannel, isGuildMember } from "../../util/index.js";
 
 export const ns = "timeout";
 

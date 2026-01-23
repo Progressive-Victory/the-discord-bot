@@ -1,4 +1,4 @@
-import { IEvent } from "../../../features/events/IEvent.js";
+import { IEvent } from "@/features/events/IEvent";
 
 export class EventLogMessageCache {
   private cache: Record<string, IEvent> = {};

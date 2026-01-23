@@ -1,12 +1,12 @@
+import { ChatInputCommand } from "@/Classes";
 import {
   InteractionContextType,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import { ChatInputCommand } from "../../../Classes/index.js";
-// import { create } from "./create.js";
-import { create } from "./create.js";
-import { view } from "./view.js";
+// import { create } from "./create";
+import { create } from "./create";
+import { view } from "./view";
 
 /**
  * The `warn` mod command allows an admin to issue a warning to a guild member. It exposes

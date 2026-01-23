@@ -12,7 +12,7 @@ import {
   Snowflake,
   User,
 } from "discord.js";
-import { client } from "../index.js";
+import { client } from "..";
 
 /**
  * Check is full GuildMember object is present

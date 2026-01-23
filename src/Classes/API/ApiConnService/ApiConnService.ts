@@ -5,8 +5,8 @@ import {
   RequestData,
   RequestMethod,
   RouteLike,
-} from "./types.js";
-import { parseResponse } from "./utils.js";
+} from "./types";
+import { parseResponse } from "./utils";
 
 export class ApiConnService {
   jwt: string | null = null;

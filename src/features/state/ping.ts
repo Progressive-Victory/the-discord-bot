@@ -1,3 +1,11 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { AddSplitCustomId, getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
+import {
+  IDiscordStateRole,
+  zDiscordStateRole,
+} from "@/util/states/discordStateRole";
+import { isStateAbbreviations } from "@/util/states/types";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -21,15 +29,7 @@ import {
   TextInputStyle,
   userMention,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { AddSplitCustomId, getGuildChannel } from "../../util/index.js";
-import {
-  IDiscordStateRole,
-  zDiscordStateRole,
-} from "../../util/states/discordStateRole.js";
-import { isStateAbbreviations } from "../../util/states/types.js";
-import { messageMaxLength, titleMaxLength } from "./constants.js";
+import { messageMaxLength, titleMaxLength } from "./constants";
 
 /**
  * Executes the ping command to send a message to a channel.

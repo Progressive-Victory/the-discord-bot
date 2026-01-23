@@ -6,21 +6,21 @@
   GuildMember,
   inlineCode,
 } from "discord.js";
-import { Routes } from "../../../Classes/API/ApiConnService/routes.js";
-import { APIWarn } from "../../../Classes/API/ApiConnService/types.js";
-import { Interaction } from "../../../Classes/Interaction.js";
-import { modViewWarningHistory } from "../../../features/moderation/buttons.js";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { APIWarn } from "@/Classes/API/ApiConnService/types";
+import { Interaction } from "@/Classes/Interaction";
+import { modViewWarningHistory } from "@/features/moderation/buttons";
 import {
   getAuthorOptions,
   userField,
   warnLogUpdateEmbed,
-} from "../../../features/moderation/embeds.js";
+} from "@/features/moderation/embeds";
 import {
   WarnButtonsPrefixes,
   WarnEmbedColor,
-} from "../../../features/moderation/types.js";
-import { apiConnService } from "../../../util/api/pvapi.js";
-import { getGuildChannel, getMember } from "../../../util/index.js";
+} from "@/features/moderation/types";
+import { apiConnService } from "@/util/api/pvapi";
+import { getGuildChannel, getMember } from "@/util";
 
 export const removeWarnYes = new Interaction<ButtonInteraction>({
   customIdPrefix: WarnButtonsPrefixes.removeWarnYes,

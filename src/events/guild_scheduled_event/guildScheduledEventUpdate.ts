@@ -1,11 +1,11 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { Event } from "@/Classes/Event";
+import { IEvent, zEvent } from "@/features/events/IEvent";
+import { logScheduledEvent } from "@/features/logging/scheduledEvent";
+import { apiConnService } from "@/util/api/pvapi";
+import { markAttendance } from "@/util/events/markAttendance";
 import { Events } from "discord.js";
 import z from "zod";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { Event } from "../../Classes/Event.js";
-import { IEvent, zEvent } from "../../features/events/IEvent.js";
-import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { markAttendance } from "../../util/events/markAttendance.js";
 
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,

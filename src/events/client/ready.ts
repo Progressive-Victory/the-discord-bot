@@ -1,5 +1,5 @@
+import { Event } from "@/Classes";
 import { Events } from "discord.js";
-import { Event } from "../../Classes/index.js";
 
 /**
  * The `ready` event {@link Event} registers a event handler for the

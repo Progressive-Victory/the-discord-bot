@@ -1,7 +1,7 @@
+import { APIWarn } from "@/Classes/API/ApiConnService/types";
+import { AddSplitCustomId } from "@/util";
 import { ButtonBuilder, ButtonStyle, Guild, Snowflake } from "discord.js";
-import { APIWarn } from "../../Classes/API/ApiConnService/types.js";
-import { AddSplitCustomId } from "../../util/index.js";
-import { WarnButtonsPrefixes } from "./types.js";
+import { WarnButtonsPrefixes } from "./types";
 
 /**
  * Create move left button for viewing warnings

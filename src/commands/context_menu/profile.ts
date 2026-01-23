@@ -1,11 +1,11 @@
+import { ContextMenuCommand } from "@/Classes";
+import { isGuildMember } from "@/util";
 import {
   ApplicationCommandType,
   ContextMenuCommandBuilder,
   InteractionContextType,
   UserContextMenuCommandInteraction,
 } from "discord.js";
-import { ContextMenuCommand } from "../../Classes/index.js";
-import { isGuildMember } from "../../util/index.js";
 
 /**
  * The `View Profile` context menu command allows guild managers to see the guild profile

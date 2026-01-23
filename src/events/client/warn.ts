@@ -1,5 +1,5 @@
+import { Event } from "@/Classes";
 import { Events } from "discord.js";
-import { Event } from "../../Classes/index.js";
 
 /**
  * The `warn` {@link Event} handles emission of WARN logs

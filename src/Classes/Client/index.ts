@@ -1,5 +1,5 @@
-export { ExtendedClient as Client } from "./Client.js";
+export { ExtendedClient as Client } from "./Client";
 
-export { ExtraColor } from "./types.js";
+export { ExtraColor } from "./types";
 
-export type { ExtendedClientOptions } from "./interfaces.js";
+export type { ExtendedClientOptions } from "./interfaces";

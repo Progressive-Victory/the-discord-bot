@@ -1,8 +1,8 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { IAttendee } from "@/features/events/IAttendee";
+import { IEvent, zEvent } from "@/features/events/IEvent";
 import { GuildMember, GuildScheduledEvent } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { IAttendee } from "../../features/events/IAttendee.js";
-import { IEvent, zEvent } from "../../features/events/IEvent.js";
-import { apiConnService } from "../api/pvapi.js";
+import { apiConnService } from "../api/pvapi";
 
 export async function markAttendance(
   event: GuildScheduledEvent,

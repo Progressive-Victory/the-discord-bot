@@ -16,16 +16,16 @@ import {
   TimestampStyles,
 } from "discord.js";
 
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import Event from "@/Classes/Event";
 import {
   SettingsResponse,
   zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import Event from "../../Classes/Event.js";
-import { welcomeButton, welcomeColors } from "../../features/welcome.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { footer } from "../../util/components.js";
-import { getGuildChannel } from "../../util/index.js";
+} from "@/contracts/responses/SettingsResponse";
+import { welcomeButton, welcomeColors } from "@/features/welcome";
+import { getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
+import { footer } from "@/util/components";
 
 /**
  * `guildMemberUpdate` handles the {@link Events.GuildMemberUpdate} {@link Event}. There are two cases:
