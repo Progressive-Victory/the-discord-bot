@@ -113,7 +113,7 @@ export const timeout = new ChatInputCommand()
     const reason = options.getString("reason", false) ?? "No reason given";
     const duration = options.getNumber("duration", true);
     // const endNumber = Math.floor(new Date().getTime() / 1000) + duration;
-    interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     try {
       target = await target.timeout(
         duration * 1000,
@@ -127,7 +127,7 @@ export const timeout = new ChatInputCommand()
       return;
     }
 
-    interaction.followUp({
+    await interaction.editReply({
       content: localize.t("reply_timeout", ns, locale, {
         member: target.toString(),
         endDate: durationText[duration.toString() as durationValue],
