@@ -1,10 +1,10 @@
 import createCsvWriter from "csv-writer";
 import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
-import { IEvent } from "../features/events/IEvent.js";
+import { IDiscordEvent } from "../features/events/IDiscordEvent.js";
 import { client } from "../index.js";
 
 export class ScheduledEventWrapper {
-  event: IEvent;
+  event: IDiscordEvent;
 
   statusColor = () => {
     let color: number;
@@ -201,7 +201,7 @@ export class ScheduledEventWrapper {
     return users;
   };
 
-  constructor(ev: IEvent) {
+  constructor(ev: IDiscordEvent) {
     this.event = ev;
   }
 

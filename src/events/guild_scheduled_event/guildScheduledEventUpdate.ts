@@ -2,7 +2,10 @@ import { Events } from "discord.js";
 import z from "zod";
 import { Routes } from "../../Classes/API/ApiConnService/routes.js";
 import { Event } from "../../Classes/Event.js";
-import { IEvent, zEvent } from "../../features/events/IEvent.js";
+import {
+  IDiscordEvent,
+  zDiscordEvent,
+} from "../../features/events/IDiscordEvent.js";
 import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
 import { apiConnService } from "../../util/api/pvapi.js";
 import { markAttendance } from "../../util/events/markAttendance.js";
@@ -20,19 +23,19 @@ export const guildScheduledEventUpdate = new Event({
         throw Error("No creator specified for event: " + newEvent.id);
       if (!newEvent.scheduledStartAt)
         throw Error("No start time specified for event: " + newEvent.id);
-      const myEvent: Partial<IEvent> = {
+      const myEvent: Partial<IDiscordEvent> = {
         discordId: newEvent.id,
         channelId: newEvent.channelId,
         name: newEvent.name,
         description: newEvent.description ?? undefined,
-        status: newEvent.status,
+        status: newEvent.status as number,
         recurrent: newEvent.recurrenceRule ? true : false,
         thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
         createdAtUtc: newEvent.createdAt,
         creatorDiscordId: newEvent.creatorId,
         scheduledStartUtc: newEvent.scheduledStartAt,
         scheduledEndUtc: newEvent.scheduledEndAt ?? undefined,
-      } satisfies Partial<IEvent>;
+      } satisfies Partial<IDiscordEvent>;
 
       // Event Started
       if (oldEvent.isScheduled() && newEvent.isActive()) {
@@ -52,7 +55,7 @@ export const guildScheduledEventUpdate = new Event({
         const { id } = res;
         myEvent.id = id;
 
-        const myWholeEvent: IEvent = z.parse(zEvent, myEvent);
+        const myWholeEvent: IDiscordEvent = z.parse(zDiscordEvent, myEvent);
 
         await logScheduledEvent(myWholeEvent, true);
 
@@ -67,9 +70,9 @@ export const guildScheduledEventUpdate = new Event({
 
       // Event Ended
       else if (oldEvent.isActive() && !newEvent.isActive()) {
-        const resGet: { data: IEvent } = (await apiConnService.get(
+        const resGet: { data: IDiscordEvent } = (await apiConnService.get(
           Routes.latestDiscordEvent(newEvent.id),
-        )) as { data: IEvent };
+        )) as { data: IDiscordEvent };
 
         const { data } = resGet;
 
@@ -86,7 +89,7 @@ export const guildScheduledEventUpdate = new Event({
             break;
         }
 
-        const myWholeEvent = z.parse(zEvent, data);
+        const myWholeEvent = z.parse(zDiscordEvent, data);
 
         await apiConnService.patch(Routes.discordEvent(myWholeEvent.id), {
           headers: {

@@ -22,7 +22,7 @@ import { client } from "../../index.js";
 import { apiConnService } from "../../util/api/pvapi.js";
 import { eventLogMessageCache } from "../../util/cache/eventLogMessageCache.js";
 import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
-import { IEvent } from "../events/IEvent.js";
+import { IDiscordEvent } from "../events/IDiscordEvent.js";
 
 /**
  *
@@ -30,7 +30,7 @@ import { IEvent } from "../events/IEvent.js";
  * @param guild
  * @param forceNew
  */
-export async function logScheduledEvent(event: IEvent, init: boolean) {
+export async function logScheduledEvent(event: IDiscordEvent, init: boolean) {
   try {
     if (!process.env.PV_GUILD_ID)
       throw Error("Set 'PV_GUILD_ID' in the env file");
@@ -110,7 +110,7 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
  * @param event
  */
 // rewrite this function
-async function logContainer(event: IEvent, init: boolean) {
+async function logContainer(event: IDiscordEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendeesCount;
   let attendeesStr;

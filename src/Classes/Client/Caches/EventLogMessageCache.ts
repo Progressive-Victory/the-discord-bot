@@ -1,15 +1,15 @@
-import { IEvent } from "../../../features/events/IEvent.js";
+import { IDiscordEvent } from "../../../features/events/IDiscordEvent.js";
 
 export class EventLogMessageCache {
-  private cache: Record<string, IEvent> = {};
+  private cache: Record<string, IDiscordEvent> = {};
 
-  push(logChannelId: string, event: IEvent) {
+  push(logChannelId: string, event: IDiscordEvent) {
     this.cache[logChannelId] = event;
   }
 
-  fetch(logMessageId: string): IEvent | undefined;
+  fetch(logMessageId: string): IDiscordEvent | undefined;
   fetch(eventId: number): string | undefined;
-  fetch(arg: string | number): IEvent | string | undefined {
+  fetch(arg: string | number): IDiscordEvent | string | undefined {
     if (typeof arg === "string") {
       try {
         return this.cache[arg];
