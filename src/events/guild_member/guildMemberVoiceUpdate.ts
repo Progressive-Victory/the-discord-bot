@@ -75,7 +75,10 @@ export const guildMemberVoiceUpdate = new Event({
       } else return;
     } else {
       if (oldState.channelId === null && newState.channelId !== null) {
-        if (newChannelEv) await markAttendance(newChannelEv, member, true);
+        if (newChannelEv) {
+          console.log("joined", member.displayName, member.id, true);
+          await markAttendance(newChannelEv, member, true);
+        }
         embed = vcLogEmbed(
           member,
           "Joined Voice Channel",
@@ -83,7 +86,10 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Green,
         );
       } else if (oldState.channelId !== null && newState.channelId === null) {
-        if (oldChannelEv) await markAttendance(oldChannelEv, member, false);
+        if (oldChannelEv) {
+          console.log("left", member.displayName, member.id, false);
+          await markAttendance(oldChannelEv, member, false);
+        }
         embed = vcLogEmbed(
           member,
           "Left Voice Channel",
@@ -91,10 +97,14 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Red,
         );
       } else {
-        if (oldState.channelId && oldChannelEv)
+        if (oldState.channelId !== null && oldChannelEv) {
+          console.log("switched off", member.displayName, member.id, false);
           await markAttendance(oldChannelEv, member, false);
-        if (newState.channelId && newChannelEv)
+        }
+        if (newState.channelId !== null && newChannelEv) {
+          console.log("switched on", member.displayName, member.id, true);
           await markAttendance(newChannelEv, member, true);
+        }
         embed = vcLogEmbed(
           member,
           "Switched Voice Channel",

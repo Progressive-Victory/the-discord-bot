@@ -1,10 +1,10 @@
+import { DiscordEvent } from "@/contracts/data";
 import { createObjectCsvWriter } from "csv-writer";
 import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
 import { client } from "..";
-import { IEvent } from "../features/events/IEvent";
 
 export class ScheduledEventWrapper {
-  event: IEvent;
+  event: DiscordEvent;
 
   statusColor = () => {
     let color: number;
@@ -126,7 +126,7 @@ export class ScheduledEventWrapper {
   };
 
   status = () => {
-    return GuildScheduledEventStatus[this.event.status];
+    return GuildScheduledEventStatus[this.event.status ?? 1];
   };
 
   startedAt = () => {
@@ -201,7 +201,7 @@ export class ScheduledEventWrapper {
     return users;
   };
 
-  constructor(ev: IEvent) {
+  constructor(ev: DiscordEvent) {
     this.event = ev;
   }
 
@@ -216,19 +216,19 @@ export class ScheduledEventWrapper {
     );
     const writer = createObjectCsvWriter({
       path: "./assets/temp/attendees.csv",
-      header: ["timestamp", "id", "displayName", "join"],
+      header: ["timestamp", "id", "discordId", "displayName", "join"],
       fieldDelimiter: ";",
     });
 
-    const data = this.event.attendees.map((entry) => {
-      return {
-        dateAttendedUtc: entry.dateAttendedUtc,
-        id: entry.id,
-        userDiscordId: entry.userDiscordId,
-        displayName: names.get(entry.userDiscordId) ?? "unknown",
-        mode: entry.isJoin ? "join" : "leave",
-      };
-    });
+    const data = this.event.attendees.map((entry) => ({
+      timestamp: entry.dateAttendedUtc.toISOString(),
+      id: entry.id,
+      discordId: entry.userDiscordId,
+      displayName: names.get(entry.userDiscordId) ?? "unknown",
+      join: entry.isJoin ? "join" : "leave",
+    }));
+
+    console.log(data);
 
     await writer.writeRecords(data).catch((err) => console.error(err));
     console.log("csv written");

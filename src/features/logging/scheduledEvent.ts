@@ -1,4 +1,5 @@
 import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { DiscordEvent } from "@/contracts/data";
 import {
   SettingsResponse,
   zSettingsResponse,
@@ -26,9 +27,8 @@ import {
   ThumbnailBuilder,
 } from "discord.js";
 import { client } from "../..";
-import { IEvent } from "../events/IEvent";
 
-export async function logScheduledEvent(event: IEvent, init: boolean) {
+export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
   try {
     if (!process.env.PV_GUILD_ID)
       throw Error("Set 'PV_GUILD_ID' in the env file");
@@ -103,7 +103,7 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
 }
 
 // rewrite this function
-async function logContainer(event: IEvent, init: boolean) {
+async function logContainer(event: DiscordEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendeesCount;
   let attendeesStr;
