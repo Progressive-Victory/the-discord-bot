@@ -28,12 +28,6 @@ import { eventLogMessageCache } from "../../util/cache/eventLogMessageCache.js";
 import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
 import { IEvent } from "../events/IEvent.js";
 
-/**
- *
- * @param event
- * @param guild
- * @param forceNew
- */
 export async function logScheduledEvent(event: IEvent, init: boolean) {
   try {
     if (!process.env.PV_GUILD_ID)
@@ -108,10 +102,6 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
   }
 }
 
-/**
- *
- * @param event
- */
 // rewrite this function
 async function logContainer(event: IEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
