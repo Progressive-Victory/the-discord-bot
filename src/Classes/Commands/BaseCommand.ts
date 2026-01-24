@@ -27,7 +27,7 @@ export class BaseCommand<
 
   protected _guildIds: Snowflake[];
 
-  protected _execute?: (interaction: TypeInteraction) => void;
+  protected _execute?: (interaction: TypeInteraction) => Promise<void>;
 
   get name() {
     return this.builder.name;
@@ -63,7 +63,7 @@ export class BaseCommand<
    * @param execute - the interaction handler
    * @returns The modified object
    */
-  setExecute(execute: (interaction: TypeInteraction) => void): this {
+  setExecute(execute: (interaction: TypeInteraction) => Promise<void>): this {
     this._execute = execute;
     return this;
   }

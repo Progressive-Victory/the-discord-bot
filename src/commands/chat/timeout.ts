@@ -104,10 +104,11 @@ export const timeout = new ChatInputCommand()
           "received APIInteractionDataResolvedGuildMember when expecting guild member",
         ),
       );
-      return interaction.reply({
+      await interaction.reply({
         content: localize.t("reply_error", ns, locale),
         flags: MessageFlags.Ephemeral,
       });
+      return;
     }
 
     const reason = options.getString("reason", false) ?? "No reason given";
