@@ -1,8 +1,8 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { DiscordEvent, zDiscordEvent } from "@/contracts/data";
+import { CreateDiscordEventAttendeeRequest } from "@/contracts/requests/CreateDiscordEventAttendeeRequest";
 import { GuildMember, GuildScheduledEvent } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { IAttendee } from "../../features/events/IAttendee.js";
-import { IEvent } from "../../features/events/IEvent.js";
-import { apiConnService } from "../api/pvapi.js";
+import { apiConnService } from "../api/pvapi";
 
 export async function markAttendance(
   event: GuildScheduledEvent,
@@ -11,23 +11,30 @@ export async function markAttendance(
   preventRedundant: boolean = false,
 ) {
   try {
-    const resGet: { data: IEvent } = (await apiConnService.get(
+    const data: DiscordEvent = await apiConnService.get<DiscordEvent>(
       Routes.latestDiscordEvent(event.id),
-    )) as { data: IEvent };
-
-    const { data } = resGet;
+      zDiscordEvent,
+    );
 
     if (data.status !== 2)
       throw Error(`event with id: ${data.id} is not active`);
 
-    const myAttendee: Partial<IAttendee> = {
+    if (!data.startedAtUtc)
+      throw Error(
+        `Event ${event.id} has no start time but claims to be active`,
+      );
+
+    if (Date.now() - data.startedAtUtc.getTime() < 5000)
+      preventRedundant = true;
+
+    const myAttendee: CreateDiscordEventAttendeeRequest = {
       userDiscordId: member.id,
       dateAttendedUtc: new Date(),
       isJoin,
-    } satisfies Partial<IAttendee>;
+    };
 
     const query = new URLSearchParams();
-    query.set("prevent_redundant", preventRedundant.toString());
+    query.set("preventRedundant", preventRedundant.toString());
 
     await apiConnService.post(Routes.discordEventAttendance(data.id), {
       headers: {

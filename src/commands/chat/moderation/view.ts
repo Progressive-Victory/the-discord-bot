@@ -1,7 +1,7 @@
+import { WarnSortOption } from "@/Classes/API/ApiConnService/WarnSearchmanager";
+import { warnPage } from "@/features/moderation/warn-render";
+import { warnSearchManger } from "@/util/api/pvapi";
 import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { WarnSortOption } from "../../../Classes/API/ApiConnService/WarnSearchmanager.js";
-import { warnPage } from "../../../features/moderation/warn-render.js";
-import { warnSearchManger } from "../../../util/api/pvapi.js";
 
 export async function view(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply({

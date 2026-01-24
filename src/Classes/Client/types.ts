@@ -1,5 +1,5 @@
 import { time, TimestampStyles, TimestampStylesString } from "discord.js";
-import { ExtendedClient } from "./Client.js";
+import { ExtendedClient } from "./Client";
 
 export const ExtraColor = {
   EmbedGray: 0x2b2d31,

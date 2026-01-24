@@ -1,17 +1,26 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { Event } from "@/Classes/Event";
+import {
+  DiscordEvent,
+  DiscordEventStatus,
+  zDiscordEvent,
+} from "@/contracts/data";
+import {
+  CreateDiscordEventRequest,
+  zCreateDiscordEventRequest,
+} from "@/contracts/requests/CreateDiscordEventRequest";
+import { logScheduledEvent } from "@/features/logging/scheduledEvent";
+import { apiConnService } from "@/util/api/pvapi";
+import { markAttendance } from "@/util/events/markAttendance";
 import { Events } from "discord.js";
 import z from "zod";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { Event } from "../../Classes/Event.js";
-import { IEvent, zEvent } from "../../features/events/IEvent.js";
-import { logScheduledEvent } from "../../features/logging/scheduledEvent.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { markAttendance } from "../../util/events/markAttendance.js";
 
 export const guildScheduledEventUpdate = new Event({
   name: Events.GuildScheduledEventUpdate,
   execute: async (oldEvent, newEvent) => {
     try {
       if (!oldEvent) throw Error("No old event reported");
+      console.log(+newEvent.status);
 
       // map event interface
       if (!newEvent.channelId)
@@ -20,39 +29,41 @@ export const guildScheduledEventUpdate = new Event({
         throw Error("No creator specified for event: " + newEvent.id);
       if (!newEvent.scheduledStartAt)
         throw Error("No start time specified for event: " + newEvent.id);
-      const myEvent: Partial<IEvent> = {
+
+      const eventCreateRequest: CreateDiscordEventRequest = {
         discordId: newEvent.id,
         channelId: newEvent.channelId,
         name: newEvent.name,
-        description: newEvent.description ?? undefined,
-        status: newEvent.status,
+        description: newEvent.description ?? null,
+        status: newEvent.status as number as DiscordEventStatus,
         recurrent: newEvent.recurrenceRule ? true : false,
+        userCount: null,
+        startedAtUtc: new Date(),
+        endedAtUtc: null,
         thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
         createdAtUtc: newEvent.createdAt,
         creatorDiscordId: newEvent.creatorId,
         scheduledStartUtc: newEvent.scheduledStartAt,
-        scheduledEndUtc: newEvent.scheduledEndAt ?? undefined,
-      } satisfies Partial<IEvent>;
+        scheduledEndUtc: newEvent.scheduledEndAt ?? null,
+      };
 
       // Event Started
       if (oldEvent.isScheduled() && newEvent.isActive()) {
-        myEvent.startedAtUtc = new Date();
-        myEvent.status = 2;
+        eventCreateRequest.startedAtUtc = new Date();
+        eventCreateRequest.status = DiscordEventStatus.Active;
 
-        const res: { id: number } = (await apiConnService.post(
+        const myWholeEvent = await apiConnService.post<DiscordEvent>(
           Routes.discordEvents,
           {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(myEvent),
+            body: JSON.stringify(
+              z.parse(zCreateDiscordEventRequest, eventCreateRequest),
+            ),
           },
-        )) as { id: number };
-
-        const { id } = res;
-        myEvent.id = id;
-
-        const myWholeEvent: IEvent = z.parse(zEvent, myEvent);
+          zDiscordEvent,
+        );
 
         await logScheduledEvent(myWholeEvent, true);
 
@@ -67,26 +78,25 @@ export const guildScheduledEventUpdate = new Event({
 
       // Event Ended
       else if (oldEvent.isActive() && !newEvent.isActive()) {
-        const resGet: { data: IEvent } = (await apiConnService.get(
+        const data: DiscordEvent = await apiConnService.get<DiscordEvent>(
           Routes.latestDiscordEvent(newEvent.id),
-        )) as { data: IEvent };
-
-        const { data } = resGet;
+          zDiscordEvent,
+        );
 
         data.endedAtUtc = new Date();
         switch (newEvent.status) {
           case 1:
-            data.status = 3;
+            data.status = DiscordEventStatus.Completed;
             break;
           case 3:
-            data.status = 3;
+            data.status = DiscordEventStatus.Completed;
             break;
           case 4:
-            data.status = 4;
+            data.status = DiscordEventStatus.Cancelled;
             break;
         }
 
-        const myWholeEvent = z.parse(zEvent, data);
+        const myWholeEvent = z.parse(zDiscordEvent, data);
 
         await apiConnService.patch(Routes.discordEvent(myWholeEvent.id), {
           headers: {

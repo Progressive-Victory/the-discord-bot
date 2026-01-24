@@ -1,3 +1,11 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { Interaction } from "@/Classes/Interaction";
+import { SettingsResponse, zSettingsResponse } from "@/contracts/responses";
+import {
+  warnDMContainer,
+  warnModContainer,
+} from "@/features/moderation/warn-render";
+import { apiConnService, warnSearchManger } from "@/util/api/pvapi";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -7,13 +15,6 @@ import {
   MessageFlags,
   ModalSubmitInteraction,
 } from "discord.js";
-import { Routes } from "../../../Classes/API/ApiConnService/routes.js";
-import { Interaction } from "../../../Classes/Interaction.js";
-import {
-  warnDMContainer,
-  warnModContainer,
-} from "../../../features/moderation/warn-render.js";
-import { apiConnService, warnSearchManger } from "../../../util/api/pvapi.js";
 
 /**
  * `warnCreate` is a modal interaction which allows mods to send warnings to guild members. It:
@@ -52,23 +53,19 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
         throw e;
       }),
       apiConnService
-        .get(Routes.setting("warn_log_channel_id"))
+        .get<SettingsResponse>(
+          Routes.setting("warn_log_channel_id"),
+          zSettingsResponse,
+        )
         .then(async (u) => {
-          if (
-            typeof u === "object" &&
-            u &&
-            "data" in u &&
-            typeof u.data === "string"
-          ) {
-            const channel = await interaction.guild.channels
-              .fetch(u.data)
-              .catch((e) => {
-                if (e instanceof DiscordAPIError) return null;
-                throw e;
-              });
-            if (channel?.isSendable()) {
-              return channel;
-            }
+          const channel = await interaction.guild.channels
+            .fetch(u.data)
+            .catch((e) => {
+              if (e instanceof DiscordAPIError) return null;
+              throw e;
+            });
+          if (channel?.isSendable()) {
+            return channel;
           }
           return null;
         }),

@@ -1,3 +1,11 @@
+import { ChatInputCommand } from "@/Classes";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse";
+import { getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   ContainerBuilder,
   EmbedBuilder,
@@ -15,10 +23,6 @@ import {
   time,
   TimestampStyles,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { getGuildChannel } from "../../util/index.js";
 
 const MUTE_COLOR = 0x7c018c;
 
@@ -105,6 +109,12 @@ export const mute = new ChatInputCommand({
       mutingMember = await guild.members.fetch(interaction.user);
     }
 
+    if (!targetMember.voice.channel)
+      return interaction.reply({
+        flags: MessageFlags.Ephemeral,
+        content: "User is not in a vc.",
+      });
+
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
     const reason = interaction.options.getString("reason", true);
@@ -145,9 +155,12 @@ async function logMessage(
   reason: string,
 ) {
   // check if log channel is set
-  const timeoutLogChannelId = (await apiConnService.get(
+  const res = await apiConnService.get<SettingsResponse>(
     Routes.setting("timeout_log_channel_id"),
-  )) as string;
+    zSettingsResponse,
+  );
+
+  const timeoutLogChannelId = res.data;
   if (timeoutLogChannelId) return;
 
   // check that channel is real

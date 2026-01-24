@@ -1,2 +1,2 @@
-export * from "./moderation/view.js";
-export { unwelcome, welcomed } from "./welcome.js";
+export * from "./moderation/view";
+export { unwelcome, welcomed } from "./welcome";

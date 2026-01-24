@@ -7,8 +7,8 @@ import {
   ContextMenuCommandType,
   SlashCommandBuilder,
 } from "discord.js";
-import { BaseCommand } from "./BaseCommand.js";
-import { AnySlashCommandBuilder } from "./types.js";
+import { BaseCommand } from "./BaseCommand";
+import { AnySlashCommandBuilder } from "./types";
 
 /**
  * Represents a PV Bot command that is invoked via a slash command and provides an interaction interface

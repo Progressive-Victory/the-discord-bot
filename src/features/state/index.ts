@@ -1,11 +1,11 @@
+import { isGuildMember } from "@/util";
+import { getStatesFromMember } from "@/util/states";
 import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
 } from "discord.js";
-import { isGuildMember } from "../../util/index.js";
-import { getStatesFromMember } from "../../util/states/index.js";
-import { memberList } from "./member-list.js";
-import ping from "./ping.js";
+import { memberList } from "./member-list";
+import ping from "./ping";
 
 /**
  * Executes the lead command based on the subcommand and subcommand group provided in the interaction options.

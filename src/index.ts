@@ -4,12 +4,12 @@ import {
   Partials,
 } from "discord.js";
 import express from "express";
-import { Client, Interaction } from "./Classes/index.js";
-import * as commands from "./commands/index.js";
-import * as events from "./events/index.js";
-import * as buttons from "./interactions/buttons/index.js";
-import * as modals from "./interactions/modals/index.js";
-import * as selectMenus from "./interactions/select_menus/index.js";
+import { Client, Interaction } from "./Classes";
+import * as commands from "./commands";
+import * as events from "./events";
+import * as buttons from "./interactions/buttons";
+import * as modals from "./interactions/modals";
+import * as selectMenus from "./interactions/select_menus";
 
 // Initialization (specify intents and partials)
 export const client = new Client({

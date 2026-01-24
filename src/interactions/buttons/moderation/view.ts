@@ -1,14 +1,11 @@
+import { Interaction } from "@/Classes";
+import { soloWarn, warnPage } from "@/features/moderation/warn-render";
+import { warnSearchManger } from "@/util/api/pvapi";
 import {
   ButtonInteraction,
   MessageFlags,
   TextDisplayBuilder,
 } from "discord.js";
-import { Interaction } from "../../../Classes/index.js";
-import {
-  soloWarn,
-  warnPage,
-} from "../../../features/moderation/warn-render.js";
-import { warnSearchManger } from "../../../util/api/pvapi.js";
 
 export const warnView = new Interaction<ButtonInteraction>({
   customIdPrefix: "wv",

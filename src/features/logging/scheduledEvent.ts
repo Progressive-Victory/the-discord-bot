@@ -1,3 +1,12 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { DiscordEvent } from "@/contracts/data";
+import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse";
+import { apiConnService } from "@/util/api/pvapi";
+import { eventLogMessageCache } from "@/util/cache/eventLogMessageCache";
+import { ScheduledEventWrapper } from "@/util/scheduledEventWrapper";
 import {
   AttachmentBuilder,
   ButtonBuilder,
@@ -17,20 +26,9 @@ import {
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from "discord.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { client } from "../../index.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { eventLogMessageCache } from "../../util/cache/eventLogMessageCache.js";
-import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
-import { IEvent } from "../events/IEvent.js";
+import { client } from "../..";
 
-/**
- *
- * @param event
- * @param guild
- * @param forceNew
- */
-export async function logScheduledEvent(event: IEvent, init: boolean) {
+export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
   try {
     if (!process.env.PV_GUILD_ID)
       throw Error("Set 'PV_GUILD_ID' in the env file");
@@ -38,11 +36,12 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
 
     const setting = "event_log_channel_id";
 
-    const res: string = (await apiConnService.get(
+    const res = await apiConnService.get<SettingsResponse>(
       Routes.setting(setting),
-    )) as string;
+      zSettingsResponse,
+    );
 
-    const logChannelId = res;
+    const logChannelId = res.data;
     if (!logChannelId) throw Error("Set the log channel id in the settings!");
     let logChannel = guild.channels.cache.get(logChannelId);
     if (!logChannel) {
@@ -103,12 +102,8 @@ export async function logScheduledEvent(event: IEvent, init: boolean) {
   }
 }
 
-/**
- *
- * @param event
- */
 // rewrite this function
-async function logContainer(event: IEvent, init: boolean) {
+async function logContainer(event: DiscordEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendeesCount;
   let attendeesStr;

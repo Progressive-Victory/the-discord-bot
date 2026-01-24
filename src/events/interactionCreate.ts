@@ -7,7 +7,7 @@ import {
   InteractionType,
   MessageFlags,
 } from "discord.js";
-import { Event } from "../Classes/Event.js";
+import { Event } from "../Classes/Event";
 
 /**
  * Handles the creation of a new interaction.

@@ -7,19 +7,19 @@
   MessageFlags,
   Snowflake,
 } from "discord.js";
-import { Interaction } from "../../Classes/index.js";
-import { appealDmSubmitted } from "../../features/moderation/buttons.js";
-import { dateDiffInDays } from "../../features/moderation/index.js";
-import { warnModal } from "../../features/moderation/modals.js";
+import { Interaction } from "@/Classes";
+import { appealDmSubmitted } from "@/features/moderation/buttons";
+import { dateDiffInDays } from "@/features/moderation";
+import { warnModal } from "@/features/moderation/modals";
 import {
   WarnButtonsPrefixes,
   WarnModalPrefixes,
-} from "../../features/moderation/types.js";
-import { warnSearch } from "../../features/moderation/warnSearch.js";
-import { AddSplitCustomId, getGuildChannel } from "../../util/index.js";
-import { apiConnService } from "../../util/api/pvapi.js";
-import { Routes } from "../../Classes/API/ApiConnService/routes.js";
-import { APIWarn } from "../../Classes/API/ApiConnService/types.js";
+} from "@/features/moderation/types";
+import { warnSearch } from "@/features/moderation/warnSearch";
+import { AddSplitCustomId, getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { APIWarn } from "@/Classes/API/ApiConnService/types";
 
 // button to move warn view left
 export const warnViewLeft = new Interaction<ButtonInteraction>({

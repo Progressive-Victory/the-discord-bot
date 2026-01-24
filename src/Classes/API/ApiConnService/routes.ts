@@ -5,22 +5,22 @@ export const Routes = {
     return `/discord/warns/${warnId}`;
   },
 
-  discordEvents: "/discord/events" as const,
+  discordEvents: "/discordEvents" as const,
 
   latestDiscordEvent(
     eventDiscordId: string,
-  ): `/discord/events/latest/${string}` {
-    return `/discord/events/latest/${eventDiscordId}`;
+  ): `/discordEvents/byDiscordId/${string}/latest` {
+    return `/discordEvents/byDiscordId/${eventDiscordId}/latest`;
   },
 
-  discordEvent(id: number): `/discord/events/${string}` {
-    return `/discord/events/${id}`;
+  discordEvent(id: number): `/discordEvents/${string}` {
+    return `/discordEvents/${id}`;
   },
 
   discordEventAttendance(
     eventId: number,
-  ): `/discord/events/${string}/attendance` {
-    return `/discord/events/${eventId}/attendance`;
+  ): `/discordEvents/${string}/attendance` {
+    return `/discordEvents/${eventId}/attendance`;
   },
 
   setting(name: string): `/settings/${string}` {

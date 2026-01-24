@@ -1,3 +1,5 @@
+import { APIWarn } from "@/Classes/API/ApiConnService/types";
+import { getMember } from "@/util";
 import {
   APIEmbedField,
   ColorResolvable,
@@ -12,10 +14,8 @@ import {
   TimestampStyles,
   User,
 } from "discord.js";
-import { APIWarn } from "../../Classes/API/ApiConnService/types.js";
-import { client } from "../../index.js";
-import { getMember } from "../../util/index.js";
-import { numberOfWarnEmbedsOnPage, WarnEmbedColor } from "./types.js";
+import { client } from "../..";
+import { numberOfWarnEmbedsOnPage, WarnEmbedColor } from "./types";
 
 /**
  * Utility to create an embed for a moderator creating a new warning
