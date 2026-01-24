@@ -7,7 +7,7 @@ steps:
       - "us-central1-docker.pkg.dev/$PROJECT_ID/docker-deploy/pv-bot:$SHORT_SHA"
       - "."
     env:
-      - 'DOCKER_BUILDKIT=1'
+      - "DOCKER_BUILDKIT=1"
 
   - name: "gcr.io/cloud-builders/docker"
     args:
@@ -24,8 +24,8 @@ steps:
         gcloud compute instances update-container ${_COMPUTE_INSTANCE} \
           --zone=us-central1-c \
           --container-image=us-central1-docker.pkg.dev/$PROJECT_ID/docker-deploy/pv-bot:$SHORT_SHA \
-          --container-env "PORT=${_PORT},DISCORD_TOKEN=$$DISCORD_TOKEN,MONGODB_URI=$$MONGODB_URI"
-    secretEnv: ["MONGODB_URI", "DISCORD_TOKEN"]
+          --container-env "PORT=${_PORT},DISCORD_TOKEN=$$DISCORD_TOKEN,API_HOST_ADDR=$$API_HOST_ADDR,PV_GUILD_ID=$$PV_GUILD_ID"
+    secretEnv: ["DISCORD_TOKEN"]
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
@@ -34,5 +34,3 @@ availableSecrets:
   secretManager:
     - versionName: "projects/$PROJECT_NUMBER/secrets/bot-token/versions/latest"
       env: "DISCORD_TOKEN"
-    - versionName: "projects/$PROJECT_NUMBER/secrets/mongo-uri/versions/latest"
-      env: "MONGODB_URI"
