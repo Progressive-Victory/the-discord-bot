@@ -4,8 +4,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
-import { WARN_MAX_CHAR } from "./index.js";
-import { defaultNumberOfDaysBeforeExpiration } from "./types.js";
+import { WARN_MAX_CHAR } from ".";
+import { defaultNumberOfDaysBeforeExpiration } from "./types";
 
 /**
  * Create Modal for creating or updating warn

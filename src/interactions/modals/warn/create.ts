@@ -1,23 +1,20 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { Interaction } from "@/Classes/Interaction";
+import { SettingsResponse, zSettingsResponse } from "@/contracts/responses";
+import {
+  warnDMContainer,
+  warnModContainer,
+} from "@/features/moderation/warn-render";
+import { apiConnService, warnSearchManger } from "@/util/api/pvapi";
 import {
   ActionRowBuilder,
   ButtonBuilder,
+  ButtonStyle,
+  DiscordAPIError,
+  Message,
   MessageFlags,
   ModalSubmitInteraction,
 } from "discord.js";
-import { Interaction } from "../../../Classes/Interaction.js";
-import {
-  modViewWarningHistory,
-  userViewWarnHistory,
-} from "../../../features/moderation/buttons.js";
-import {
-  newWarningDmEmbed,
-  newWarningLogEmbed,
-  newWarnModEmbed,
-} from "../../../features/moderation/embeds.js";
-import { WarnModalPrefixes } from "../../../features/moderation/types.js";
-import { GuildSetting } from "../../../models/Setting.js";
-import { Warn } from "../../../models/Warn.js";
-import { getGuildChannel, isGuildMember } from "../../../util/index.js";
 
 /**
  * `warnCreate` is a modal interaction which allows mods to send warnings to guild members. It:
@@ -29,66 +26,97 @@ import { getGuildChannel, isGuildMember } from "../../../util/index.js";
  * </ul>
  */
 export const warnCreate = new Interaction<ModalSubmitInteraction>({
-  customIdPrefix: WarnModalPrefixes.createWarning,
+  customIdPrefix: "nw",
   run: async (interaction: ModalSubmitInteraction) => {
-    const { customId, client, guild, guildId, member, fields } = interaction;
-    const targetId = customId.split(client.splitCustomIdOn!)[1];
-
-    const numberRegex: RegExp = /^\d{1,3}$/is;
-    const target = guild?.members.cache.get(targetId);
-    const mod = member;
-    if (!(target && isGuildMember(mod))) return;
+    if (!interaction.inCachedGuild()) return;
+    const { member, fields } = interaction;
+    const targetMember = fields.getSelectedMembers("member")?.first();
+    if (!targetMember) return;
 
     const reason = fields.getTextInputValue("reason");
-    const modalDuration = fields.getTextInputValue("duration");
-    let duration: number | undefined;
-    if (!numberRegex.test(modalDuration)) {
-      duration = undefined;
-    } else {
-      duration = Number(modalDuration);
+
+    const duration = 30;
+    const expires = new Date();
+    expires.setHours(expires.getHours() + duration * 24);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_res, newWarn, targetDM, logChannel] = await Promise.all([
+      interaction.deferReply({ flags: MessageFlags.Ephemeral }),
+      warnSearchManger.createWarn({
+        moderatorId: member.id,
+        targetId: targetMember.id,
+        reason,
+        expires,
+      }),
+      targetMember.createDM().catch((e) => {
+        if (e instanceof DiscordAPIError) return null;
+        throw e;
+      }),
+      apiConnService
+        .get<SettingsResponse>(
+          Routes.setting("warn_log_channel_id"),
+          zSettingsResponse,
+        )
+        .then(async (u) => {
+          const channel = await interaction.guild.channels
+            .fetch(u.data)
+            .catch((e) => {
+              if (e instanceof DiscordAPIError) return null;
+              throw e;
+            });
+          if (channel?.isSendable()) {
+            return channel;
+          }
+          return null;
+        }),
+    ]);
+    let sentToUser: boolean = true;
+    if (targetDM) {
+      targetDM
+        .send({
+          flags: MessageFlags.IsComponentsV2,
+          components: [warnDMContainer(newWarn)],
+        })
+        .catch((e) => {
+          if (e instanceof DiscordAPIError) {
+            sentToUser = false;
+          } else {
+            throw e;
+          }
+        });
+    }
+    const modContainer = await warnModContainer(
+      newWarn,
+      interaction.guild,
+      sentToUser,
+    );
+    let message: Message<true> | null = null;
+    if (logChannel) {
+      message = await logChannel.send({
+        flags: MessageFlags.IsComponentsV2,
+        components: [modContainer],
+        allowedMentions: {},
+      });
     }
 
-    const record = await Warn.createWarning(target, mod, reason, duration);
-    const count = await Warn.countDocuments({
-      "target.discordId": target.id,
-      expireAt: { $gte: new Date() },
-    });
-    const setting = await GuildSetting.findOne({ guildId });
-
-    const userActionRow = new ActionRowBuilder<ButtonBuilder>();
-
-    // TODO: Appeal System to notify head mod
-    // if (setting?.warn.appealChannelId) {
-    // 	userActionRow.addComponents(appealWarn(record))
-    // }
-
-    userActionRow.addComponents(
-      userViewWarnHistory(target.id, guild!).setLabel("View Your History"),
-    );
-
-    target.send({
-      embeds: [newWarningDmEmbed(record, count, guild!)],
-      components: [],
-    });
-
-    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      modViewWarningHistory(targetId),
-    );
-
-    interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      embeds: [newWarnModEmbed(record, mod, target)],
-      components: [row],
-    });
-
-    if (setting?.warn.logChannelId) {
-      const channel = await getGuildChannel(guild!, setting?.warn.logChannelId);
-      if (channel?.isSendable()) {
-        channel.send({
-          embeds: [newWarningLogEmbed(record, mod, target)],
-          components: [row],
-        });
-      }
+    if (message) {
+      await interaction.editReply({
+        content: "The warn has been successfully been issued. ",
+        components: [
+          new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+              .setLabel("View Warn")
+              .setStyle(ButtonStyle.Link)
+              .setURL(message.url),
+          ),
+        ],
+      });
+    } else {
+      await interaction.editReply({
+        flags: MessageFlags.IsComponentsV2,
+        components: [modContainer],
+        allowedMentions: {},
+      });
     }
   },
 });

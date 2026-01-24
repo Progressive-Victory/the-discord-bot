@@ -4,8 +4,8 @@ import {
   Collection,
   ModalSubmitInteraction,
 } from "discord.js";
-import { Client } from "../Client/index.js";
-import { Interaction } from "../Interaction.js";
+import { Client } from "../Client";
+import { Interaction } from "../Interaction";
 
 /**
  * Manages all interactions that the PV bot supports. The {@link InteractionHandler}:

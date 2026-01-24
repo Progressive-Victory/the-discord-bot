@@ -1,10 +1,10 @@
-import createCsvWriter from "csv-writer";
+import { DiscordEvent } from "@/contracts/data";
+import { createObjectCsvWriter } from "csv-writer";
 import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
-import { client } from "../index.js";
-import { IScheduledEvent } from "../models/ScheduledEvent.js";
+import { client } from "..";
 
 export class ScheduledEventWrapper {
-  event: IScheduledEvent;
+  event: DiscordEvent;
 
   statusColor = () => {
     let color: number;
@@ -29,14 +29,16 @@ export class ScheduledEventWrapper {
   };
 
   duration = () => {
-    if (!this.event.startedAt) {
+    if (!this.event.startedAtUtc) {
       return "N/A";
     } else {
-      if (!this.event.endedAt) {
+      if (!this.event.endedAtUtc) {
         return "N/A";
       } else {
+        console.log("calculating duration");
         return Math.round(
-          (this.event.endedAt.getTime() - this.event.startedAt.getTime()) /
+          (this.event.endedAtUtc.getTime() -
+            this.event.startedAtUtc.getTime()) /
             60000,
         );
       }
@@ -44,11 +46,15 @@ export class ScheduledEventWrapper {
   };
 
   guild = async () => {
-    return await client.guilds.fetch(this.event.guildId);
+    if (!process.env.PV_GUILD_ID)
+      throw Error("fill out 'PV_GUILD_ID' in env file");
+    return await client.guilds.fetch(process.env.PV_GUILD_ID);
   };
 
   guildEvent = async () => {
-    return await (await this.guild()).scheduledEvents.fetch(this.event.id);
+    return await (
+      await this.guild()
+    ).scheduledEvents.fetch(this.event.discordId);
   };
 
   channel = async () => {
@@ -58,7 +64,7 @@ export class ScheduledEventWrapper {
   };
 
   createdAt = () => {
-    return time(this.event.createdAt);
+    return time(this.event.createdAtUtc);
   };
 
   description = () => {
@@ -66,45 +72,53 @@ export class ScheduledEventWrapper {
   };
 
   creator = async () => {
-    return (await this.guild()).members.fetch(this.event.creatorId);
+    return (await this.guild()).members.fetch(this.event.creatorDiscordId);
   };
 
   scheduledEnd = () => {
-    return this.event.scheduledEnd ? time(this.event.scheduledEnd) : "None";
+    return this.event.scheduledEndUtc
+      ? time(this.event.scheduledEndUtc)
+      : "None";
   };
 
   scheduledStart = () => {
-    return this.event.scheduledStart ? time(this.event.scheduledStart) : "None";
+    return this.event.scheduledStartUtc
+      ? time(this.event.scheduledStartUtc)
+      : "None";
   };
 
   scheduledStartDate = () => {
-    return this.event.scheduledStart
-      ? time(this.event.scheduledStart, "D")
+    return this.event.scheduledStartUtc
+      ? time(this.event.scheduledStartUtc, "D")
       : "None";
   };
 
   scheduledStartTime = () => {
-    return this.event.scheduledStart
-      ? time(this.event.scheduledStart, "t")
+    return this.event.scheduledStartUtc
+      ? time(this.event.scheduledStartUtc, "t")
       : "None";
   };
 
   scheduledEndTime = () => {
-    return this.event.scheduledEnd
-      ? time(this.event.scheduledEnd, "t")
+    return this.event.scheduledEndUtc
+      ? time(this.event.scheduledEndUtc, "t")
       : "None";
   };
 
   startDate = () => {
-    return this.event.startedAt ? time(this.event.startedAt, "D") : "None";
+    return this.event.startedAtUtc
+      ? time(this.event.startedAtUtc, "D")
+      : "None";
   };
 
   startTime = () => {
-    return this.event.startedAt ? time(this.event.startedAt, "t") : "None";
+    return this.event.startedAtUtc
+      ? time(this.event.startedAtUtc, "t")
+      : "None";
   };
 
   endTime = () => {
-    return this.event.endedAt ? time(this.event.endedAt, "t") : "None";
+    return this.event.endedAtUtc ? time(this.event.endedAtUtc, "t") : "None";
   };
 
   name = () => {
@@ -112,22 +126,25 @@ export class ScheduledEventWrapper {
   };
 
   status = () => {
-    return GuildScheduledEventStatus[this.event.status];
+    return GuildScheduledEventStatus[this.event.status ?? 1];
   };
 
   startedAt = () => {
-    return this.event.startedAt ? time(this.event.startedAt) : "N/A";
+    return this.event.startedAtUtc ? time(this.event.startedAtUtc) : "N/A";
   };
 
   endedAt = () => {
-    return this.event.endedAt ? time(this.event.endedAt) : "N/A";
+    return this.event.endedAtUtc ? time(this.event.endedAtUtc) : "N/A";
   };
 
   attendees = () => {
+    if (!this.event.attendees)
+      throw Error("No attendees defined on event: " + this.event.id);
     const users: string[] = [];
     this.event.attendees.map((obj) => {
+      //gonna need some refactoring with joins or some bullshit
       users.push(
-        `<@${obj.id}> ${obj.join ? "joined" : "left"} at ${this.getFormattedTime(obj.timestamp)}`,
+        `<@${obj.userDiscordId}> ${obj.isJoin ? "joined" : "left"} at ${this.getFormattedTime(obj.dateAttendedUtc)}`,
       );
     });
     return users;
@@ -138,21 +155,25 @@ export class ScheduledEventWrapper {
   };
 
   recurrence = () => {
-    return this.event.recurrence ? "Recurring" : "One Time";
+    return this.event.recurrent ? "Recurring" : "One Time";
   };
 
   thumbnail = () => {
     return this.event.thumbnailUrl;
   };
 
-  eventLink = () => {
-    return this.event.eventUrl;
+  eventLink = async () => {
+    const guild = await this.guild();
+    const res = await guild.scheduledEvents.fetch(this.event.discordId);
+    return res.url;
   };
 
   attendeesNames = async () => {
+    if (!this.event.attendees)
+      throw Error("No attendees defined on event: " + this.event.id);
     const usrIds: string[] = [];
     this.event.attendees.map((obj) => {
-      if (!usrIds.includes(obj.id)) usrIds.push(obj.id);
+      if (!usrIds.includes(obj.userDiscordId)) usrIds.push(obj.userDiscordId);
     });
     const nameMap = await this.getAttendeeNames(usrIds);
     const entries = await this.attendees();
@@ -160,9 +181,11 @@ export class ScheduledEventWrapper {
   };
 
   uniqueAttendees = () => {
+    if (!this.event.attendees)
+      throw Error("No attendees defined on event: " + this.event.id);
     const usrIds: string[] = [];
     this.event.attendees.map((obj) => {
-      if (!usrIds.includes(obj.id)) usrIds.push(obj.id);
+      if (!usrIds.includes(obj.userDiscordId)) usrIds.push(obj.userDiscordId);
     });
     return usrIds.length;
   };
@@ -178,31 +201,34 @@ export class ScheduledEventWrapper {
     return users;
   };
 
-  constructor(ev: IScheduledEvent) {
+  constructor(ev: DiscordEvent) {
     this.event = ev;
   }
 
   public async writeCsvDump() {
+    if (!this.event.attendees)
+      throw Error("No attendees defined on event: " + this.event.id);
     console.log("writing csv dump");
     const names = await this.getAttendeeNames(
       this.event.attendees.map((entry) => {
-        return entry.id;
+        return entry.userDiscordId;
       }),
     );
-    const writer = createCsvWriter.createObjectCsvWriter({
+    const writer = createObjectCsvWriter({
       path: "./assets/temp/attendees.csv",
-      header: ["timestamp", "id", "displayName", "join"],
+      header: ["timestamp", "id", "discordId", "displayName", "join"],
       fieldDelimiter: ";",
     });
 
-    const data = this.event.attendees.map((entry) => {
-      return {
-        timestamp: entry.timestamp,
-        id: entry.id,
-        displayName: names.get(entry.id) ?? "unknown",
-        join: entry.join,
-      };
-    });
+    const data = this.event.attendees.map((entry) => ({
+      timestamp: entry.dateAttendedUtc.toISOString(),
+      id: entry.id,
+      discordId: entry.userDiscordId,
+      displayName: names.get(entry.userDiscordId) ?? "unknown",
+      join: entry.isJoin ? "join" : "leave",
+    }));
+
+    console.log(data);
 
     await writer.writeRecords(data).catch((err) => console.error(err));
     console.log("csv written");
@@ -223,7 +249,7 @@ export class ScheduledEventWrapper {
 
   private async getAttendeeNames(ids: string[]) {
     const buffer = [];
-    let names: Map<string, string> = new Map();
+    const names: Map<string, string> = new Map();
     for (let i = 0; i < Math.ceil(ids.length / 100); i++) {
       const slice = ids.slice(
         i * 100,
@@ -249,7 +275,7 @@ export class ScheduledEventWrapper {
 
   private calculateAttendanceTime() {
     interface joinLeavePair {
-      id: string;
+      userDiscordId: string;
       join: Date;
       leave: Date | null;
     }
@@ -258,42 +284,53 @@ export class ScheduledEventWrapper {
       const joinLeavePairs: joinLeavePair[] = [];
       const attendanceTotals: Map<string, number> = new Map<string, number>();
 
+      if (!this.event.attendees)
+        throw Error("No attendees defined on event: " + this.event.id);
+      console.log(this.event.attendees);
       this.event.attendees.forEach((entry) => {
-        if (entry.join) {
+        if (entry.isJoin) {
           joinLeavePairs.push({
-            id: entry.id,
-            join: entry.timestamp,
+            userDiscordId: entry.userDiscordId,
+            join: entry.dateAttendedUtc,
             leave: null,
           });
         } else {
           const existingPair = joinLeavePairs.findLast(
-            (x) => x.id === entry.id,
+            (x) => x.userDiscordId === entry.userDiscordId,
           );
           if (!existingPair)
             throw Error(
               "Leave entry unaccompanied by join entry in attendance tracking.",
             );
-          existingPair.leave = entry.timestamp;
+          existingPair.leave = entry.dateAttendedUtc;
         }
       });
 
       joinLeavePairs.forEach((pair) => {
         if (!pair.leave) {
           const lastIdPair =
-            joinLeavePairs.findLast((x) => x.id === pair.id)?.join ===
-            pair.join;
+            joinLeavePairs.findLast(
+              (x) => x.userDiscordId === pair.userDiscordId,
+            )?.join === pair.join;
           if (!lastIdPair)
             throw Error(
               "Missing leave timestamp in attendance calculation pairs",
             );
-          pair.leave = this.event.endedAt;
+          if (!this.event.endedAtUtc)
+            throw Error(
+              "Attempting to calculate attendance for unfinished event: " +
+                this.event.id,
+            );
+          pair.leave = this.event.endedAtUtc;
         }
 
+        console.log("getting pair duration");
+        console.log(typeof pair.join);
         const pairDuration = pair.leave.getTime() - pair.join.getTime();
 
         attendanceTotals.set(
-          pair.id,
-          (attendanceTotals.get(pair.id) ?? 0) + pairDuration,
+          pair.userDiscordId,
+          (attendanceTotals.get(pair.userDiscordId) ?? 0) + pairDuration,
         );
       });
 
@@ -305,9 +342,16 @@ export class ScheduledEventWrapper {
 
   private calculateAttendancePercentages() {
     try {
+      if (!this.event.endedAtUtc || !this.event.startedAtUtc)
+        throw Error(
+          "Attempting to calculate attendance percentages without defined start and end times on event: " +
+            this.event.id,
+        );
       const totals = this.calculateAttendanceTime();
+      console.log("duration start");
       const eventDuration =
-        this.event.endedAt.getTime() - this.event.startedAt.getTime();
+        this.event.endedAtUtc.getTime() - this.event.startedAtUtc.getTime();
+      console.log("duration end");
       const percentages: Map<string, number> = new Map<string, number>();
       if (!totals) throw Error("Failed to calculate attendance totals");
 

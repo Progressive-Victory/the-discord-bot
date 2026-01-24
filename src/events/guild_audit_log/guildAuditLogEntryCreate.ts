@@ -1,3 +1,12 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import Event from "@/Classes/Event";
+import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse";
+import { timeoutEmbed } from "@/features/timeout";
+import { getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   AuditLogEvent,
   Events,
@@ -5,10 +14,6 @@ import {
   GuildAuditLogsEntry,
   User,
 } from "discord.js";
-import Event from "../../Classes/Event.js";
-import { timeoutEmbed } from "../../features/timeout.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { getGuildChannel } from "../../util/index.js";
 
 /**
  * `guildAuditLogEntryCreate` handles the {@link Events.GuildAuditLogEntryCreate} {@link Event}
@@ -18,9 +23,13 @@ export const guildAuditLogEntryCreate = new Event({
   name: Events.GuildAuditLogEntryCreate,
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
+    const res = await apiConnService.get<SettingsResponse>(
+      Routes.setting("timeout_log_channel_id"),
+      zSettingsResponse,
+    );
+
+    const timeoutChannelId = res.data;
     if (
-      settings?.logging.timeoutChannelId &&
       auditLogEntry.action == AuditLogEvent.MemberUpdate &&
       changes[0].key == "communication_disabled_until" &&
       target instanceof User &&
@@ -31,10 +40,7 @@ export const guildAuditLogEntryCreate = new Event({
 
       if (executorMember?.user.bot || !(targetMember && executorMember)) return;
 
-      const timeoutChannel = await getGuildChannel(
-        guild,
-        settings.logging.timeoutChannelId,
-      );
+      const timeoutChannel = await getGuildChannel(guild, timeoutChannelId);
 
       if (!timeoutChannel?.isSendable()) return;
 

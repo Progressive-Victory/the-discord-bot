@@ -1,3 +1,6 @@
+import { ContextMenuCommand } from "@/Classes";
+import { reportModalPrefix, reportModel } from "@/features/report";
+import { AddSplitCustomId } from "@/util";
 import {
   ApplicationCommandType,
   ContextMenuCommandBuilder,
@@ -6,9 +9,6 @@ import {
   MessageFlags,
   UserContextMenuCommandInteraction,
 } from "discord.js";
-import { ContextMenuCommand } from "../../Classes/index.js";
-import { reportModalPrefix, reportModel } from "../../features/report.js";
-import { AddSplitCustomId } from "../../util/index.js";
 
 /**
  * The `Report User` context menu command allows a user to report another non-bot user

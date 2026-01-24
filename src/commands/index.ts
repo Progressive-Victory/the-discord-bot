@@ -1,19 +1,19 @@
-export { default as state } from "./chat/state.js";
+export { default as state } from "./chat/state";
 
-export { default as feedback } from "./chat/feedback.js";
+export { default as feedback } from "./chat/feedback";
 
-export { warn } from "./chat/moderation.js";
+export { warn } from "./chat/moderation";
 
-// export { userProfile } from './context_menu/profile.js';
+// export { userProfile } from "./context_menu/profile";
 
-export { settings } from "./chat/setting.js";
+export { settings } from "./chat/setting";
 
-export { reportMessage, reportUser } from "./context_menu/report.js";
+export { reportMessage, reportUser } from "./context_menu/report";
 
-export { timeout } from "./chat/timeout.js";
+export { timeout } from "./chat/timeout";
 
-export { stateAdmin } from "./chat/state-admin.js";
+export { stateAdmin } from "./chat/state-admin";
 
-export { searchEvents } from "./chat/search-events.js";
+export { searchEvents } from "./chat/search-events";
 
-export { mute } from "./chat/mute.js";
+export { mute } from "./chat/mute";

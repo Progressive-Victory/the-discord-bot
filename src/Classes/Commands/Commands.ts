@@ -7,8 +7,8 @@ import {
   ContextMenuCommandType,
   SlashCommandBuilder,
 } from "discord.js";
-import { BaseCommand } from "./BaseCommand.js";
-import { AnySlashCommandBuilder } from "./types.js";
+import { BaseCommand } from "./BaseCommand";
+import { AnySlashCommandBuilder } from "./types";
 
 /**
  * Represents a PV Bot command that is invoked via a slash command and provides an interaction interface
@@ -22,7 +22,9 @@ export class ChatInputCommand extends BaseCommand<
    * Runs when client receives and Autocomplete interaction
    * @param interaction - Autocomplete interaction received by the client
    */
-  protected _autocomplete?: (interaction: AutocompleteInteraction) => void;
+  protected _autocomplete?: (
+    interaction: AutocompleteInteraction,
+  ) => Promise<void>;
 
   get autocomplete() {
     if (this._autocomplete === undefined)
@@ -58,7 +60,7 @@ export class ChatInputCommand extends BaseCommand<
    * @returns The modified object
    */
   public setAutocomplete(
-    autocomplete: (interaction: AutocompleteInteraction) => void,
+    autocomplete: (interaction: AutocompleteInteraction) => Promise<void>,
   ) {
     this._autocomplete = autocomplete;
     return this;

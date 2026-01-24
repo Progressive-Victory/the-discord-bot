@@ -1,3 +1,6 @@
+import { ChatInputCommand } from "@/Classes";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { apiConnService } from "@/util/api/pvapi";
 import {
   ChannelType,
   inlineCode,
@@ -8,9 +11,6 @@ import {
   SlashCommandBuilder,
   SlashCommandChannelOption,
 } from "discord.js";
-import { UpdateQuery } from "mongoose";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { GuildSetting, ISettings } from "../../models/Setting.js";
 
 const channel = new SlashCommandChannelOption()
   .setName("channel")
@@ -42,7 +42,7 @@ export const settings = new ChatInputCommand({
     .addSubcommandGroup((subcommandGroup) =>
       subcommandGroup
         .setName("warn")
-        .setDescription("configure wanning system")
+        .setDescription("configure warning system")
         .addSubcommand((subCommand) =>
           subCommand
             .setName("channels")
@@ -52,7 +52,7 @@ export const settings = new ChatInputCommand({
                 .setName("setting")
                 .setDescription("Setting to edit")
                 .setChoices(
-                  { name: "log", value: "warn.logChannelId" },
+                  { name: "log", value: "warn_log_channel_id" },
                   // { name: 'appeal', value: 'warn.appealChannelId' },
                 )
                 .setRequired(true),
@@ -72,7 +72,7 @@ export const settings = new ChatInputCommand({
               option
                 .setName("setting")
                 .setDescription("Setting to edit")
-                .setChoices({ name: "log", value: "report.logChannelId" })
+                .setChoices({ name: "log", value: "report_log_channel_id" })
                 .setRequired(true),
             )
             .addChannelOption(channel),
@@ -108,21 +108,21 @@ export const settings = new ChatInputCommand({
                 .setName("setting")
                 .setDescription("Setting to edit")
                 .setChoices(
-                  { name: "timeouts", value: "logging.timeoutChannelId" },
-                  { name: "leaves", value: "logging.leaveChannelId" },
+                  { name: "timeouts", value: "timeout_log_channel_id" },
+                  { name: "leaves", value: "leave_log_channel_id" },
                   {
                     name: "channel updates",
-                    value: "logging.channelUpdatesChannelId",
+                    value: "channel_updates_log_channel_id",
                   },
                   {
                     name: "vc updates",
-                    value: "logging.voiceUpdatesChannelId",
+                    value: "voice_updates_log_channel_id",
                   },
                   {
                     name: "nickname updates",
-                    value: "logging.nicknameUpdatesChannelId",
+                    value: "nickname_updates_log_channel_id",
                   },
-                  { name: "event logs", value: "logging.eventLogChannelId" },
+                  { name: "event logs", value: "event_log_channel_id" },
                 )
                 .setRequired(true),
             )
@@ -140,11 +140,20 @@ export const settings = new ChatInputCommand({
           ChannelType.GuildText,
           ChannelType.PublicThread,
         ]);
-        await GuildSetting.findOneAndUpdate(
-          { guildId: interaction.guildId },
-          { "welcome.channelId": channel.id },
-        );
-        reply.content = `welcome channel set to ${channel}`;
+
+        try {
+          await apiConnService.put(Routes.setting("welcome_channel_id"), {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ value: channel.id }),
+          });
+
+          reply.content = `welcome channel set to ${channel}`;
+        } catch (err) {
+          console.error(err);
+          reply.content = `failed to modify welcome channel to ${channel}`;
+        }
       }
 
       // else if (subCommand === 'role') {
@@ -166,17 +175,24 @@ export const settings = new ChatInputCommand({
         ChannelType.PublicThread,
       ]);
 
-      const update: UpdateQuery<ISettings> = {};
-      update[setting] = channel.id;
+      let msg;
+      try {
+        await apiConnService.put(Routes.setting(setting), {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ value: channel.id }),
+        });
 
-      await GuildSetting.findOneAndUpdate(
-        { guildId: interaction.guildId },
-        update,
-      );
+        msg = `${inlineCode(setting)} has been updated to ${channel}`;
+      } catch (err) {
+        console.error(err);
+        msg = `${inlineCode(setting)} has encountered an error and has not been updated to ${channel}`;
+      }
 
       interaction.reply({
         flags: MessageFlags.Ephemeral,
-        content: `${inlineCode(setting)} has been updated to ${channel}`,
+        content: msg,
       });
     }
   },

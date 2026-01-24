@@ -4,7 +4,7 @@ import {
   ContextMenuCommandInteraction,
   Snowflake,
 } from "discord.js";
-import { AnySlashCommandBuilder } from "./types.js";
+import { AnySlashCommandBuilder } from "./types";
 
 /**
  * BaseCommand represents a command that the PV bot can handle. This is a combination of a
@@ -27,7 +27,7 @@ export class BaseCommand<
 
   protected _guildIds: Snowflake[];
 
-  protected _execute?: (interaction: TypeInteraction) => void;
+  protected _execute?: (interaction: TypeInteraction) => Promise<void>;
 
   get name() {
     return this.builder.name;
@@ -63,7 +63,7 @@ export class BaseCommand<
    * @param execute - the interaction handler
    * @returns The modified object
    */
-  setExecute(execute: (interaction: TypeInteraction) => void): this {
+  setExecute(execute: (interaction: TypeInteraction) => Promise<void>): this {
     this._execute = execute;
     return this;
   }

@@ -1,15 +1,22 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { ChatInputCommand } from "@/Classes/index";
 import {
+  SettingsResponse,
+  zSettingsResponse,
+} from "@/contracts/responses/SettingsResponse";
+import { timeoutEmbed } from "@/features/timeout";
+import { localize } from "@/i18n";
+import { getGuildChannel, isGuildMember } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
+import {
+  DiscordAPIError,
   Events,
   GuildMember,
+  inlineCode,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { timeoutEmbed } from "../../features/timeout.js";
-import { localize } from "../../i18n.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { getGuildChannel, isGuildMember } from "../../util/index.js";
 
 export const ns = "timeout";
 
@@ -101,38 +108,45 @@ export const timeout = new ChatInputCommand()
           "received APIInteractionDataResolvedGuildMember when expecting guild member",
         ),
       );
-      return interaction.reply({
+      await interaction.reply({
         content: localize.t("reply_error", ns, locale),
         flags: MessageFlags.Ephemeral,
       });
+      return;
     }
 
     const reason = options.getString("reason", false) ?? "No reason given";
     const duration = options.getNumber("duration", true);
     // const endNumber = Math.floor(new Date().getTime() / 1000) + duration;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    try {
+      target = await target.timeout(
+        duration * 1000,
+        `Member was timed out by ${user.username} for ${reason}`,
+      );
+    } catch (error) {
+      if (!(error instanceof DiscordAPIError)) throw error;
+      await interaction.editReply({
+        content: `Command could not be completed because: ${inlineCode(error.message)}`,
+      });
+      return;
+    }
 
-    target = await target.timeout(
-      duration * 1000,
-      `Member was timed out by ${user.username} for ${reason}`,
-    );
-
-    interaction.reply({
+    await interaction.editReply({
       content: localize.t("reply_timeout", ns, locale, {
         member: target.toString(),
         endDate: durationText[duration.toString() as durationValue],
       }),
-      flags: MessageFlags.Ephemeral,
     });
 
-    const settings = await GuildSetting.findOne({
-      guildId: interaction.guild?.id,
-    });
-    if (!settings?.logging.timeoutChannelId || !guild) return;
-
-    const timeoutChannel = await getGuildChannel(
-      guild,
-      settings.logging.timeoutChannelId,
+    const timeoutLogChannelId = await apiConnService.get<SettingsResponse>(
+      Routes.setting("timeout_log_channel_id"),
+      zSettingsResponse,
     );
+    console.log("api response", timeoutLogChannelId);
+    if (timeoutLogChannelId || !guild) return;
+
+    const timeoutChannel = await getGuildChannel(guild, timeoutLogChannelId);
 
     if (!timeoutChannel?.isSendable() || !(member instanceof GuildMember))
       return;

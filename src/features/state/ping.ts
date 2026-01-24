@@ -1,3 +1,11 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { AddSplitCustomId, getGuildChannel } from "@/util";
+import { apiConnService } from "@/util/api/pvapi";
+import {
+  IDiscordStateRole,
+  zDiscordStateRole,
+} from "@/util/states/discordStateRole";
+import { isStateAbbreviations } from "@/util/states/types";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -7,6 +15,7 @@ import {
   Guild,
   GuildMember,
   heading,
+  LabelBuilder,
   Message,
   MessageCreateOptions,
   MessageFlags,
@@ -20,10 +29,7 @@ import {
   TextInputStyle,
   userMention,
 } from "discord.js";
-import { States } from "../../models/State.js";
-import { AddSplitCustomId, getGuildChannel } from "../../util/index.js";
-import { isStateAbbreviations } from "../../util/states/types.js";
-import { messageMaxLength, titleMaxLength } from "./constants.js";
+import { messageMaxLength, titleMaxLength } from "./constants";
 
 /**
  * Executes the ping command to send a message to a channel.
@@ -70,35 +76,36 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   const legacyOption = !(options.getBoolean("usecomponents") ?? false);
 
   if (!messageOption) {
-    const title = new TextInputBuilder()
+    const titleInput = new TextInputBuilder()
       .setCustomId("title")
-      .setLabel("Title")
       .setMaxLength(titleMaxLength)
       .setPlaceholder(`State Announcement`)
       .setRequired(true)
       .setStyle(TextInputStyle.Short);
 
-    if (titleOption) title.setValue(titleOption);
+    if (titleOption) titleInput.setValue(titleOption);
 
-    const message = new TextInputBuilder()
+    const messageInput = new TextInputBuilder()
       .setCustomId("message")
-      .setLabel("Message")
       .setPlaceholder(`Your message to state member`)
       .setMaxLength(messageMaxLength)
       .setRequired(true)
       .setStyle(TextInputStyle.Paragraph);
 
-    const titleRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
-      title,
-    );
-    const messageRow = new ActionRowBuilder<TextInputBuilder>().setComponents(
-      message,
-    );
+    if (messageOption) messageInput.setValue(messageOption);
+
+    const titleLabel = new LabelBuilder()
+      .setLabel("Title")
+      .setTextInputComponent(titleInput);
+
+    const messageLabel = new LabelBuilder()
+      .setLabel("Message")
+      .setTextInputComponent(messageInput);
 
     const modal = new ModalBuilder()
       .setCustomId(AddSplitCustomId("sp", stateAbbreviation, legacyOption))
       .setTitle("State Ping Message")
-      .setComponents(titleRow, messageRow);
+      .addLabelComponents(titleLabel, messageLabel);
 
     await interaction.showModal(modal);
     return;
@@ -106,38 +113,55 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  const state = await States.findOne({
-    guildId: interaction.guildId,
-    abbreviation: stateAbbreviation,
-  }).catch(console.error);
-  if (!state || !state.roleId || !state.channelId) return;
+  let state: IDiscordStateRole | undefined = undefined;
+
+  try {
+    state = await apiConnService.get<IDiscordStateRole>(
+      Routes.discordStateRole(stateAbbreviation),
+      zDiscordStateRole,
+    );
+
+    // console.log(state);
+  } catch (err) {
+    console.error(err);
+    if (
+      typeof err === "object" &&
+      err &&
+      "message" in err &&
+      typeof err.message === "string"
+    )
+      return interaction.reply(err.message);
+  }
+
+  if (!state) return;
 
   // check to see if the person trying to use the command has the role being pinged
-  if (!member.roles.cache.has(state.roleId)) {
+  if (!member.roles.cache.has(state.memberRoleId)) {
     await interaction.editReply({
-      content: `You are not allowed to run this command to ${state.name}`,
+      content: `You are missing the ${roleMention(state.memberRoleId)} state role.`,
+      allowedMentions: {},
     });
     return;
   }
 
-  const channel = await getGuildChannel(guild, state.channelId);
+  const channel = await getGuildChannel(guild, state.memberChannelId);
   if (!channel || !channel.isSendable()) return;
 
   let stateMessageCreateOptions: MessageCreateOptions;
   if (messageOption) {
     if (legacyOption)
       stateMessageCreateOptions = legacyStateMessageCreate(
-        state.roleId,
+        state.memberRoleId,
         member.id,
         messageOption,
-        titleOption ?? `${state.name} Announcement`,
+        titleOption ?? `${state.stateName} Announcement`,
       );
     else
       stateMessageCreateOptions = stateMessageCreate(
-        state.roleId,
+        state.memberRoleId,
         member.id,
         messageOption,
-        titleOption ?? `${state.name} Announcement`,
+        titleOption ?? `${state.stateName} Announcement`,
       );
 
     const pingMessage = await channel.send(stateMessageCreateOptions);

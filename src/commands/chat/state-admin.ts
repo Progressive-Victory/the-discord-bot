@@ -1,3 +1,8 @@
+import { ChatInputCommand } from "@/Classes";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { apiConnService } from "@/util/api/pvapi";
+import { IDiscordStateRole } from "@/util/states/discordStateRole";
+import { isStateAbbreviations, stateNames, states } from "@/util/states/types";
 import {
   ApplicationCommandOptionType,
   ChannelType,
@@ -6,13 +11,6 @@ import {
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { States } from "../../models/State.js";
-import {
-  isStateAbbreviations,
-  stateNames,
-  states,
-} from "../../util/states/types.js";
 
 /**
  * The `state-admin` allows a guild manager to configure the state system:
@@ -82,7 +80,7 @@ export const stateAdmin = new ChatInputCommand()
   .setExecute(async (interaction) => {
     if (!interaction.inGuild()) return;
 
-    const { guildId, options } = interaction;
+    const { options } = interaction;
 
     const abbreviation = options.getString("state", true);
     if (!isStateAbbreviations(abbreviation)) {
@@ -105,20 +103,34 @@ export const stateAdmin = new ChatInputCommand()
     const message: InteractionReplyOptions = { flags: MessageFlags.Ephemeral };
     const name = stateNames.get(abbreviation)?.name;
 
-    let state = await States.findOne({ guildId, abbreviation, name });
-    if (!state) state = new States({ guildId, abbreviation, name });
+    const updatePkg: Partial<IDiscordStateRole> =
+      new Object() as Partial<IDiscordStateRole>;
+
     if (!role && !channel) {
       message.content = `No update made to ${name} settings`;
     } else if (subcommandGroup === "team") {
-      if (role?.id) state.team.roleId = role.id;
-      if (channel?.id) state.team.channelId = channel.id;
+      if (role?.id) updatePkg.teamRoleId = role.id;
+      if (channel?.id) updatePkg.teamChannelId = channel.id;
       message.content = `updated state team for ${name} settings`;
     } else {
-      if (role?.id) state.roleId = role.id;
-      if (channel?.id) state.channelId = channel.id;
+      if (role?.id) updatePkg.memberRoleId = role.id;
+      if (channel?.id) updatePkg.memberChannelId = channel.id;
       message.content = `updated state for ${name} settings`;
     }
-    await state.save();
+
+    try {
+      await apiConnService.patch(Routes.discordStateRole(abbreviation), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatePkg),
+      });
+    } catch (err) {
+      console.error(err);
+      //@ts-expect-error can't type error catches
+      return interaction.reply(err.message);
+    }
+
     interaction.reply(message);
   })
   .setAutocomplete((interaction) => {

@@ -1,17 +1,17 @@
 {
-	"files.eol": "\n",
-	"files.insertFinalNewline": true,
-	"editor.tabSize": 4,
-	"editor.insertSpaces": false,
-    "editor.detectIndentation": true,
-	"editor.codeActionsOnSave": {
-		"source.fixAll": "explicit",
-		"source.organizeImports": "explicit"
-	},
-	"eslint.useFlatConfig": true,
-	"eslint.workingDirectories": [
-		{
-			"mode": "auto"
-		}
-	],
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "editor.tabSize": 2,
+  "editor.indentSize": "tabSize",
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "eslint.workingDirectories": [
+    {
+      "mode": "auto"
+    }
+  ]
 }

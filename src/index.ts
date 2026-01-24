@@ -4,15 +4,12 @@ import {
   Partials,
 } from "discord.js";
 import express from "express";
-import { Client, Interaction } from "./Classes/index.js";
-import * as commands from "./commands/index.js";
-import * as events from "./events/index.js";
-import * as buttons from "./interactions/buttons/index.js";
-import * as modals from "./interactions/modals/index.js";
-import * as selectMenus from "./interactions/select_menus/index.js";
-import dbConnect from "./util/libmongo.js";
-
-dbConnect();
+import { Client, Interaction } from "./Classes";
+import * as commands from "./commands";
+import * as events from "./events";
+import * as buttons from "./interactions/buttons";
+import * as modals from "./interactions/modals";
+import * as selectMenus from "./interactions/select_menus";
 
 // Initialization (specify intents and partials)
 export const client = new Client({
@@ -55,7 +52,7 @@ for (const selectMenu of Object.values(selectMenus))
 // Bot logins to Discord services
 void client.login(process.env.DISCORD_TOKEN).then(() => {
   // Skip if no-deployment flag is set, else deploys command
-  if (!process.argv.includes("--no-deployment"))
+  if (process.argv.includes("--deploy"))
     // removes guild command from set guild
     // client.commands.deregisterGuildCommands(process.env.GUILDID);
     // deploys commands

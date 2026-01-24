@@ -3,14 +3,16 @@ import {
   APIRole,
   DiscordAPIError,
   Guild,
+  GuildBasedChannel,
   GuildChannelResolvable,
   GuildMember,
   GuildMemberResolvable,
+  RESTJSONErrorCodes,
   Role,
+  Snowflake,
+  User,
 } from "discord.js";
-import { Types } from "mongoose";
-import { client } from "../index.js";
-import { DiscordAPIErrorCodes } from "./discord/DiscordAPIErrorCodes.js";
+import { client } from "..";
 
 /**
  * Check is full GuildMember object is present
@@ -36,9 +38,7 @@ export function isRole(data: Role | APIRole | null): data is Role {
  * @param args - strings
  * @returns string with arguments separated by client.splitCustomIdOn
  */
-export function AddSplitCustomId(
-  ...args: (string | number | boolean | Types.ObjectId)[]
-) {
+export function AddSplitCustomId(...args: (string | number | boolean)[]) {
   if (!client.splitCustomIdOn) {
     throw Error("client.splitCustomIdOn not set in index");
   }
@@ -64,7 +64,7 @@ export async function getMember(guild: Guild, member: GuildMemberResolvable) {
   } catch (error) {
     if (
       error instanceof DiscordAPIError &&
-      error.code === DiscordAPIErrorCodes.UnknownMember
+      error.code === RESTJSONErrorCodes.UnknownMember
     ) {
       return undefined;
     }
@@ -81,21 +81,47 @@ export async function getGuildChannel(
   guild: Guild,
   channel: GuildChannelResolvable,
 ) {
-  let resolvedChannel = guild.channels.resolve(channel) ?? null;
+  let resolvedChannel: GuildBasedChannel | null | undefined =
+    guild.channels.resolve(channel);
+  resolvedChannel ??= undefined;
   if (resolvedChannel) return resolvedChannel ?? undefined;
   try {
     if (typeof channel === "string") {
+      console.log("channel", channel);
       resolvedChannel = await guild.channels.fetch(channel);
     } else {
+      console.log("channel", channel);
       resolvedChannel = await channel.fetch();
     }
+
+    console.log(resolvedChannel);
+    return resolvedChannel;
   } catch (error) {
     if (
       error instanceof DiscordAPIError &&
-      error.code === DiscordAPIErrorCodes.UnknownChannel
+      error.code === RESTJSONErrorCodes.UnknownChannel
     ) {
-      return undefined;
+      console.error(error);
     }
     throw error;
   }
+}
+
+export async function fetchMemberOrUser(id: Snowflake, guild: Guild) {
+  return guild.members.fetch(id).catch(async (e) => {
+    if (
+      !(e instanceof DiscordAPIError) ||
+      e.code !== RESTJSONErrorCodes.UnknownMember
+    )
+      throw e;
+    return client.users.fetch(id);
+  });
+}
+
+export function getNameToDisplay(user: GuildMember | User): string {
+  return user instanceof GuildMember
+    ? (user.nickname ?? user.displayName)
+    : user instanceof User
+      ? user.displayName
+      : "[Deleted User]";
 }

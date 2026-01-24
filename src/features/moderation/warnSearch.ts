@@ -1,10 +1,10 @@
-import { ActionRowBuilder, ButtonBuilder, italic } from "discord.js";
+/*import { ActionRowBuilder, ButtonBuilder, italic } from "discord.js";
 import { FilterQuery } from "mongoose";
-import { Warn, WarningRecord } from "../../models/Warn.js";
-import { WarningSearch, WarnSearch } from "../../models/WarnSearch.js";
-import { leftButton, pageNumber, rightButton } from "./buttons.js";
-import { viewWarningEmbeds } from "./embeds.js";
-import { numberOfWarnEmbedsOnPage } from "./types.js";
+import { Warn, WarningRecord } from "@/models/Warn";
+import { WarningSearch, WarnSearch } from "@/models/WarnSearch";
+import { leftButton, pageNumber, rightButton } from "./buttons";
+import { viewWarningEmbeds } from "./embeds";
+import { numberOfWarnEmbedsOnPage } from "./types";
 
 /**
  * Render message for search of warnings
@@ -14,7 +14,7 @@ import { numberOfWarnEmbedsOnPage } from "./types.js";
  * @param isStart - is this the initiation of a search
  * @returns partial message object compatible with Interaction reply and update
  */
-export async function warnSearch(
+/*export async function warnSearch(
   record: WarnSearch | string,
   isMod: boolean,
   isRightMove: boolean = false,
@@ -84,4 +84,4 @@ export async function warnSearch(
             ),
           ],
   };
-}
+}*/

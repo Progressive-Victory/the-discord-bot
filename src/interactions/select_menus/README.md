@@ -22,7 +22,7 @@ Interactions start with the bot [sending the select menu](https://discordjs.guid
    ```ts
    // src/interactions/select_menus/string.ts
    import { StringSelectMenuInteraction } from "discord.js";
-   import { Interaction } from "../../../Classes/index.js";
+   import { Interaction } from "@/Classes";
 
    export default new Interaction<StringSelectMenuInteraction>({
      customIdPrefix: "string",
@@ -36,15 +36,15 @@ Interactions start with the bot [sending the select menu](https://discordjs.guid
 
    ```ts
    // src/interactions/select_menus/index.ts
-   export { default as string } from "./string.js";
+   export { default as string } from "./string";
    ```
 
-3. In the root [`index.ts`](../../index.ts), make sure the following is present:
+3. In the root [`index.ts`](@/index.ts), make sure the following is present:
 
    ```ts
    // src/index.ts
-   import { Client } from "./Classes/index.js";
-   import * as selectMenus from "./interactions/select_menus/index.js";
+   import { Client } from "./Classes";
+   import * as selectMenus from "./interactions/select_menus";
 
    export const client = new Client({
      receiveMessageComponents: true, // enables the usage of message components

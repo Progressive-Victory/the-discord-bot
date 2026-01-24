@@ -1,5 +1,5 @@
 import { GuildMember, GuildTextBasedChannel, Role } from "discord.js";
-import { statesConfig } from "./types.js";
+import { statesConfig } from "./types";
 
 /**
  * Get states from a member

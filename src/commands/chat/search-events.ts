@@ -1,13 +1,14 @@
+import { ChatInputCommand } from "@/Classes";
 import {
   ChatInputCommandInteraction,
   Guild,
   GuildScheduledEvent,
+  GuildScheduledEventStatus,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
 
 export const searchEvents = new ChatInputCommand({
   builder: new SlashCommandBuilder()
@@ -157,7 +158,7 @@ async function findEventsMatchingQuery(
 
 async function directMessageEvents(
   interaction: ChatInputCommandInteraction,
-  events: any[] | null,
+  events: GuildScheduledEvent<GuildScheduledEventStatus>[] | null,
 ) {
   if (events === null || events.length === 0) {
     await interaction.followUp({
