@@ -1,9 +1,9 @@
 import { ns } from "@/commands/chat/state";
 import { localize } from "@/i18n";
 import {
-	AttachmentBuilder,
-	ChatInputCommandInteraction,
-	MessageFlags,
+  AttachmentBuilder,
+  ChatInputCommandInteraction,
+  MessageFlags,
 } from "discord.js";
 
 /**
