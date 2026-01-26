@@ -131,7 +131,7 @@ export class WarnSearchManager {
   }
 
   async createWarn(options: CreateWarnOptions) {
-    const id = await this.client.post<number>(
+    const idObj = await this.client.post<{ id: number }>(
       Routes.discordWarns,
       {
         headers: { "Content-Type": "application/json" },
@@ -142,14 +142,14 @@ export class WarnSearchManager {
           expires_at_utc: options.expires.toISOString(),
         }),
       },
-      z.number(),
+      z.object({ id: z.number() }),
     );
 
     // console.log(res);
 
     const now = new Date().toISOString();
     return new Warn(this.client, {
-      id,
+      id: idObj.id,
       moderatorDiscordId: options.moderatorId,
       userWarnedDiscordId: options.targetId,
       reason: options.reason,
