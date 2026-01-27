@@ -1,9 +1,4 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import { Interaction } from "@/Classes/Interaction";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
 import { getAuthorOptions } from "@/features/moderation/embeds";
 import {
   messageReportColor,
@@ -11,7 +6,7 @@ import {
   userReportColor,
 } from "@/features/report";
 import { getGuildChannel, getMember } from "@/util";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -50,10 +45,7 @@ export const userReport = new Interaction<ModalSubmitInteraction>({
         : await getMember(guild, member.user.id);
     if (!reporter) return;
 
-    const res = await apiConnService.get<SettingsResponse>(
-      Routes.setting("report_log_channel_id"),
-      zSettingsResponse,
-    );
+    const res = await fetchSetting("report_log_channel_id");
 
     const logChannelId = res.data;
     const comment = interaction.fields.getTextInputValue("comment");
@@ -123,10 +115,7 @@ export const messageReport = new Interaction<ModalSubmitInteraction>({
 
     if (!reporter) return;
 
-    const res = await apiConnService.get<SettingsResponse>(
-      Routes.setting("report_log_channel_id"),
-      zSettingsResponse,
-    );
+    const res = await fetchSetting("report_log_channel_id");
 
     const logChannelId = res.data;
     const comment = interaction.fields.getTextInputValue("comment");

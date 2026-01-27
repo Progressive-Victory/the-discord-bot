@@ -1,11 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
-import { Routes } from "@/Classes/API/ApiConnService/routes";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
 import { getGuildChannel } from "@/util";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   ContainerBuilder,
   EmbedBuilder,
@@ -109,11 +104,13 @@ export const mute = new ChatInputCommand({
       mutingMember = await guild.members.fetch(interaction.user);
     }
 
-    if (!targetMember.voice.channel)
-      return interaction.reply({
+    if (!targetMember.voice.channel) {
+      interaction.reply({
         flags: MessageFlags.Ephemeral,
         content: "User is not in a vc.",
       });
+      return;
+    }
 
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
@@ -155,13 +152,10 @@ async function logMessage(
   reason: string,
 ) {
   // check if log channel is set
-  const res = await apiConnService.get<SettingsResponse>(
-    Routes.setting("timeout_log_channel_id"),
-    zSettingsResponse,
-  );
-
+  const res = await fetchSetting("timeout_log_channel_id");
   const timeoutLogChannelId = res.data;
-  if (timeoutLogChannelId) return;
+
+  if (!timeoutLogChannelId) return;
 
   // check that channel is real
   const timeoutChannel = await getGuildChannel(

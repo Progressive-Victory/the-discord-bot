@@ -1,11 +1,10 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import { Interaction } from "@/Classes/Interaction";
-import { SettingsResponse, zSettingsResponse } from "@/contracts/responses";
 import {
   warnDMContainer,
   warnModContainer,
 } from "@/features/moderation/warn-render";
-import { apiConnService, warnSearchManger } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
+import { warnSearchManger } from "@/util/api/pvapi";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -52,23 +51,18 @@ export const warnCreate = new Interaction<ModalSubmitInteraction>({
         if (e instanceof DiscordAPIError) return null;
         throw e;
       }),
-      apiConnService
-        .get<SettingsResponse>(
-          Routes.setting("warn_log_channel_id"),
-          zSettingsResponse,
-        )
-        .then(async (u) => {
-          const channel = await interaction.guild.channels
-            .fetch(u.data)
-            .catch((e) => {
-              if (e instanceof DiscordAPIError) return null;
-              throw e;
-            });
-          if (channel?.isSendable()) {
-            return channel;
-          }
-          return null;
-        }),
+      fetchSetting("warn_log_channel_id").then(async (u) => {
+        const channel = await interaction.guild.channels
+          .fetch(u.data)
+          .catch((e) => {
+            if (e instanceof DiscordAPIError) return null;
+            throw e;
+          });
+        if (channel?.isSendable()) {
+          return channel;
+        }
+        return null;
+      }),
     ]);
     let sentToUser: boolean = true;
     if (targetDM) {

@@ -1,11 +1,6 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import Event from "@/Classes/Event";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
 import { getGuildChannel } from "@/util";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import { markAttendance } from "@/util/events/markAttendance";
 import {
   channelMention,
@@ -114,12 +109,7 @@ export const guildMemberVoiceUpdate = new Event({
       }
     }
 
-    const res = await apiConnService.get<SettingsResponse>(
-      Routes.setting("voice_updates_log_channel_id"),
-      zSettingsResponse,
-    );
-
-    console.log("res", res);
+    const res = await fetchSetting("voice_updates_log_channel_id");
 
     const loggingChannelId = res.data;
 

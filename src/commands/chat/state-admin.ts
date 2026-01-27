@@ -128,12 +128,13 @@ export const stateAdmin = new ChatInputCommand()
     } catch (err) {
       console.error(err);
       //@ts-expect-error can't type error catches
-      return interaction.reply(err.message);
+      interaction.reply(err.message);
+      return;
     }
 
     interaction.reply(message);
   })
-  .setAutocomplete((interaction) => {
+  .setAutocomplete(async (interaction) => {
     const focus = interaction.options.getFocused(true);
     if (
       focus.type !== ApplicationCommandOptionType.String &&

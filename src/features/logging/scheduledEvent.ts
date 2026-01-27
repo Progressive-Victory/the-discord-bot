@@ -1,10 +1,5 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import { DiscordEvent } from "@/contracts/data";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import { eventLogMessageCache } from "@/util/cache/eventLogMessageCache";
 import { ScheduledEventWrapper } from "@/util/scheduledEventWrapper";
 import {
@@ -34,12 +29,7 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
       throw Error("Set 'PV_GUILD_ID' in the env file");
     const guild: Guild = await client.guilds.fetch(process.env.PV_GUILD_ID);
 
-    const setting = "event_log_channel_id";
-
-    const res = await apiConnService.get<SettingsResponse>(
-      Routes.setting(setting),
-      zSettingsResponse,
-    );
+    const res = await fetchSetting("event_log_channel_id");
 
     const logChannelId = res.data;
     if (!logChannelId) throw Error("Set the log channel id in the settings!");

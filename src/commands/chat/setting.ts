@@ -1,5 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { refetchSetting } from "@/util/api/fetchSettings";
 import { apiConnService } from "@/util/api/pvapi";
 import {
   ChannelType,
@@ -149,6 +150,8 @@ export const settings = new ChatInputCommand({
             body: JSON.stringify({ value: channel.id }),
           });
 
+          await refetchSetting("welcome_channel_id");
+
           reply.content = `welcome channel set to ${channel}`;
         } catch (err) {
           console.error(err);
@@ -183,6 +186,8 @@ export const settings = new ChatInputCommand({
           },
           body: JSON.stringify({ value: channel.id }),
         });
+
+        await refetchSetting(setting);
 
         msg = `${inlineCode(setting)} has been updated to ${channel}`;
       } catch (err) {
