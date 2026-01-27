@@ -1,13 +1,8 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import { ChatInputCommand } from "@/Classes/index";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
 import { timeoutEmbed } from "@/features/timeout";
 import { localize } from "@/i18n";
 import { getGuildChannel, isGuildMember } from "@/util";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   DiscordAPIError,
   Events,
@@ -139,10 +134,9 @@ export const timeout = new ChatInputCommand()
       }),
     });
 
-    const timeoutLogChannelId = await apiConnService.get<SettingsResponse>(
-      Routes.setting("timeout_log_channel_id"),
-      zSettingsResponse,
-    );
+    const res = await fetchSetting("timeout_log_channel_id");
+    const timeoutLogChannelId = res;
+
     console.log("api response", timeoutLogChannelId);
     if (timeoutLogChannelId || !guild) return;
 
