@@ -1,12 +1,7 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import Event from "@/Classes/Event";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
 import { timeoutEmbed } from "@/features/timeout";
 import { getGuildChannel } from "@/util";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   AuditLogEvent,
   Events,
@@ -23,10 +18,7 @@ export const guildAuditLogEntryCreate = new Event({
   name: Events.GuildAuditLogEntryCreate,
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
-    const res = await apiConnService.get<SettingsResponse>(
-      Routes.setting("timeout_log_channel_id"),
-      zSettingsResponse,
-    );
+    const res = await fetchSetting("timeout_log_channel_id");
 
     const timeoutChannelId = res.data;
     if (

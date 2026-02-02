@@ -1,11 +1,6 @@
-import { Routes } from "@/Classes/API/ApiConnService/routes";
 import Event from "@/Classes/Event";
-import {
-  SettingsResponse,
-  zSettingsResponse,
-} from "@/contracts/responses/SettingsResponse";
 import { getGuildChannel } from "@/util";
-import { apiConnService } from "@/util/api/pvapi";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import { footer } from "@/util/components";
 import {
   bold,
@@ -31,10 +26,7 @@ export const GuildMemberRemove = new Event({
   name: Events.GuildMemberRemove,
   execute: async (member) => {
     const { guild } = member;
-    const res = await apiConnService.get<SettingsResponse>(
-      Routes.setting("leave_log_channel_id"),
-      zSettingsResponse,
-    );
+    const res = await fetchSetting("leave_log_channel_id");
 
     const leaveChannelId = res.data;
 
