@@ -4,13 +4,16 @@ import { localize } from "@/i18n";
 import { getGuildChannel, isGuildMember } from "@/util";
 import { fetchSetting } from "@/util/api/fetchSettings";
 import {
+  ChannelType,
   DiscordAPIError,
   Events,
+  Guild,
   GuildMember,
   inlineCode,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
+  Role,
 } from "discord.js";
 
 export const ns = "timeout";
@@ -88,14 +91,31 @@ export const timeout = new ChatInputCommand()
           .setDescription("The reason for timing them out")
           // .setNameLocalizations(localize.discordLocalizationRecord('option_reason_name', ns))
           // .setNameLocalizations(localize.discordLocalizationRecord('option_reason_description', ns))
-          .setRequired(false),
+          .setRequired(true),
+      )
+      .addStringOption((option) =>
+        option
+          .setName("type")
+          .setDescription("Which kind of mute is this")
+          .setRequired(false)
+          .setChoices(
+            { name: "Text", value: "Text" },
+            { name: "Voice", value: "Voice" },
+            { name: "Both", value: "Both" },
+          ),
       ),
   )
   .setExecute(async (interaction) => {
+    // deconstruct command interaction
     const { options, locale, user, guild, member } = interaction;
 
     let target = options.getMember("user");
+    const reason = options.getString("reason", true);
+    const duration = options.getNumber("duration", true);
+    const duration_ms = duration * 1000;
+    const kind = options.getString("type", false) ?? "Both";
 
+    // make sure user is valid
     if (!isGuildMember(target)) {
       interaction.client.emit(
         Events.Error,
@@ -109,16 +129,34 @@ export const timeout = new ChatInputCommand()
       });
       return;
     }
-
-    const reason = options.getString("reason", false) ?? "No reason given";
-    const duration = options.getNumber("duration", true);
-    // const endNumber = Math.floor(new Date().getTime() / 1000) + duration;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // impliment timeout
     try {
-      target = await target.timeout(
-        duration * 1000,
-        `Member was timed out by ${user.username} for ${reason}`,
-      );
+      if (guild === null) return;
+      switch (kind) {
+        case "Text": // Text mute requires muted role
+          // let MUTE_ROLE = await getOrCreateMutedRole(guild);
+          // await target.roles.add(MUTE_ROLE, reason);
+          // setTimeout(
+          //   async () => await target.roles.remove(MUTE_ROLE),
+          //   duration_ms,
+          // );
+          console.log("TEXT timeout TODO")
+          break;
+        case "Voice": // voice mute
+          await target.voice.setMute(true, reason);
+          setTimeout(async () => {
+            await target.voice.setMute(false);
+          }, duration_ms);
+          break;
+        default: // default/both uses user.timeout
+          await target.timeout(
+            duration_ms,
+            `Member was timed out by ${user.username} for ${reason}`,
+          );
+          break;
+      }
     } catch (error) {
       if (!(error instanceof DiscordAPIError)) throw error;
       await interaction.editReply({
@@ -127,6 +165,7 @@ export const timeout = new ChatInputCommand()
       return;
     }
 
+    // log timeout in channel
     await interaction.editReply({
       content: localize.t("reply_timeout", ns, locale, {
         member: target.toString(),
@@ -134,6 +173,7 @@ export const timeout = new ChatInputCommand()
       }),
     });
 
+    // log timeout in logging channel
     const res = await fetchSetting("timeout_log_channel_id");
     const timeoutLogChannelId = res;
 
@@ -155,3 +195,32 @@ export const timeout = new ChatInputCommand()
 
     timeoutChannel.send({ embeds: [embed] });
   });
+
+// async function getOrCreateMutedRole(guild: Guild): Promise<Role> {
+//   // Try to find exisitng role
+//   let mutedRole = guild.roles.cache.find((role) => role.name === "Muted");
+
+//   if (mutedRole) return mutedRole;
+
+//   // Create if not found
+//   mutedRole = await guild.roles.create({
+//     name: "Muted",
+//     permissions: [],
+//   });
+
+//   for (const channel of guild.channels.cache.values()) {
+//     if (
+//       channel.type === ChannelType.GuildText ||
+//       channel.type === ChannelType.GuildAnnouncement ||
+//       channel.type === ChannelType.GuildVoice
+//     ) {
+//       await channel.permissionOverwrites
+//         .create(mutedRole, {
+//           SendMessages: false,
+//           AddReactions: false,
+//         })
+//         .catch(() => {});
+//     }
+//   }
+//   return mutedRole;
+// }
