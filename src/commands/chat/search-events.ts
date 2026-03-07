@@ -156,6 +156,7 @@ async function findEventsMatchingQuery(
   return out;
 }
 
+const max_num_events = 20;
 async function directMessageEvents(
   interaction: ChatInputCommandInteraction,
   events: GuildScheduledEvent<GuildScheduledEventStatus>[] | null,
@@ -168,16 +169,15 @@ async function directMessageEvents(
     return;
   }
   let out = "";
-  for (const e of events) {
-    out += e.toString() + "\n";
+  let max = Math.min(events.length, max_num_events);
+  if (events.length > max_num_events) {
+    out += `Showing top ${max_num_events} results:\n\n`;
   }
-  const messages = Math.ceil(out.length / 1980);
-  for (let i = 0; i < messages; i++) {
-    const msg = out;
-    const trimmed = msg.slice(i * 1980, i * 1980 + 1980);
-    await interaction.followUp({
-      content: trimmed,
-      flags: MessageFlags.Ephemeral,
-    });
+  for (let i = 0; i < max; i++) {
+    out += events[i].toString() + "\n";
   }
+  await interaction.followUp({
+    content: out,
+    flags: MessageFlags.Ephemeral,
+  });
 }
