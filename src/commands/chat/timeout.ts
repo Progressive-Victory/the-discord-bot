@@ -92,17 +92,6 @@ export const timeout = new ChatInputCommand()
           // .setNameLocalizations(localize.discordLocalizationRecord('option_reason_name', ns))
           // .setNameLocalizations(localize.discordLocalizationRecord('option_reason_description', ns))
           .setRequired(true),
-      )
-      .addStringOption((option) =>
-        option
-          .setName("type")
-          .setDescription("Which kind of mute is this")
-          .setRequired(false)
-          .setChoices(
-            { name: "Text", value: "Text" },
-            { name: "Voice", value: "Voice" },
-            { name: "Both", value: "Both" },
-          ),
       ),
   )
   .setExecute(async (interaction) => {
@@ -113,7 +102,6 @@ export const timeout = new ChatInputCommand()
     const reason = options.getString("reason", true);
     const duration = options.getNumber("duration", true);
     const duration_ms = duration * 1000;
-    const kind = options.getString("type", false) ?? "Both";
 
     // make sure user is valid
     if (!isGuildMember(target)) {
@@ -134,29 +122,10 @@ export const timeout = new ChatInputCommand()
     // impliment timeout
     try {
       if (guild === null) return;
-      switch (kind) {
-        case "Text": // Text mute requires muted role
-          // let MUTE_ROLE = await getOrCreateMutedRole(guild);
-          // await target.roles.add(MUTE_ROLE, reason);
-          // setTimeout(
-          //   async () => await target.roles.remove(MUTE_ROLE),
-          //   duration_ms,
-          // );
-          console.log("TEXT timeout TODO")
-          break;
-        case "Voice": // voice mute
-          await target.voice.setMute(true, reason);
-          setTimeout(async () => {
-            await target.voice.setMute(false);
-          }, duration_ms);
-          break;
-        default: // default/both uses user.timeout
-          await target.timeout(
-            duration_ms,
-            `Member was timed out by ${user.username} for ${reason}`,
-          );
-          break;
-      }
+      await target.timeout(
+        duration_ms,
+        `Member was timed out by ${user.username} for ${reason}`,
+      );
     } catch (error) {
       if (!(error instanceof DiscordAPIError)) throw error;
       await interaction.editReply({
@@ -195,32 +164,3 @@ export const timeout = new ChatInputCommand()
 
     timeoutChannel.send({ embeds: [embed] });
   });
-
-// async function getOrCreateMutedRole(guild: Guild): Promise<Role> {
-//   // Try to find exisitng role
-//   let mutedRole = guild.roles.cache.find((role) => role.name === "Muted");
-
-//   if (mutedRole) return mutedRole;
-
-//   // Create if not found
-//   mutedRole = await guild.roles.create({
-//     name: "Muted",
-//     permissions: [],
-//   });
-
-//   for (const channel of guild.channels.cache.values()) {
-//     if (
-//       channel.type === ChannelType.GuildText ||
-//       channel.type === ChannelType.GuildAnnouncement ||
-//       channel.type === ChannelType.GuildVoice
-//     ) {
-//       await channel.permissionOverwrites
-//         .create(mutedRole, {
-//           SendMessages: false,
-//           AddReactions: false,
-//         })
-//         .catch(() => {});
-//     }
-//   }
-//   return mutedRole;
-// }
