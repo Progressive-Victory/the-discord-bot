@@ -33,7 +33,7 @@ export async function lead(interaction: ChatInputCommandInteraction) {
  * @param interaction - The autocomplete interaction object.
  * @returns The interaction response.
  */
-export function autoComplete(
+export async function autoComplete(
   interaction: AutocompleteInteraction,
 ): Promise<void> {
   const { member, options, guild } = interaction;
@@ -45,7 +45,8 @@ export function autoComplete(
   ) {
     const choices = getStatesFromMember(member);
     if (!choices) {
-      return interaction.respond([]);
+      await interaction.respond([]);
+      return;
     }
     // Filter the choices based on the focused option.
     const filtered = choices
@@ -62,10 +63,12 @@ export function autoComplete(
       .slice(0, 14);
 
     // Respond with the filtered choices as an interaction response.
-    return interaction.respond(filtered);
+    await interaction.respond(filtered);
+    return;
   }
 
-  return interaction.respond([]);
+  await interaction.respond([]);
+  return;
 }
 
 // Export the lead and autoComplete functions as properties of the exported object.
