@@ -13,7 +13,8 @@ export const ready = new Event({
    * @param client - client object
    */
   execute: async (client) => {
-    client.guilds.cache.forEach((g) => g.members.fetch());
+    const pvGuild = await client.guilds.fetch(process.env.PV_GUILD_ID!);
+    await pvGuild.members.fetch();
     console.log(`Ready! Logged in as ${client.user.username}`);
   },
 });
