@@ -13,9 +13,6 @@ export const ready = new Event({
    * @param client - client object
    */
   execute: async (client) => {
-    const pvGuild = await client.guilds.fetch(process.env.PV_GUILD_ID!);
-    console.log("[Info] Fetching all PV members");
-    await pvGuild.members.fetch();
     console.log(`[Info] Ready! Logged in as ${client.user.username}`);
   },
 });
