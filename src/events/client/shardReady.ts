@@ -6,7 +6,7 @@ import { Events } from "discord.js";
  * The `ready` event {@link Event} registers a event handler for the
  * {@link Events.ClientReady} event
  */
-export const ready = new Event({
+export const shardReady = new Event({
   name: Events.ShardReady,
   execute: async () => {
     const pvGuild = await client.guilds.fetch(process.env.PV_GUILD_ID!);

@@ -21,3 +21,5 @@ export { guildMemberVoiceUpdate } from "./guild_member/guildMemberVoiceUpdate";
 //export { guildScheduledEventDelete } from "./guild_scheduled_event/guildScheduledEventDelete";
 
 export { guildScheduledEventUpdate } from "./guild_scheduled_event/guildScheduledEventUpdate";
+
+export { shardReady } from "./client/shardReady";
