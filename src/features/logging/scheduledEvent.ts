@@ -23,6 +23,12 @@ import {
 } from "discord.js";
 import { client } from "../..";
 
+
+/**
+ * Logging function to log a discord event
+ * @param event the discord event to log
+ * @param init boolean controlling if attendees data is included in log (rename?)
+ */
 export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
   try {
     if (!process.env.PV_GUILD_ID)
@@ -92,7 +98,15 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
   }
 }
 
-// rewrite this function
+/***** REWRITE THIS FUNCTION *****/
+/**
+ * Utility function for generating a object conaining a ContainerBuilder
+ * @param event discord event being logged
+ * @param init boolean controlling if attendees data is included in log (rename?)
+ * @returns js object {
+ *    cont: ContainerBuilder
+ * }
+ */
 async function logContainer(event: DiscordEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
   let attendeesCount;
