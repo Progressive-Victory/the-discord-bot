@@ -10,8 +10,20 @@ export const shardReady = new Event({
   name: Events.ShardReady,
   execute: async () => {
     const pvGuild = await client.guilds.fetch(process.env.PV_GUILD_ID!);
-    console.log("[Info] Fetching all PV members");
-    await pvGuild.members.fetch();
-    console.log(`[Info] Ready! Logged in as ${client.user.username}`);
+
+    await Promise.all([
+      async () => {
+        console.log("[Info] Fetching all PV members");
+        await pvGuild.members.fetch();
+        console.log(`[Info] ${pvGuild.members.cache.size} Members in cache`);
+      },
+      async () => {
+        console.log("[Info] Fetching all PV Discord Events");
+        await pvGuild.scheduledEvents.fetch();
+        console.log(
+          `[Info] ${pvGuild.scheduledEvents.cache.size} Events in cache`,
+        );
+      },
+    ]);
   },
 });
