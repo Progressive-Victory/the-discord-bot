@@ -1,5 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import {
+  ApplicationCommandOptionChoiceData,
   ChatInputCommandInteraction,
   Guild,
   GuildScheduledEvent,
@@ -55,40 +56,45 @@ export const searchEvents = new ChatInputCommand({
     }
   },
   autocomplete: async (interaction) => {
-    if (interaction.isAutocomplete()) {
-      const focus = interaction.options.getFocused(true);
-      const all_events = interaction.guild
-        ? await fast_fetch_events(interaction.guild)
-        : [];
-      if (focus.name === "id" && all_events !== undefined) {
-        const filtered = all_events
-          .filter((event) => event.id.startsWith(focus.value))
-          .map((event) => ({
-            name: event.id,
-            value: event.id,
-          }));
-        await interaction.respond(filtered).catch(console.error);
-      } else if (focus.name === "name" && all_events !== undefined) {
-        const filtered = all_events
-          .filter((event) =>
-            event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
-          )
-          .map((event) => ({
-            name: event.name,
-            value: event.name,
-          }));
-        if (filtered.length > 25) filtered.length = 25;
-        await interaction.respond(filtered).catch(console.error);
-      } else {
-        // not a valid autocomplete
-        await interaction.respond([]).catch(console.error);
-      }
+    if (!interaction.isAutocomplete() || !interaction.inCachedGuild()) return;
+
+    const focus = interaction.options.getFocused(true);
+    const events = interaction.guild.scheduledEvents;
+
+    let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
+    switch (focus.name) {
+      // autocomplete for id option
+      case "id":
+        filtered =
+          events.cache
+            .filter((event) => event.id.startsWith(focus.value))
+            .map((event) => ({
+              name: event.name,
+              value: event.id,
+            })) ?? [];
+        break;
+      // autocomplete for name option
+      case "name":
+        filtered =
+          events.cache
+            .filter((event) =>
+              event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
+            )
+            .map((event) => ({
+              name: event.name,
+              value: event.name,
+            })) ?? [];
+        break;
+
+      default:
+        break;
     }
+    await interaction.respond(filtered).catch(console.error);
   },
 });
 
 let prevEventCacheTimestamp = 0;
-const CACHE_DURATION = 60 * 1000; // 1 mintue
+const CACHE_DURATION = 60 * 1000; // 1 minute
 
 interface IDateResult {
   startDate: Date | null;
@@ -169,7 +175,7 @@ async function directMessageEvents(
     return;
   }
   let out = "";
-  let max = Math.min(events.length, max_num_events);
+  const max = Math.min(events.length, max_num_events);
   if (events.length > max_num_events) {
     out += `Showing top ${max_num_events} results:\n\n`;
   }
