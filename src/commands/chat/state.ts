@@ -101,13 +101,13 @@ export default new ChatInputCommand()
           ),
       ),
   )
-  .setAutocomplete((interaction) => {
+  .setAutocomplete(async (interaction) => {
     const focus = interaction.options.getFocused(true);
     if (
       focus.type !== ApplicationCommandOptionType.String &&
       focus.name !== "state"
     ) {
-      interaction.respond([]);
+      await interaction.respond([]);
       return;
     }
 
@@ -125,6 +125,6 @@ export default new ChatInputCommand()
         value: state.abbreviation,
       }));
 
-    interaction.respond(choices).catch(console.error);
+    await interaction.respond(choices).catch(console.error);
   })
   .setExecute(lead);

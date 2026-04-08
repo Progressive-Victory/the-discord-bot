@@ -63,11 +63,13 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   }
   const stateAbbreviation = options.getString("state", true).toLowerCase();
 
-  if (!isStateAbbreviations(stateAbbreviation))
-    return interaction.reply({
+  if (!isStateAbbreviations(stateAbbreviation)) {
+    await interaction.reply({
       content: "Given state is not a State Abbreviation, please retry",
       flags: MessageFlags.Ephemeral,
     });
+    return;
+  }
 
   const messageOption = options.getString("message", false);
   const titleOption = options.getString("title");
@@ -129,8 +131,10 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       err &&
       "message" in err &&
       typeof err.message === "string"
-    )
-      return interaction.reply(err.message);
+    ) {
+      await interaction.reply(err.message);
+      return;
+    }
   }
 
   if (!state) return;
