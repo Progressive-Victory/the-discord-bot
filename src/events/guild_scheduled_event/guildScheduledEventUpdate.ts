@@ -18,7 +18,7 @@ import z from "zod";
 /**
  * `guildScheduledEventUpdate` handles the {@link Events.guildScheduledEventUpdate} 
  * {@link Event}.
- * This event is used to update or overwrite guild events.
+ * This event is used to update or overwrite guild events on the discord server.
  * Using the oldEvent and newEvent parameters, the function updates the currently saved oldEvent with newEvent.
  * After the update completes, the updated event is logged.
  * If the current event is a recurring event that is active, and the updated event is scheduled. It will update the recurring event ending today and log it.

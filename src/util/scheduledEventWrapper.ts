@@ -172,7 +172,7 @@ export class ScheduledEventWrapper {
   };
 
   /**
-   * Utility fucntion to fetch the time of day when this event was started
+   * Utility function to fetch the time of day when this event was started
    * @returns string representation of time of day when this event started or "None" if this event hasn't begun
    */
   startTime = () => {
