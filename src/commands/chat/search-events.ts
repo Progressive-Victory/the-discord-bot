@@ -2,6 +2,7 @@ import { ChatInputCommand } from "@/Classes";
 import {
   ApplicationCommandOptionChoiceData,
   ChatInputCommandInteraction,
+  Collection,
   Guild,
   GuildScheduledEvent,
   GuildScheduledEventStatus,
@@ -62,34 +63,41 @@ export const searchEvents = new ChatInputCommand({
     const events = interaction.guild.scheduledEvents;
 
     let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
+    let list: Collection<string, GuildScheduledEvent>;
     switch (focus.name) {
       // autocomplete for id option
       case "id":
-        filtered =
-          events.cache
-            .filter((event) => event.id.startsWith(focus.value))
-            .map((event) => ({
-              name: event.name,
-              value: event.id,
-            })) ?? [];
+        list =
+          events.cache.filter((event) => event.id.startsWith(focus.value)) ??
+          events.cache.sort(
+            (eventA, eventB) =>
+              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
+          );
+        filtered = list.map((event) => ({
+          name: event.name,
+          value: event.id,
+        }));
         break;
       // autocomplete for name option
       case "name":
-        filtered =
-          events.cache
-            .filter((event) =>
-              event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
-            )
-            .map((event) => ({
-              name: event.name,
-              value: event.name,
-            })) ?? [];
+        list =
+          events.cache.filter((event) =>
+            event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
+          ) ??
+          events.cache.sort(
+            (eventA, eventB) =>
+              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
+          );
+        filtered = list.map((event) => ({
+          name: event.name,
+          value: event.name,
+        }));
         break;
 
       default:
         break;
     }
-    await interaction.respond(filtered).catch(console.error);
+    await interaction.respond(filtered.slice(0, 24)).catch(console.error);
   },
 });
 
