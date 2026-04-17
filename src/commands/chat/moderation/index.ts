@@ -1,5 +1,10 @@
 import { ChatInputCommand } from "@/Classes";
-import { banUserChatCommand } from "@/features/moderation/ban";
+import {
+  banUserChatCommand,
+  deleteMessagesChoices,
+  maxBanReason,
+  minBanReason,
+} from "@/features/moderation/ban";
 import {
   ApplicationIntegrationType,
   InteractionContextType,
@@ -8,18 +13,6 @@ import {
 } from "discord.js";
 import { create } from "./create";
 import { view } from "./view";
-
-const minBanReason = 20;
-const maxBanReason = 1500;
-const deleteMessagesChoices = [
-  { name: "Don't Delete Any", value: 0 },
-  { name: "Previous Hour", value: 60 * 60 },
-  { name: "Previous 6 Hours", value: 6 * 60 * 60 },
-  { name: "Previous 12 Hours", value: 12 * 60 * 60 },
-  { name: "Previous 24 Hours", value: 24 * 60 * 60 },
-  { name: "Previous 3 Days", value: 3 * 24 * 60 * 60 },
-  { name: "Previous 7 Days", value: 7 * 24 * 60 * 60 },
-];
 
 /**
  * The `warn` mod command allows an admin to issue a warning to a guild member. It exposes
@@ -132,12 +125,7 @@ export const warn = new ChatInputCommand({
         view(interaction);
         break;
       case "ban":
-        banUserChatCommand(
-          interaction,
-          minBanReason,
-          maxBanReason,
-          deleteMessagesChoices,
-        );
+        banUserChatCommand(interaction);
         break;
       default:
         throw Error("Unexpected Warn subcommand");

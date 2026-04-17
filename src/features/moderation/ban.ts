@@ -1,22 +1,35 @@
 import {
-	APIApplicationCommandOptionChoice,
-	ChatInputCommandInteraction,
-	DiscordAPIError,
-	EmbedBuilder,
-	inlineCode,
-	LabelBuilder,
-	MessageFlags,
-	ModalBuilder,
-	ModalSubmitInteraction,
-	StringSelectMenuBuilder,
-	StringSelectMenuOptionBuilder,
-	TextInputBuilder,
-	TextInputStyle,
-	User,
+  APIApplicationCommandOptionChoice,
+  ChatInputCommandInteraction,
+  DiscordAPIError,
+  EmbedBuilder,
+  inlineCode,
+  LabelBuilder,
+  MessageFlags,
+  ModalBuilder,
+  ModalSubmitInteraction,
+  StringSelectMenuBuilder,
+  StringSelectMenuOptionBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  User,
 } from "discord.js";
 import { getGuildChannel } from "../../util/index.js";
 
 const BAN_COLOR = 0x7c018c;
+
+export const minBanReason = 20;
+export const maxBanReason = 1500;
+export const deleteMessagesChoices: APIApplicationCommandOptionChoice<number>[] =
+  [
+    { name: "Don't Delete Any", value: 0 },
+    { name: "Previous Hour", value: 60 * 60 },
+    { name: "Previous 6 Hours", value: 6 * 60 * 60 },
+    { name: "Previous 12 Hours", value: 12 * 60 * 60 },
+    { name: "Previous 24 Hours", value: 24 * 60 * 60 },
+    { name: "Previous 3 Days", value: 3 * 24 * 60 * 60 },
+    { name: "Previous 7 Days", value: 7 * 24 * 60 * 60 },
+  ];
 
 /**
  * ban this user
@@ -24,17 +37,60 @@ const BAN_COLOR = 0x7c018c;
  */
 export async function banUserChatCommand(
   interaction: ChatInputCommandInteraction,
-  minBanReason: number,
-  maxBanReason: number,
-  deleteMessagesChoices: APIApplicationCommandOptionChoice<number>[],
 ) {
   if (!interaction.inCachedGuild()) return;
   const options = interaction.options;
 
+  const member = options.getMember("user");
   const user = options.getUser("user", true);
-  const reason = options.getString("reason");
+
+  if (member && (!user.bot || !member.bannable)) {
+    await interaction.reply({
+      content: `${member.toString()} is unable to be banned`,
+      flags: MessageFlags.Ephemeral,
+    });
+    return;
+  }
+  const reason = options.getString("reason") ?? undefined;
   const deleteMessages = options.getNumber("delete_messages", true);
 
+  const confirm = banModalBuilder(user, reason, deleteMessages);
+
+  await interaction.showModal(confirm);
+}
+
+export async function banUserModal(interaction: ModalSubmitInteraction) {
+  if (!interaction.inCachedGuild()) return;
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const { guild, fields } = interaction;
+  const userId = interaction.customId.split("_")[1];
+
+  const reason = fields.getTextInputValue("reason");
+  const deleteMessages = Number(
+    fields.getStringSelectValues("delete_messages"),
+  );
+
+  try {
+    await guild.bans.create(userId, {
+      reason,
+      deleteMessageSeconds: deleteMessages,
+    });
+  } catch (error) {
+    if (error instanceof DiscordAPIError) {
+      await interaction.editReply({
+        content: `User was unable to be banned. Error: ${inlineCode(error.message)}`,
+      });
+    }
+  }
+}
+
+export function banModalBuilder(
+  user: User,
+  reason?: string,
+  deleteMessages: number = 0,
+) {
   const reasonText = new TextInputBuilder()
     .setCustomId("reason")
     .setStyle(TextInputStyle.Paragraph)
@@ -68,47 +124,10 @@ export async function banUserChatCommand(
   const deleteMessageLabel = new LabelBuilder()
     .setLabel("Delete Messages")
     .setStringSelectMenuComponent(deleteMessageMenu);
-  const confirm = new ModalBuilder()
+  return new ModalBuilder()
     .setCustomId(`ban_${user.id}`)
     .setTitle(`Confirm Ban of ${user.displayName}`)
     .addLabelComponents(reasonLabel, deleteMessageLabel);
-
-  await interaction.showModal(confirm);
-}
-
-export async function banUserModal(interaction: ModalSubmitInteraction) {
-  if (!interaction.inCachedGuild()) return;
-
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-  const { guild, fields } = interaction;
-  const userId = interaction.customId.split("_")[1];
-  const member = interaction.guild.members.cache.get(userId);
-
-  if (member && (!member.user.bot || !member.bannable)) {
-    await interaction.editReply({
-      content: `${member.displayName} is unable to be banned`,
-    });
-    return;
-  }
-
-  const reason = fields.getTextInputValue("reason");
-  const deleteMessages = Number(
-    fields.getStringSelectValues("delete_messages"),
-  );
-
-  try {
-    await guild.bans.create(userId, {
-      reason,
-      deleteMessageSeconds: deleteMessages,
-    });
-  } catch (error) {
-    if (error instanceof DiscordAPIError) {
-      await interaction.editReply({
-        content: `User was unable to be banned. Error: ${inlineCode(error.message)}`,
-      });
-    }
-  }
 }
 
 /**
