@@ -1,11 +1,11 @@
+import { ChatInputCommand } from "@/Classes";
+import { localize } from "@/i18n";
 import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   MessageFlags,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { localize } from "../../i18n.js";
 
 export const ns = "feedback";
 

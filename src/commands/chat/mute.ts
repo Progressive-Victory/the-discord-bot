@@ -1,3 +1,6 @@
+import { ChatInputCommand } from "@/Classes";
+import { getGuildChannel } from "@/util";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   ContainerBuilder,
   EmbedBuilder,
@@ -15,9 +18,6 @@ import {
   time,
   TimestampStyles,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { getGuildChannel } from "../../util/index.js";
 
 const MUTE_COLOR = 0x7c018c;
 
@@ -104,6 +104,14 @@ export const mute = new ChatInputCommand({
       mutingMember = await guild.members.fetch(interaction.user);
     }
 
+    if (!targetMember.voice.channel) {
+      interaction.reply({
+        flags: MessageFlags.Ephemeral,
+        content: "User is not in a vc.",
+      });
+      return;
+    }
+
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
     const reason = interaction.options.getString("reason", true);
@@ -144,15 +152,15 @@ async function logMessage(
   reason: string,
 ) {
   // check if log channel is set
-  const settings = await GuildSetting.findOne({
-    guildId: targetMember.guild.id,
-  });
-  if (!settings?.logging.timeoutChannelId) return;
+  const res = await fetchSetting("timeout_log_channel_id");
+  const timeoutLogChannelId = res.data;
+
+  if (!timeoutLogChannelId) return;
 
   // check that channel is real
   const timeoutChannel = await getGuildChannel(
     targetMember.guild,
-    settings.logging.timeoutChannelId,
+    timeoutLogChannelId,
   );
   if (!timeoutChannel?.isSendable()) return;
 

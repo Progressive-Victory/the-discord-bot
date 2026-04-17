@@ -19,7 +19,7 @@ Additionally, you may want to group commands together. This is done with `Subcom
 
    ```ts
    // src/commands/chat/ping.ts
-   import { ChatInputCommand } from "../../Classes/index.js";
+   import { ChatInputCommand } from "@/Classes";
 
    export default new ChatInputCommand()
      .setBuilder((builder) =>
@@ -34,15 +34,15 @@ Additionally, you may want to group commands together. This is done with `Subcom
 
    ```ts
    // src/commands/index.ts
-   export { default as ping } from "./chat/ping.js";
+   export { default as ping } from "./chat/ping";
    ```
 
-3. Register the commands with the client in the root [`index.ts`](../../index.ts).
+3. Register the commands with the client in the root [`index.ts`](@/index.ts).
 
    ```ts
    // src/index.ts
-   import { Client } from "./Classes/index.js";
-   import * as commands from "./commands/index.js";
+   import { Client } from "./Classes";
+   import * as commands from "./commands";
 
    const client = new Client();
 

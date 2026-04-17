@@ -1,3 +1,7 @@
+import Event from "@/Classes/Event";
+import { timeoutEmbed } from "@/features/timeout";
+import { getGuildChannel } from "@/util";
+import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   AuditLogEvent,
   Events,
@@ -5,10 +9,6 @@ import {
   GuildAuditLogsEntry,
   User,
 } from "discord.js";
-import Event from "../../Classes/Event.js";
-import { timeoutEmbed } from "../../features/timeout.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { getGuildChannel } from "../../util/index.js";
 
 /**
  * `guildAuditLogEntryCreate` handles the {@link Events.GuildAuditLogEntryCreate} {@link Event}
@@ -18,9 +18,10 @@ export const guildAuditLogEntryCreate = new Event({
   name: Events.GuildAuditLogEntryCreate,
   execute: async (auditLogEntry: GuildAuditLogsEntry, guild: Guild) => {
     const { executorId, target, changes } = auditLogEntry;
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
+    const res = await fetchSetting("timeout_log_channel_id");
+
+    const timeoutChannelId = res.data;
     if (
-      settings?.logging.timeoutChannelId &&
       auditLogEntry.action == AuditLogEvent.MemberUpdate &&
       changes[0].key == "communication_disabled_until" &&
       target instanceof User &&
@@ -31,10 +32,7 @@ export const guildAuditLogEntryCreate = new Event({
 
       if (executorMember?.user.bot || !(targetMember && executorMember)) return;
 
-      const timeoutChannel = await getGuildChannel(
-        guild,
-        settings.logging.timeoutChannelId,
-      );
+      const timeoutChannel = await getGuildChannel(guild, timeoutChannelId);
 
       if (!timeoutChannel?.isSendable()) return;
 

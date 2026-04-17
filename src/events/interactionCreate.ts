@@ -2,11 +2,12 @@ import {
   ApplicationCommandType,
   DiscordAPIError,
   Events,
+  inlineCode,
   Interaction,
   InteractionType,
+  MessageFlags,
 } from "discord.js";
-import { Event } from "../Classes/Event.js";
-import { GuildSetting } from "../models/Setting.js";
+import { Event } from "../Classes/Event";
 
 /**
  * Handles the creation of a new interaction.
@@ -14,24 +15,10 @@ import { GuildSetting } from "../models/Setting.js";
  */
 async function onInteractionCreate(interaction: Interaction): Promise<void> {
   const { client, type } = interaction;
-  const { commands, interactions, errorMessage, replyOnError } = client;
-
-  if (interaction.inGuild()) {
-    const setting = await GuildSetting.findOne({
-      guildId: interaction.guildId,
-    });
-    if (!setting)
-      GuildSetting.create({
-        guildId: interaction.guildId,
-        guildName: interaction.guild?.name,
-      });
-    else if (interaction.guild?.name !== setting.guildName) {
-      setting.guildName = interaction.guild?.name ?? "Name Unknown";
-      setting.save();
-    }
-  }
+  const { commands, interactions } = client;
 
   client.emit(Events.Debug, interaction.toString());
+
   try {
     switch (type) {
       case InteractionType.ApplicationCommandAutocomplete:
@@ -75,24 +62,28 @@ async function onInteractionCreate(interaction: Interaction): Promise<void> {
         break;
     }
   } catch (error) {
-    if (interaction.isRepliable()) {
-      // If the interaction is repliable, handle the error with a reply
-      if (error instanceof DiscordAPIError) client.emit(Events.Error, error);
-      else if (error instanceof Error) {
-        client.emit(Events.Error, error);
-
-        if (!replyOnError) return;
-
-        if (interaction.deferred)
-          // If the interaction is deferred, follow up with an ephemeral error message
-          void interaction.followUp({ content: errorMessage, ephemeral: true });
-        else
-          // If the interaction is not deferred, reply with an ephemeral error message
-          void interaction.reply({ content: errorMessage, ephemeral: true });
+    console.log(error, error instanceof DiscordAPIError);
+    if (!(error instanceof DiscordAPIError)) throw error;
+    client.emit(Events.Error, error);
+    if (interaction.isAutocomplete()) {
+      await interaction.respond([]);
+      return;
+    }
+    // If the interaction is repliable, handle the error with a reply
+    else if (interaction.isRepliable()) {
+      if (interaction.deferred) {
+        // If the interaction is deferred, editReply with error
+        interaction.editReply({
+          content: `Interaction could not be completed because: ${inlineCode(error.message)}`,
+        });
+      } else {
+        // If the interaction is not deferred, reply with an ephemeral error message
+        interaction.reply({
+          content: `Interaction could not be completed because: ${inlineCode(error.message)}`,
+          flags: MessageFlags.Ephemeral,
+        });
       }
-    } else
-      // If the interaction is not repliable
-      throw error;
+    }
   }
 }
 

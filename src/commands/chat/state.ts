@@ -1,16 +1,13 @@
+import { ChatInputCommand } from "@/Classes";
+import { lead } from "@/features/state";
+import { messageMaxLength, titleMaxLength } from "@/features/state/constants";
+import { localize } from "@/i18n";
+import { states } from "@/util/states/types";
 import {
   ApplicationCommandOptionType,
   InteractionContextType,
   PermissionFlagsBits,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
-import {
-  messageMaxLength,
-  titleMaxLength,
-} from "../../features/state/constants.js";
-import { lead } from "../../features/state/index.js";
-import { localize } from "../../i18n.js";
-import { states } from "../../util/states/types.js";
 
 export const ns = "state";
 
@@ -104,13 +101,13 @@ export default new ChatInputCommand()
           ),
       ),
   )
-  .setAutocomplete((interaction) => {
+  .setAutocomplete(async (interaction) => {
     const focus = interaction.options.getFocused(true);
     if (
       focus.type !== ApplicationCommandOptionType.String &&
       focus.name !== "state"
     ) {
-      interaction.respond([]);
+      await interaction.respond([]);
       return;
     }
 
@@ -128,6 +125,6 @@ export default new ChatInputCommand()
         value: state.abbreviation,
       }));
 
-    interaction.respond(choices).catch(console.error);
+    await interaction.respond(choices).catch(console.error);
   })
   .setExecute(lead);

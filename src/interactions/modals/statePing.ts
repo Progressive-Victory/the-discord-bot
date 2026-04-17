@@ -1,17 +1,22 @@
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { Interaction } from "@/Classes/Interaction";
+import {
+  legacyStateMessageCreate,
+  stateMessageCreate,
+  statePingReply,
+} from "@/features/state/ping";
+import { apiConnService } from "@/util/api/pvapi";
+import {
+  IDiscordStateRole,
+  zDiscordStateRole,
+} from "@/util/states/discordStateRole";
+import { isStateAbbreviations } from "@/util/states/types";
 import {
   Guild,
   MessageCreateOptions,
   MessageFlags,
   ModalSubmitInteraction,
 } from "discord.js";
-import { Interaction } from "../../Classes/Interaction.js";
-import {
-  legacyStateMessageCreate,
-  stateMessageCreate,
-  statePingReply,
-} from "../../features/state/ping.js";
-import { States } from "../../models/State.js";
-import { isStateAbbreviations } from "../../util/states/types.js";
 
 /**
  * `statePing` is a modal interaction that provides state leads an interface
@@ -36,40 +41,42 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     const stateAbbreviation = args[1];
     const legacyOption = args[2] === "true";
-    // console.log(stateAbbreviation, legacyOption);
 
     if (!isStateAbbreviations(stateAbbreviation)) return;
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const state = await States.findOne({
-      guildId: guild.id,
-      abbreviation: stateAbbreviation,
-    }).catch(console.error);
-    // console.log(state, !(state && state.roleId && state.channelId));
-
-    if (!(state && state.roleId && state.channelId)) return;
+    let state: IDiscordStateRole;
+    try {
+      state = await apiConnService.get<IDiscordStateRole>(
+        Routes.discordStateRole(stateAbbreviation),
+        zDiscordStateRole,
+      );
+    } catch (err) {
+      console.error(err);
+      //@ts-expect-error can't type error args
+      return interaction.reply(err.message);
+    }
 
     const content = fields.getTextInputValue("message");
     const title = fields.getTextInputValue("title");
     const stateChannel =
-      guild.channels.cache.get(state.channelId) ??
-      (await guild.channels.fetch(state.channelId).catch(console.error));
-    // console.log(stateChannel);
+      guild.channels.cache.get(state.memberChannelId) ??
+      (await guild.channels.fetch(state.memberChannelId).catch(console.error));
     if (!(stateChannel && stateChannel.isSendable())) return;
 
     let stateMessageCreateOptions: MessageCreateOptions;
 
     if (legacyOption)
       stateMessageCreateOptions = legacyStateMessageCreate(
-        state.roleId,
+        state.memberRoleId,
         user.id,
         content,
         title,
       );
     else
       stateMessageCreateOptions = stateMessageCreate(
-        state.roleId,
+        state.memberRoleId,
         user.id,
         content,
         title,

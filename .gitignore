@@ -112,3 +112,7 @@ package-lock.json
 
 # Documentation
 docs/
+
+# Temp Folder
+assets/temp/*
+!assets/temp/.gitkeep

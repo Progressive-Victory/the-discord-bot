@@ -2,9 +2,9 @@ import { FluentBundle, FluentResource } from "@fluent/bundle";
 import { Collection } from "discord.js";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
-import { i18nOptions } from "./interface.js";
-import { LocaleBundle } from "./locale.js";
-import { Locale, LocalizationMap, fluentVariables } from "./types.js";
+import { i18nOptions } from "./interface";
+import { LocaleBundle } from "./locale";
+import { Locale, LocalizationMap, fluentVariables } from "./types";
 
 /**
  * Manages localization logic for the PV bot. Includes:

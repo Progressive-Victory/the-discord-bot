@@ -1,1 +1,1 @@
-export { usermove } from "./move.js";
+export { usermove } from "./move";

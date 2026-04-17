@@ -6,11 +6,7 @@ import {
   inlineCode,
   TimestampStyles,
 } from "discord.js";
-import {
-  getAuthorOptions,
-  reasonField,
-  userField,
-} from "./moderation/embeds.js";
+import { getAuthorOptions, reasonField, userField } from "./moderation/embeds";
 
 const timeoutEmbedColor: ColorResolvable = Colors.LuminousVividPink;
 

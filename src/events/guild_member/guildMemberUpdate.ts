@@ -16,11 +16,11 @@ import {
   TimestampStyles,
 } from "discord.js";
 
-import Event from "../../Classes/Event.js";
-import { welcomeButton, welcomeColors } from "../../features/welcome.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { footer } from "../../util/components.js";
-import { getGuildChannel } from "../../util/index.js";
+import Event from "@/Classes/Event";
+import { welcomeButton, welcomeColors } from "@/features/welcome";
+import { getGuildChannel } from "@/util";
+import { fetchSetting } from "@/util/api/fetchSettings";
+import { footer } from "@/util/components";
 
 /**
  * `guildMemberUpdate` handles the {@link Events.GuildMemberUpdate} {@link Event}. There are two cases:
@@ -37,10 +37,9 @@ export const guildMemberUpdate = new Event({
   execute: async (oldMember, newMember) => {
     if (oldMember.pending && oldMember.pending !== newMember.pending) {
       const { guild } = newMember;
-      const settings = await GuildSetting.findOne({ guildId: guild.id });
-      // check that Join channel ID is set
-      const joinChannelId = settings?.welcome.channelId;
-      if (!joinChannelId) return;
+      const res = await fetchSetting("welcome_channel_id");
+
+      const joinChannelId = res.data;
 
       // check that Join channel exists in guild
       const joinChannel = await getGuildChannel(guild, joinChannelId);
@@ -89,11 +88,9 @@ export const guildMemberUpdate = new Event({
 
       if (oldMember.nickname !== newMember.nickname) {
         const { guild } = newMember;
-        const settings = await GuildSetting.findOne({ guildId: guild.id });
+        const res = await fetchSetting("nickname_updates_log_channel_id");
 
-        const nicknameUpdatesChannelId =
-          settings?.logging.nicknameUpdatesChannelId;
-        if (!nicknameUpdatesChannelId) return;
+        const nicknameUpdatesChannelId = res.data;
 
         const nicknameLogChannel = await getGuildChannel(
           guild,

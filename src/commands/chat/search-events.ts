@@ -1,13 +1,16 @@
+import { ChatInputCommand } from "@/Classes";
 import {
+  ApplicationCommandOptionChoiceData,
   ChatInputCommandInteraction,
+  Collection,
   Guild,
   GuildScheduledEvent,
+  GuildScheduledEventStatus,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
 } from "discord.js";
-import { ChatInputCommand } from "../../Classes/index.js";
 
 export const searchEvents = new ChatInputCommand({
   builder: new SlashCommandBuilder()
@@ -54,38 +57,52 @@ export const searchEvents = new ChatInputCommand({
     }
   },
   autocomplete: async (interaction) => {
-    if (interaction.isAutocomplete()) {
-      const focus = interaction.options.getFocused(true);
-      const all_events = interaction.guild
-        ? await fast_fetch_events(interaction.guild)
-        : [];
-      if (focus.name === "id" && all_events !== undefined) {
-        const filtered = all_events
-          .filter((event) => event.id.startsWith(focus.value))
-          .map((event) => ({
-            name: event.id,
-            value: event.id,
-          }));
-        await interaction.respond(filtered).catch(console.error);
-      } else if (focus.name === "name" && all_events !== undefined) {
-        const filtered = all_events
-          .filter((event) => event.name.startsWith(focus.value))
-          .map((event) => ({
-            name: event.name,
-            value: event.name,
-          }));
-        if (filtered.length > 25) filtered.length = 25;
-        await interaction.respond(filtered).catch(console.error);
-      } else {
-        // not a valid autocomplete
-        await interaction.respond([]).catch(console.error);
-      }
+    if (!interaction.isAutocomplete() || !interaction.inCachedGuild()) return;
+
+    const focus = interaction.options.getFocused(true);
+    const events = interaction.guild.scheduledEvents;
+
+    let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
+    let list: Collection<string, GuildScheduledEvent>;
+    switch (focus.name) {
+      // autocomplete for id option
+      case "id":
+        list =
+          events.cache.filter((event) => event.id.startsWith(focus.value)) ??
+          events.cache.sort(
+            (eventA, eventB) =>
+              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
+          );
+        filtered = list.map((event) => ({
+          name: event.name,
+          value: event.id,
+        }));
+        break;
+      // autocomplete for name option
+      case "name":
+        list =
+          events.cache.filter((event) =>
+            event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
+          ) ??
+          events.cache.sort(
+            (eventA, eventB) =>
+              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
+          );
+        filtered = list.map((event) => ({
+          name: event.name,
+          value: event.name,
+        }));
+        break;
+
+      default:
+        break;
     }
+    await interaction.respond(filtered.slice(0, 24)).catch(console.error);
   },
 });
 
 let prevEventCacheTimestamp = 0;
-const CACHE_DURATION = 60 * 1000; // 1 mintue
+const CACHE_DURATION = 60 * 1000; // 1 minute
 
 interface IDateResult {
   startDate: Date | null;
@@ -137,7 +154,9 @@ async function findEventsMatchingQuery(
         startDate === null &&
         endDate === null) ||
       (id !== null && v.id.includes(id) && id !== "") ||
-      (name !== null && v.name.includes(name) && name !== "") ||
+      (name !== null &&
+        v.name.toLowerCase().includes(name.toLowerCase()) &&
+        name !== "") ||
       (startDate !== null &&
         endDate !== null &&
         endDate >= startDate &&
@@ -151,9 +170,10 @@ async function findEventsMatchingQuery(
   return out;
 }
 
+const max_num_events = 20;
 async function directMessageEvents(
   interaction: ChatInputCommandInteraction,
-  events: any[] | null,
+  events: GuildScheduledEvent<GuildScheduledEventStatus>[] | null,
 ) {
   if (events === null || events.length === 0) {
     await interaction.followUp({
@@ -163,16 +183,15 @@ async function directMessageEvents(
     return;
   }
   let out = "";
-  for (const e of events) {
-    out += e.toString() + "\n";
+  const max = Math.min(events.length, max_num_events);
+  if (events.length > max_num_events) {
+    out += `Showing top ${max_num_events} results:\n\n`;
   }
-  const messages = Math.ceil(out.length / 1980);
-  for (let i = 0; i < messages; i++) {
-    const msg = out;
-    const trimmed = msg.slice(i * 1980, i * 1980 + 1980);
-    await interaction.followUp({
-      content: trimmed,
-      flags: MessageFlags.Ephemeral,
-    });
+  for (let i = 0; i < max; i++) {
+    out += events[i].toString() + "\n";
   }
+  await interaction.followUp({
+    content: out,
+    flags: MessageFlags.Ephemeral,
+  });
 }

@@ -14,7 +14,7 @@
    ```ts
    // src/commands/context_menu/user.ts
    import { ApplicationCommandType } from "discord.js";
-   import { ContextMenuCommand } from "../../Classes/index.js";
+   import { ContextMenuCommand } from "@/Classes";
 
    export default new ContextMenuCommand()
      .setBuilder((builder) =>
@@ -29,15 +29,15 @@
 
    ```ts
    // src/commands/index.ts
-   export { default as user } from "./context_menu/user.js";
+   export { default as user } from "./context_menu/user";
    ```
 
-3. Register the commands with the client in the root [`index.ts`](../../index.ts).
+3. Register the commands with the client in the root [`index.ts`](@/index.ts).
 
    ```ts
    // src/index.ts
-   import { Client } from "./Classes/index.js";
-   import * as commands from "./commands/index.js";
+   import { Client } from "./Classes";
+   import * as commands from "./commands";
 
    const client = new Client();
 

@@ -1,4 +1,4 @@
-import {
+/*import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonInteraction,
@@ -6,26 +6,27 @@ import {
   GuildMember,
   inlineCode,
 } from "discord.js";
-import { Interaction } from "../../../Classes/Interaction.js";
-import { modViewWarningHistory } from "../../../features/moderation/buttons.js";
+import { Routes } from "@/Classes/API/ApiConnService/routes";
+import { APIWarn } from "@/Classes/API/ApiConnService/types";
+import { Interaction } from "@/Classes/Interaction";
+import { modViewWarningHistory } from "@/features/moderation/buttons";
 import {
   getAuthorOptions,
   userField,
   warnLogUpdateEmbed,
-} from "../../../features/moderation/embeds.js";
+} from "@/features/moderation/embeds";
 import {
   WarnButtonsPrefixes,
   WarnEmbedColor,
-} from "../../../features/moderation/types.js";
-import { GuildSetting } from "../../../models/Setting.js";
-import { Warn } from "../../../models/Warn.js";
-import { getGuildChannel, getMember } from "../../../util/index.js";
+} from "@/features/moderation/types";
+import { apiConnService } from "@/util/api/pvapi";
+import { getGuildChannel, getMember } from "@/util";
 
 export const removeWarnYes = new Interaction<ButtonInteraction>({
   customIdPrefix: WarnButtonsPrefixes.removeWarnYes,
   run: async (interaction: ButtonInteraction) => {
     const record = await getWarnRecord(interaction);
-    const { user, member, guild, guildId } = interaction;
+    const { user, member, guild } = interaction;
     if (!record || !guild) return;
 
     const target = await getMember(guild, record.target.discordId);
@@ -52,7 +53,9 @@ export const removeWarnYes = new Interaction<ButtonInteraction>({
 
     const embed = warnLogUpdateEmbed(record, mod, target, updater);
 
-    const settings = await GuildSetting.findOne({ guildId });
+    const warnChannelId = (await apiConnService.get(
+      Routes.setting("warn_log_channel_id"),
+    )) as string;
 
     const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
       modViewWarningHistory(target.id),
@@ -64,8 +67,8 @@ export const removeWarnYes = new Interaction<ButtonInteraction>({
       components: [row],
     });
 
-    if (settings?.warn.logChannelId) {
-      const log = await getGuildChannel(guild, settings.warn.logChannelId);
+    if (warnChannelId) {
+      const log = await getGuildChannel(guild, warnChannelId);
       if (log?.isSendable()) {
         log.send({
           embeds: [embed.setAuthor(getAuthorOptions(updater))],
@@ -113,9 +116,9 @@ export const deleteWarnYes = new Interaction<ButtonInteraction>({
       embed.setThumbnail(target.displayAvatarURL({ forceStatic: true }));
     }
 
-    const settings = await GuildSetting.findOne({
-      guildId: interaction.guildId,
-    });
+    const warnChannelId = (await apiConnService.get(
+      Routes.setting("warn_log_channel_id"),
+    )) as string;
 
     record?.deleteOne();
 
@@ -129,8 +132,8 @@ export const deleteWarnYes = new Interaction<ButtonInteraction>({
       components: [row],
     });
 
-    if (settings?.warn.logChannelId) {
-      const log = await getGuildChannel(guild, settings.warn.logChannelId);
+    if (warnChannelId) {
+      const log = await getGuildChannel(guild, warnChannelId);
       if (log?.isSendable()) {
         let member = interaction.member ?? undefined;
         if (!(member instanceof GuildMember)) {
@@ -164,13 +167,15 @@ export const deleteWarnNo = new Interaction<ButtonInteraction>({
  * @param interaction - button interaction
  * @returns warn document or undefined
  */
-async function getWarnRecord(interaction: ButtonInteraction) {
+/*async function getWarnRecord(interaction: ButtonInteraction) {
   const { customId, client } = interaction;
 
   const warnId = customId.split(client.splitCustomIdOn!)[1];
 
   // check that warning exists
-  const record = await Warn.findById(warnId);
+  const record = (await apiConnService.get(
+    Routes.discordWarn(warnId),
+  )) as APIWarn;
   if (!record) {
     interaction.update({
       content: `Unable to locate warning check warn Id: ${inlineCode(warnId)}.\nPlease notify an admin `,
@@ -180,4 +185,4 @@ async function getWarnRecord(interaction: ButtonInteraction) {
   }
 
   return record;
-}
+}*/

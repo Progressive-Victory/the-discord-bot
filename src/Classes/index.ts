@@ -1,9 +1,9 @@
-export { ChatInputCommand, ContextMenuCommand } from "./Commands/index.js";
+export { ChatInputCommand, ContextMenuCommand } from "./Commands";
 
-export { Interaction } from "./Interaction.js";
+export { Interaction } from "./Interaction";
 
-export { Client, ExtraColor } from "./Client/index.js";
+export { Client, ExtraColor } from "./Client";
 
-export { Event } from "./Event.js";
+export { Event } from "./Event";
 
-export { i18n, LocaleBundle } from "./i18n/index.js";
+export { LocaleBundle, i18n } from "./i18n";

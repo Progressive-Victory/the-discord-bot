@@ -1,10 +1,6 @@
 import { Client, Events } from "discord.js";
-import {
-  CommandHandler,
-  EventHandler,
-  InteractionHandler,
-} from "../Handlers/index.js";
-import { ExtendedClientOptions } from "./interfaces.js";
+import { CommandHandler, EventHandler, InteractionHandler } from "../Handlers";
+import { ExtendedClientOptions } from "./interfaces";
 
 /**
  * Client is extended from the {@link Client}.

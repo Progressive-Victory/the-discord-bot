@@ -1,5 +1,5 @@
+import { Event } from "@/Classes";
 import { Events } from "discord.js";
-import { Event } from "../../Classes/index.js";
 
 /**
  * The `ready` event {@link Event} registers a event handler for the
@@ -13,7 +13,6 @@ export const ready = new Event({
    * @param client - client object
    */
   execute: async (client) => {
-    client.guilds.cache.forEach((g) => g.members.fetch());
-    console.log(`Ready! Logged in as ${client.user.username}`);
+    console.log(`[Info] Ready! Logged in as ${client.user.username}`);
   },
 });

@@ -7,10 +7,9 @@ This bot supports operations in the Progressive Victory Discord Server. To join,
 The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
 
 - [pnpm](https://pnpm.io/) to manage dependencies
-- [MongoDB](https://www.mongodb.com/docs/manual/) as a (document) database
-- [Mongoose](https://mongoosejs.com/docs/) to interact with the database
+- [MySQL](https://dev.mysql.com/doc/refman/8.4/en/)
 - [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
-  - **NOTE:** Currently, the PV bot doesn't define any RESTful API routes or handlers. The long-term vision is for the PV bot to act as a proxy for requests to the Discord API.
+  - **NOTE:** The bot now requires the api repo to be running concurrently to perform any interaction with the database. See the [api repo](https://github.com/Progressive-Victory/the-api) for instructions on how to set that up.
 
 ## How to Contribute
 
@@ -35,9 +34,18 @@ npm install -g pnpm@latest-10
 Finally, copy `./.env.sample` to a file `./.env` then edit the following vaules to be accurate:
 
 ```txt
-DISCORD_TOKEN="<BOT_TOKEN>"
-MONGODB_URI="<MONGODB_DEV_URI>"
-PORT=<PORT>
+# Required for minimum function
+# Discord Bot Token from Dev portal
+DISCORD_TOKEN = "<bot_token>"
+
+# Express server port
+PORT = "<port>"
+
+# host address (including port) for the api
+API_HOST_ADDR = "<api_address>"
+
+# guild id of the target server
+PV_GUILD_ID = "<guild_id>"
 ```
 
 You can ask the current tech director to provide these values.
@@ -56,6 +64,11 @@ Build and run the bot:
 
 ```sh
 pnpm dev
+```
+
+Sync commands with discord (only do if necessary so we don't get rate limited):
+```sh
+pnpm dev-deploy
 ```
 
 If the bot fails to run, check that all values are correct in the `./.env` file. Otherwise, if everything succeeds, you should be able to send commands to the bot via the Dev Discord server.

@@ -10,8 +10,8 @@ import {
   Snowflake,
   UserContextMenuCommandInteraction,
 } from "discord.js";
-import { Client } from "../Client/index.js";
-import { ChatInputCommand, ContextMenuCommand } from "../Commands/index.js";
+import { Client } from "../Client";
+import { ChatInputCommand, ContextMenuCommand } from "../Commands";
 
 /**
  * Manages all chat and context menu commands that the PV bot supports. The {@link CommandHandler}:

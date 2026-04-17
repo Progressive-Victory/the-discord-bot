@@ -13,7 +13,7 @@ Interactions start with the bot [sending the button](https://discordjs.guide/int
    ```ts
    // src/interactions/button/button.ts
    import { ButtonInteraction } from "discord.js";
-   import { Interaction } from "../../../Classes/index.js";
+   import { Interaction } from "@/Classes";
 
    export default new Interaction<ButtonInteraction>({
      customIdPrefix: "button",
@@ -27,15 +27,15 @@ Interactions start with the bot [sending the button](https://discordjs.guide/int
 
    ```ts
    // src/interactions/button/index.ts
-   export { default as string } from "./button.js";
+   export { default as string } from "./button";
    ```
 
-3. In the root [`index.ts`](../../index.ts), make sure the following is present:
+3. In the root [`index.ts`](@/index.ts), make sure the following is present:
 
    ```ts
    // src/index.ts
-   import { Client } from "./Classes/index.js";
-   import * as buttons from "./interactions/buttons/index.js";
+   import { Client } from "./Classes";
+   import * as buttons from "./interactions/buttons";
 
    export const client = new Client({
      receiveMessageComponents: true, // enables the usage of message components

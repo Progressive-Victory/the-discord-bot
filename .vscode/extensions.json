@@ -6,8 +6,6 @@
 		"christian-kohler.path-intellisense",
 		"macabeus.vscode-fluent",
 		"ms-vsliveshare.vsliveshare",
-		"visualstudioexptteam.vscodeintellicode",
-		"visualstudioexptteam.intellicode-api-usage-examples",
 		"eamodio.gitlens",
 	]
 }

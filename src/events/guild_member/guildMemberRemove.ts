@@ -1,3 +1,7 @@
+import Event from "@/Classes/Event";
+import { getGuildChannel } from "@/util";
+import { fetchSetting } from "@/util/api/fetchSettings";
+import { footer } from "@/util/components";
 import {
   bold,
   Colors,
@@ -13,10 +17,6 @@ import {
   ThumbnailBuilder,
   TimestampStyles,
 } from "discord.js";
-import Event from "../../Classes/Event.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { footer } from "../../util/components.js";
-import { getGuildChannel } from "../../util/index.js";
 
 /**
  * `GuildMemberRemove` handles the {@link Events.GuildMemberRemove} {@link Event}.
@@ -26,11 +26,9 @@ export const GuildMemberRemove = new Event({
   name: Events.GuildMemberRemove,
   execute: async (member) => {
     const { guild } = member;
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
+    const res = await fetchSetting("leave_log_channel_id");
 
-    // check that leave channel ID is set
-    const leaveChannelId = settings?.logging.leaveChannelId;
-    if (!leaveChannelId) return;
+    const leaveChannelId = res.data;
 
     // check that Join channel exists in guild
     const leaveChannel = await getGuildChannel(guild, leaveChannelId);

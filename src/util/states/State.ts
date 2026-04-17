@@ -1,5 +1,5 @@
 import { ForumChannel, Role, TextChannel } from "discord.js";
-import { StateAbbreviation } from "./types.js";
+import { StateAbbreviation } from "./types";
 
 export class State {
   readonly name: string;

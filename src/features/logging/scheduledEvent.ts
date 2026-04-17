@@ -1,3 +1,7 @@
+import { DiscordEvent } from "@/contracts/data";
+import { fetchSetting } from "@/util/api/fetchSettings";
+import { eventLogMessageCache } from "@/util/cache/eventLogMessageCache";
+import { ScheduledEventWrapper } from "@/util/scheduledEventWrapper";
 import {
   AttachmentBuilder,
   ButtonBuilder,
@@ -17,123 +21,159 @@ import {
   TextDisplayBuilder,
   ThumbnailBuilder,
 } from "discord.js";
-import * as fs from "fs";
-import { client } from "../../index.js";
-import { IScheduledEvent } from "../../models/ScheduledEvent.js";
-import { GuildSetting } from "../../models/Setting.js";
-import dbConnect from "../../util/libmongo.js";
-import { ScheduledEventWrapper } from "../../util/scheduledEventWrapper.js";
+import { client } from "../..";
+
 
 /**
- *
- * @param event
- * @param guild
- * @param forceNew
+ * Logging function to log a discord event
+ * @param event the discord event to log
+ * @param init boolean controlling if attendees data is included in log (rename?)
  */
-export async function logScheduledEvent(event: IScheduledEvent) {
-  await dbConnect();
-  const guild: Guild = await client.guilds.fetch(event.guildId);
-  const settings = await GuildSetting.findOne({ guildId: guild.id }).exec();
+export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
+  try {
+    if (!process.env.PV_GUILD_ID)
+      throw Error("Set 'PV_GUILD_ID' in the env file");
+    const guild: Guild = await client.guilds.fetch(process.env.PV_GUILD_ID);
 
-  const logChannelId = settings?.logging.eventLogChannelId;
-  if (!logChannelId) return;
-  let logChannel = guild.channels.cache.get(logChannelId);
-  if (!logChannel) {
-    logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
-  }
+    const res = await fetchSetting("event_log_channel_id");
 
-  if (logChannel?.type !== ChannelType.GuildText) return;
-  let existingPost = undefined;
-  if (event.logMessageId) {
-    //console.log("finding existing post");
-    existingPost = logChannel.messages.cache.get(event.logMessageId);
-    if (!existingPost) {
-      existingPost = await logChannel.messages
-        .fetch(event.logMessageId)
-        .catch((e) => {
-          if (
-            e instanceof DiscordAPIError &&
-            e.code === RESTJSONErrorCodes.UnknownMessage
-          ) {
-            return undefined;
-          }
-          throw e;
-        });
+    const logChannelId = res.data;
+    if (!logChannelId) throw Error("Set the log channel id in the settings!");
+    let logChannel = guild.channels.cache.get(logChannelId);
+    if (!logChannel) {
+      logChannel = (await guild.channels.fetch(logChannelId)) ?? undefined;
     }
-  }
 
-  //console.log("fetched post");
-  //console.log(existingPost);
+    if (logChannel?.type !== ChannelType.GuildText) return;
+    let existingPost = undefined;
+    const logMessageId = eventLogMessageCache.fetch(event.id);
+    if (logMessageId) {
+      existingPost = logChannel.messages.cache.get(logMessageId);
+      if (!existingPost) {
+        existingPost = await logChannel.messages
+          .fetch(logMessageId)
+          .catch((e) => {
+            if (
+              e instanceof DiscordAPIError &&
+              e.code === RESTJSONErrorCodes.UnknownMessage
+            ) {
+              return undefined;
+            }
+            throw e;
+          });
+      }
+    }
 
-  if (existingPost) {
-    //console.log("editing existing post...");
-    //console.log("event ended at: " + event.endedAt);
-    const { fileOut, cont } = await logContainer(event);
-    const files = [];
-    if (event.thumbnailUrl === "attachment://image.jpg")
-      files.push(new AttachmentBuilder("./assets/image.jpg"));
-    if (fileOut)
-      files.push(new AttachmentBuilder("./assets/temp/attendees.txt"));
-    await existingPost.edit({
-      components: [cont],
-      files: files,
-      flags: MessageFlags.IsComponentsV2,
-      allowedMentions: { parse: [] },
-    });
-  } else {
-    const { fileOut, cont } = await logContainer(event);
-    const files = [];
-    if (event.thumbnailUrl === "attachment://image.jpg")
-      files.push(new AttachmentBuilder("./assets/image.jpg"));
-    if (fileOut)
-      files.push(new AttachmentBuilder("./assets/temp/attendees.txt"));
-    const post = await logChannel.send({
-      components: [cont],
-      flags: MessageFlags.IsComponentsV2,
-      files: files,
-      allowedMentions: { parse: [] },
-    });
-    event.logMessageId = post.id;
-    //console.log("event log message id: " + event.logMessageId);
-    await event.save();
+    if (existingPost) {
+      const { cont } = await logContainer(event, init);
+      const files = [];
+      if (event.thumbnailUrl === "attachment://image.jpg")
+        files.push(new AttachmentBuilder("./assets/image.jpg"));
+      if (!init)
+        files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
+      await existingPost.edit({
+        components: [cont],
+        files: files,
+        flags: MessageFlags.IsComponentsV2,
+        allowedMentions: { parse: [] },
+      });
+      if (logMessageId) eventLogMessageCache.delete(logMessageId);
+    } else {
+      const { cont } = await logContainer(event, init);
+      const files = [];
+      if (event.thumbnailUrl === "attachment://image.jpg")
+        files.push(new AttachmentBuilder("./assets/image.jpg"));
+      if (!init)
+        files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
+      const post = await logChannel.send({
+        components: [cont],
+        flags: MessageFlags.IsComponentsV2,
+        files: files,
+        allowedMentions: { parse: [] },
+      });
+      eventLogMessageCache.push(post.id, event);
+    }
+  } catch (err) {
+    console.error(err);
   }
 }
 
+/***** REWRITE THIS FUNCTION *****/
 /**
- *
- * @param event
+ * Utility function for generating a object conaining a ContainerBuilder
+ * @param event discord event being logged
+ * @param init boolean controlling if attendees data is included in log (rename?)
+ * @returns js object {
+ *    cont: ContainerBuilder
+ * }
  */
-async function logContainer(event: IScheduledEvent) {
+async function logContainer(event: DiscordEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
-  let attendees = await wrapper.attendees();
-  let fileOut = false;
-  if (attendees.length > 30) {
-    attendees = await wrapper.attendeesNames();
-    await fs.writeFile(
-      "./assets/temp/attendees.txt",
-      attendees.toString(),
-      () => {},
-    );
-    fileOut = true;
+  let attendeesCount;
+  let attendeesStr;
+  if (!init) {
+    const attendees = wrapper.attendancePercentages();
+    attendeesCount = wrapper.uniqueAttendees();
+    await wrapper.writeCsvDump();
+    //if attendees.length > 30 then replace inline list with text file
+    //todo: figure out how to generate text file
+    //todo: add some file output for attachments in this function; wire it up to the main log function
+    attendeesStr =
+      attendees.length > 0 && attendees.length < 30
+        ? attendees
+            .map((usr) => {
+              return `\n- ${usr}`;
+            })
+            .toString()
+        : "";
   }
-  //if attendees.length > 30 then replace inline list with text file
-  //todo: figure out how to generate text file
-  //todo: add some file output for attachments in this function; wire it up to the main log function
-  const attendeesCount = attendees.length;
-  const attendeesStr =
-    attendees.length > 0 && !fileOut
-      ? attendees
-          .map((usr) => {
-            return `\n- ${usr}`;
-          })
-          .toString()
-      : "";
   const separator = new SeparatorBuilder()
     .setSpacing(SeparatorSpacingSize.Small)
     .setDivider(true);
-  if (fileOut) {
+  if (init) {
     return {
-      fileOut: fileOut,
+      cont: new ContainerBuilder()
+        .setAccentColor(wrapper.statusColor())
+        .addSectionComponents(
+          new SectionBuilder()
+            .setThumbnailAccessory(
+              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                heading(wrapper.name(), HeadingLevel.Three),
+              ),
+              new TextDisplayBuilder().setContent(
+                "Date: " + wrapper.startDate(),
+              ),
+              new TextDisplayBuilder().setContent(`Time: N/A`),
+            ),
+        )
+        .addSeparatorComponents(separator)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            "Description:\n" + wrapper.description(),
+          ),
+          new TextDisplayBuilder().setContent("Attendees: N/A"),
+        )
+        .addSeparatorComponents(separator)
+        .addSectionComponents(
+          new SectionBuilder()
+            .setButtonAccessory(
+              new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setLabel("Event Link")
+                .setURL(await wrapper.eventLink()),
+            )
+            .addTextDisplayComponents(
+              new TextDisplayBuilder().setContent(
+                `N/A Minutes • N/A Attendees • ${wrapper.recurrence()}`,
+              ),
+            ),
+        ),
+    };
+  } else {
+    return {
       cont: new ContainerBuilder()
         .setAccentColor(wrapper.statusColor())
         .addSectionComponents(
@@ -161,7 +201,7 @@ async function logContainer(event: IScheduledEvent) {
           new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
         )
         .addFileComponents(
-          new FileBuilder().setURL("attachment://attendees.txt"),
+          new FileBuilder().setURL("attachment://attendees.csv"),
         )
         .addSeparatorComponents(separator)
         .addSectionComponents(
@@ -170,52 +210,7 @@ async function logContainer(event: IScheduledEvent) {
               new ButtonBuilder()
                 .setStyle(ButtonStyle.Link)
                 .setLabel("Event Link")
-                .setURL(wrapper.eventLink()),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                `${wrapper.duration()} Minutes • ${attendeesCount} Attendees • ${wrapper.recurrence()}`,
-              ),
-            ),
-        ),
-    };
-  } else {
-    return {
-      fileOut: fileOut,
-      cont: new ContainerBuilder()
-        .setAccentColor(wrapper.statusColor())
-        .addSectionComponents(
-          new SectionBuilder()
-            .setThumbnailAccessory(
-              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
-            )
-            .addTextDisplayComponents(
-              new TextDisplayBuilder().setContent(
-                heading(wrapper.name(), HeadingLevel.Three),
-              ),
-              new TextDisplayBuilder().setContent(
-                "Date: " + wrapper.startDate(),
-              ),
-              new TextDisplayBuilder().setContent(
-                `Time: ${wrapper.startTime()} - ${wrapper.endTime()}`,
-              ),
-            ),
-        )
-        .addSeparatorComponents(separator)
-        .addTextDisplayComponents(
-          new TextDisplayBuilder().setContent(
-            "Description:\n" + wrapper.description(),
-          ),
-          new TextDisplayBuilder().setContent("Attendees: " + attendeesStr),
-        )
-        .addSeparatorComponents(separator)
-        .addSectionComponents(
-          new SectionBuilder()
-            .setButtonAccessory(
-              new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel("Event Link")
-                .setURL(wrapper.eventLink()),
+                .setURL(await wrapper.eventLink()),
             )
             .addTextDisplayComponents(
               new TextDisplayBuilder().setContent(

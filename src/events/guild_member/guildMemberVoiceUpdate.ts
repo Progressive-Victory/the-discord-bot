@@ -1,3 +1,7 @@
+import Event from "@/Classes/Event";
+import { getGuildChannel } from "@/util";
+import { fetchSetting } from "@/util/api/fetchSettings";
+import { markAttendance } from "@/util/events/markAttendance";
 import {
   channelMention,
   ColorResolvable,
@@ -5,16 +9,9 @@ import {
   EmbedBuilder,
   Events,
   GuildMember,
+  GuildScheduledEventStatus,
   inlineCode,
 } from "discord.js";
-import Event from "../../Classes/Event.js";
-import {
-  IScheduledEvent,
-  ScheduledEvent,
-} from "../../models/ScheduledEvent.js";
-import { GuildSetting } from "../../models/Setting.js";
-import { getGuildChannel } from "../../util/index.js";
-import dbConnect from "../../util/libmongo.js";
 
 /**
  * `guildMemberVoiceUpdate` handles the {@link Events.VoiceStateUpdate} {@link Event}.
@@ -25,12 +22,24 @@ export const guildMemberVoiceUpdate = new Event({
   execute: async (oldState, newState) => {
     // console.log(oldState.toJSON(), newState.toJSON())
 
-    const { guild } = newState;
+    let guild = newState.guild;
+    if (!guild) guild = oldState.guild;
     const member =
       newState.member === null
         ? await guild.members.fetch(newState.id).catch(console.error)
         : newState.member;
     if (!member) return;
+    const events = await guild.scheduledEvents.fetch();
+    const oldChannelEv = events.find(
+      (x) =>
+        x.channelId === oldState.channelId &&
+        x.status === GuildScheduledEventStatus.Active,
+    );
+    const newChannelEv = events.find(
+      (x) =>
+        x.channelId === newState.channelId &&
+        x.status === GuildScheduledEventStatus.Active,
+    );
 
     const newStateChannelMention = channelMention(
       newState.channelId ?? "error",
@@ -61,7 +70,10 @@ export const guildMemberVoiceUpdate = new Event({
       } else return;
     } else {
       if (oldState.channelId === null && newState.channelId !== null) {
-        markAttendance(newState.channelId, member);
+        if (newChannelEv) {
+          console.log("joined", member.displayName, member.id, true);
+          await markAttendance(newChannelEv, member, true);
+        }
         embed = vcLogEmbed(
           member,
           "Joined Voice Channel",
@@ -69,6 +81,10 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Green,
         );
       } else if (oldState.channelId !== null && newState.channelId === null) {
+        if (oldChannelEv) {
+          console.log("left", member.displayName, member.id, false);
+          await markAttendance(oldChannelEv, member, false);
+        }
         embed = vcLogEmbed(
           member,
           "Left Voice Channel",
@@ -76,24 +92,32 @@ export const guildMemberVoiceUpdate = new Event({
           Colors.Red,
         );
       } else {
+        if (oldState.channelId !== null && oldChannelEv) {
+          console.log("switched off", member.displayName, member.id, false);
+          await markAttendance(oldChannelEv, member, false);
+        }
+        if (newState.channelId !== null && newChannelEv) {
+          console.log("switched on", member.displayName, member.id, true);
+          await markAttendance(newChannelEv, member, true);
+        }
         embed = vcLogEmbed(
           member,
           "Switched Voice Channel",
           `${member}${inlineCode(member.displayName)} switched from ${oldStateChannelMention} to ${newStateChannelMention}`,
           Colors.Blue,
         );
-        if (newState.channelId) markAttendance(newState.channelId, member);
       }
     }
 
-    const settings = await GuildSetting.findOne({ guildId: guild.id });
-    // check that logging channel ID is set
-    const loggingChannelId = settings?.logging.voiceUpdatesChannelId;
-    if (!loggingChannelId) return;
+    const res = await fetchSetting("voice_updates_log_channel_id");
+
+    const loggingChannelId = res.data;
 
     // check that logging channel exists in guild
     const loggingChannel = await getGuildChannel(guild, loggingChannelId);
     if (!loggingChannel?.isSendable()) return;
+
+    console.log("sending vc update");
 
     loggingChannel.send({ embeds: [embed] });
   },
@@ -120,30 +144,4 @@ function vcLogEmbed(
     .setTimestamp()
     .setFooter({ text: `User ID: ${member.id}` })
     .setColor(color);
-}
-
-/**
- *
- * @param channelId
- * @param member
- */
-async function markAttendance(channelId: string, member: GuildMember) {
-  try {
-    await dbConnect();
-    const res: IScheduledEvent = (await ScheduledEvent.findOne({
-      channelId: channelId,
-      status: 2,
-    })
-      .sort({ _id: -1 })
-      .exec()) as IScheduledEvent;
-    if (!res) return;
-    if (res.attendees.find((x) => x === member.id)) return;
-    console.log(
-      `Marking Attendance:\nUser Id: ${member.id}\nEvent Id: ${res.eventId}`,
-    );
-    res.attendees.push(member.id);
-    await res.save();
-  } catch (e) {
-    console.error(e);
-  }
 }
