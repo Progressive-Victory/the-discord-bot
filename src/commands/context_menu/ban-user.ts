@@ -1,27 +1,28 @@
 import { ContextMenuCommand } from "@/Classes";
-import { banModalBuilder } from "@/features/moderation/ban";
+import {
+  banDefaultMemberPermissions,
+  banModalBuilder,
+  isBannable,
+} from "@/features/moderation/ban";
 import {
   ApplicationCommandType,
   ContextMenuCommandBuilder,
   InteractionContextType,
   MessageFlags,
-  PermissionFlagsBits,
-  UserContextMenuCommandInteraction,
+  UserContextMenuCommandInteraction
 } from "discord.js";
 
 export const BanUser =
   new ContextMenuCommand<UserContextMenuCommandInteraction>({
     builder: new ContextMenuCommandBuilder()
       .setName("Ban")
-      .setDefaultMemberPermissions(
-        PermissionFlagsBits.KickMembers | PermissionFlagsBits.BanMembers,
-      )
+      .setDefaultMemberPermissions(banDefaultMemberPermissions)
       .setContexts(InteractionContextType.Guild)
       .setType(ApplicationCommandType.User),
     execute: async (interaction) => {
       if (!interaction.inCachedGuild()) return;
       const member = interaction.targetMember;
-      if (member && (!member.user.bot || !member.bannable)) {
+      if (member && isBannable(member)) {
         await interaction.reply({
           content: `${member.toString()} is unable to be banned`,
           flags: MessageFlags.Ephemeral,

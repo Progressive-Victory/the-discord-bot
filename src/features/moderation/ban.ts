@@ -1,25 +1,41 @@
+import { fetchSetting } from "@/util/api/fetchSettings.js";
 import {
+  ActionRowBuilder,
   APIApplicationCommandOptionChoice,
+  blockQuote,
+  ButtonBuilder,
   ChatInputCommandInteraction,
+  ContainerBuilder,
   DiscordAPIError,
   EmbedBuilder,
+  Guild,
+  GuildMember,
+  heading,
+  HeadingLevel,
   inlineCode,
   LabelBuilder,
   MessageFlags,
   ModalBuilder,
   ModalSubmitInteraction,
+  PermissionFlagsBits,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
+  subtext,
   TextInputBuilder,
   TextInputStyle,
+  time,
+  TimestampStyles,
   User,
 } from "discord.js";
-import { getGuildChannel } from "../../util/index.js";
+import { userViewWarnHistory } from "./buttons";
 
 const BAN_COLOR = 0x7c018c;
 
+// min and max characters for report reason
 export const minBanReason = 20;
 export const maxBanReason = 1500;
+
+// Values are number of seconds in the past that messages will be deleted
 export const deleteMessagesChoices: APIApplicationCommandOptionChoice<number>[] =
   [
     { name: "Don't Delete Any", value: 0 },
@@ -31,20 +47,26 @@ export const deleteMessagesChoices: APIApplicationCommandOptionChoice<number>[] 
     { name: "Previous 7 Days", value: 7 * 24 * 60 * 60 },
   ];
 
+// Default permissions
+export const banDefaultMemberPermissions =
+  PermissionFlagsBits.KickMembers | PermissionFlagsBits.BanMembers;
+
 /**
  * ban this user
- * @param interaction command interaction from user
+ * @param interaction - Chat Input Command interaction from user
  */
 export async function banUserChatCommand(
-  interaction: ChatInputCommandInteraction,
+  interaction: ChatInputCommandInteraction<"cached">,
 ) {
+  // Type guard that Interaction is in guild
   if (!interaction.inCachedGuild()) return;
   const options = interaction.options;
 
   const member = options.getMember("user");
   const user = options.getUser("user", true);
 
-  if (member && (!user.bot || !member.bannable)) {
+  // Check that user is able to be banned
+  if (member && isBannable(member)) {
     await interaction.reply({
       content: `${member.toString()} is unable to be banned`,
       flags: MessageFlags.Ephemeral,
@@ -59,19 +81,23 @@ export async function banUserChatCommand(
   await interaction.showModal(confirm);
 }
 
-export async function banUserModal(interaction: ModalSubmitInteraction) {
-  if (!interaction.inCachedGuild()) return;
-
+export async function banUserModal(
+  interaction: ModalSubmitInteraction<"cached">,
+) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  const { guild, fields } = interaction;
+  const { guild, fields, client } = interaction;
   const userId = interaction.customId.split("_")[1];
+
+  const user = await client.users.fetch(userId);
 
   const reason = fields.getTextInputValue("reason");
   const deleteMessages = Number(
     fields.getStringSelectValues("delete_messages"),
   );
 
+  await LogUserBan(user, interaction.member, reason, deleteMessages);
+  await banUserDM(user, guild, reason);
   try {
     await guild.bans.create(userId, {
       reason,
@@ -89,11 +115,12 @@ export async function banUserModal(interaction: ModalSubmitInteraction) {
 export function banModalBuilder(
   user: User,
   reason?: string,
-  deleteMessages: number = 0,
+  deleteMessages: number = -1,
 ) {
   const reasonText = new TextInputBuilder()
     .setCustomId("reason")
     .setStyle(TextInputStyle.Paragraph)
+    .setPlaceholder("Placeholder replace with text from mods")
     .setRequired(true)
     .setMinLength(minBanReason)
     .setMaxLength(maxBanReason);
@@ -130,72 +157,86 @@ export function banModalBuilder(
     .addLabelComponents(reasonLabel, deleteMessageLabel);
 }
 
+export function isBannable(member: GuildMember) {
+  return (
+    !member.user.bot &&
+    member.bannable &&
+    member.permissions.has(PermissionFlagsBits.BanMembers, true)
+  );
+}
+
 /**
  * log the ban in specified logging server
- * @param interaction command interaction from user
+ * @param interaction - command interaction from user
  */
-async function logAction(interaction: ChatInputCommandInteraction) {
-  const { options, guild, user: banning_user } = interaction;
-  const settings = await GuildSetting.findOne({ guildId: guild?.id });
-  if (!settings?.logging.timeoutChannelId || !guild) return;
+async function LogUserBan(
+  target: User,
+  moderator: GuildMember,
+  reason: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  messageDeleted: number,
+) {
+  const guild = moderator.guild;
+  const settingsChannelId = (await fetchSetting("timeout_log_channel_id")).data;
 
-  const bannedUser = options.getUser("user");
-  const reason = options.getString("reason");
-  if (bannedUser === null || reason === null) return;
+  const logChannel = guild.channels.cache.get(settingsChannelId);
+  if (!logChannel?.isSendable()) return;
 
-  const timeoutChannel = await getGuildChannel(
-    guild,
-    settings.logging.timeoutChannelId,
+  const container = new ContainerBuilder()
+    .setAccentColor(BAN_COLOR)
+    .addSectionComponents((section) =>
+      section
+        .setThumbnailAccessory((userProfile) =>
+          userProfile
+            .setURL(target.displayAvatarURL({ forceStatic: true }))
+            .setDescription(`User Profile for ${target.displayName}`),
+        )
+        .addTextDisplayComponents((text) =>
+          text.setContent(
+            [
+              heading("User Banned"),
+              `${target.toString()} was banned by ${moderator.toString()}`,
+              heading("Reason", HeadingLevel.Three),
+              blockQuote(reason),
+            ].join("\n"),
+          ),
+        ),
+    )
+    .addTextDisplayComponents((footer) =>
+      footer.setContent(
+        subtext(time(new Date(), TimestampStyles.LongDateShortTime)),
+      ),
+    );
+
+  const viewWarnHistory = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    userViewWarnHistory(target.id, guild),
   );
-  if (!timeoutChannel?.isSendable()) return;
-
-  timeoutChannel.send({
-    embeds: [getBanLogEmbed(banning_user, bannedUser, reason)],
+  await logChannel.send({
+    components: [container, viewWarnHistory],
+    flags: MessageFlags.IsComponentsV2,
   });
 }
 
 /**
  * send a dm to the user informing them of why they were banned
- * @param interaction command interaction from user
+ * @param interaction - command interaction from user
  */
-function dmNotification(interaction: ChatInputCommandInteraction) {
-  const bannedUser = interaction.options.getUser("user");
-  const botIcon = interaction.client.user.displayAvatarURL({
-    forceStatic: true,
+async function banUserDM(
+  target: User,
+  guild: Guild,
+  reason: string = "an unknown reason",
+) {
+  await target.send({
+    embeds: [
+      new EmbedBuilder()
+        .setAuthor({
+          iconURL: guild.iconURL({ forceStatic: true }) ?? undefined,
+          name: guild.name,
+        })
+        .setTitle("Server Ban")
+        .setDescription(`You were banned for ${reason}.`)
+        .setTimestamp()
+        .setColor(BAN_COLOR),
+    ],
   });
-  const reason = interaction.options.getString("reason") ?? "an unknown reason";
-  bannedUser?.send({ embeds: [getBanNotificationEmbed(botIcon, reason)] });
-}
-
-/**
- * construct the embed for a ban log
- * @param banning_user admin who is banning
- * @param banned_user who is bannedd
- * @param reason why were they banned?
- */
-function getBanLogEmbed(banning_user: User, banned_user: User, reason: string) {
-  const title = "User Banned";
-  const description = `${banned_user} was banned by ${banning_user} for ${reason}`;
-  const icon = banned_user.displayAvatarURL({ forceStatic: true });
-  return new EmbedBuilder()
-    .setAuthor({ iconURL: icon, name: title })
-    .setDescription(description)
-    .setTimestamp()
-    .setFooter({ text: `User ID: ${banned_user.id}` })
-    .setColor(BAN_COLOR);
-}
-
-/**
- * construct the embed for a ban notification
- * @param iconURL url for icon of notification
- * @param reason why was this user banned
- */
-function getBanNotificationEmbed(iconURL: string, reason: string) {
-  const title = "User Banned";
-  const description = `You were banned for ${reason}.`;
-  return new EmbedBuilder()
-    .setAuthor({ iconURL: iconURL, name: title })
-    .setDescription(description)
-    .setTimestamp()
-    .setColor(BAN_COLOR);
 }

@@ -1,5 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import {
+  banDefaultMemberPermissions,
   banUserChatCommand,
   deleteMessagesChoices,
   maxBanReason,
@@ -8,8 +9,7 @@ import {
 import {
   ApplicationIntegrationType,
   InteractionContextType,
-  PermissionFlagsBits,
-  SlashCommandBuilder,
+  SlashCommandBuilder
 } from "discord.js";
 import { create } from "./create";
 import { view } from "./view";
@@ -28,9 +28,7 @@ export const warn = new ChatInputCommand({
     .setDescription("Moderation commands")
     .setContexts(InteractionContextType.Guild)
     .setIntegrationTypes(ApplicationIntegrationType.GuildInstall)
-    .setDefaultMemberPermissions(
-      PermissionFlagsBits.KickMembers | PermissionFlagsBits.BanMembers,
-    )
+    .setDefaultMemberPermissions(banDefaultMemberPermissions)
     .addSubcommandGroup((warn) =>
       warn
         .addSubcommand((subCommand) =>
@@ -115,6 +113,7 @@ export const warn = new ChatInputCommand({
         ),
     ),
   execute: async (interaction) => {
+    if (!interaction.inCachedGuild()) return;
     const subcommand = interaction.options.getSubcommand(true);
 
     switch (subcommand) {
