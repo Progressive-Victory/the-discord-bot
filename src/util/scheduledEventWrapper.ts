@@ -4,7 +4,7 @@ import { GuildMember, GuildScheduledEventStatus, time } from "discord.js";
 import { client } from "..";
 
 /**
- * Wrapper class for "DiscordEvent" 
+ * Wrapper class for "DiscordEvent"
  * Meant to provide easier access and some useful utility functions
  */
 export class ScheduledEventWrapper {
@@ -290,7 +290,7 @@ export class ScheduledEventWrapper {
 
   /**
    * Utility function to fetch the number of unique users who joined this event
-   * @returns number of attendees 
+   * @returns number of attendees
    */
   uniqueAttendees = () => {
     if (!this.event.attendees)
@@ -361,7 +361,7 @@ export class ScheduledEventWrapper {
    * private function for replacing occurrances of <@'id'> with a users username
    * @param entries list of strings that need this replacement (see ScheduledEventWrapper.attendees())
    * @param nameMap map keyed with ids to fetch names (see ScheduledEventWrapper.getAtendeeNames())
-   * @returns new list of entries where <@'id'> is replaced with users names 
+   * @returns new list of entries where <@'id'> is replaced with users names
    */
   private populateNames(entries: string[], nameMap: Map<string, string>) {
     return entries.map((entry) => {
