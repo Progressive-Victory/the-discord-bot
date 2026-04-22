@@ -9,7 +9,7 @@ import {
 import {
   ApplicationIntegrationType,
   InteractionContextType,
-  SlashCommandBuilder
+  SlashCommandBuilder,
 } from "discord.js";
 import { create } from "./create";
 import { view } from "./view";
@@ -31,6 +31,8 @@ export const warn = new ChatInputCommand({
     .setDefaultMemberPermissions(banDefaultMemberPermissions)
     .addSubcommandGroup((warn) =>
       warn
+        .setName("warn")
+        .setDescription("manage user warnings")
         .addSubcommand((subCommand) =>
           subCommand
             .setName("create")
@@ -96,6 +98,13 @@ export const warn = new ChatInputCommand({
             .setDescription("User to be banned")
             .setRequired(true),
         )
+        .addNumberOption((deleteMessage) =>
+          deleteMessage
+            .setName("delete_messages")
+            .setDescription("Remove messages from baned user up to 7 days")
+            .setRequired(true)
+            .setChoices(deleteMessagesChoices),
+        )
         .addStringOption((reason) =>
           reason
             .setName("reason")
@@ -103,13 +112,6 @@ export const warn = new ChatInputCommand({
             .setRequired(false)
             .setMinLength(minBanReason)
             .setMaxLength(maxBanReason),
-        )
-        .addNumberOption((deleteMessage) =>
-          deleteMessage
-            .setName("delete_messages")
-            .setDescription("Remove messages from baned user up to 7 days")
-            .setRequired(true)
-            .setChoices(deleteMessagesChoices),
         ),
     ),
   execute: async (interaction) => {

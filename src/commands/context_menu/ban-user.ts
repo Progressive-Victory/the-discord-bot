@@ -9,7 +9,7 @@ import {
   ContextMenuCommandBuilder,
   InteractionContextType,
   MessageFlags,
-  UserContextMenuCommandInteraction
+  UserContextMenuCommandInteraction,
 } from "discord.js";
 
 export const BanUser =
@@ -22,7 +22,7 @@ export const BanUser =
     execute: async (interaction) => {
       if (!interaction.inCachedGuild()) return;
       const member = interaction.targetMember;
-      if (member && isBannable(member)) {
+      if (member && !isBannable(member, interaction.member)) {
         await interaction.reply({
           content: `${member.toString()} is unable to be banned`,
           flags: MessageFlags.Ephemeral,

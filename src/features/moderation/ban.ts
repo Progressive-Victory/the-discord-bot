@@ -3,6 +3,7 @@ import {
   ActionRowBuilder,
   APIApplicationCommandOptionChoice,
   blockQuote,
+  bold,
   ButtonBuilder,
   ChatInputCommandInteraction,
   ContainerBuilder,
@@ -14,11 +15,11 @@ import {
   HeadingLevel,
   inlineCode,
   LabelBuilder,
+  MessageCreateOptions,
   MessageFlags,
   ModalBuilder,
   ModalSubmitInteraction,
   PermissionFlagsBits,
-  StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
   subtext,
   TextInputBuilder,
@@ -66,7 +67,7 @@ export async function banUserChatCommand(
   const user = options.getUser("user", true);
 
   // Check that user is able to be banned
-  if (member && isBannable(member)) {
+  if (member && !isBannable(member, interaction.member)) {
     await interaction.reply({
       content: `${member.toString()} is unable to be banned`,
       flags: MessageFlags.Ephemeral,
@@ -86,20 +87,28 @@ export async function banUserModal(
 ) {
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-  const { guild, fields, client } = interaction;
-  const userId = interaction.customId.split("_")[1];
+  const { guild, fields } = interaction;
 
-  const user = await client.users.fetch(userId);
+  const member = fields.getSelectedMembers("user")?.first();
+
+  if (!(member && isBannable(member, interaction.member))) {
+    await interaction.editReply({
+      content: `${member?.toString()} was unable to be banned. Ask Administrator if this is a mistake`,
+    });
+    return;
+  }
 
   const reason = fields.getTextInputValue("reason");
   const deleteMessages = Number(
     fields.getStringSelectValues("delete_messages"),
   );
+  const [LogComponents] = await Promise.all([
+    LogUserBan(member.user, interaction.member, reason, deleteMessages),
+    banUserDM(member.user, guild, reason),
+  ]);
 
-  await LogUserBan(user, interaction.member, reason, deleteMessages);
-  await banUserDM(user, guild, reason);
   try {
-    await guild.bans.create(userId, {
+    await member.ban({
       reason,
       deleteMessageSeconds: deleteMessages,
     });
@@ -108,8 +117,13 @@ export async function banUserModal(
       await interaction.editReply({
         content: `User was unable to be banned. Error: ${inlineCode(error.message)}`,
       });
+      return;
     }
   }
+  await interaction.editReply({
+    components: LogComponents,
+    flags: MessageFlags.IsComponentsV2,
+  });
 }
 
 export function banModalBuilder(
@@ -117,10 +131,22 @@ export function banModalBuilder(
   reason?: string,
   deleteMessages: number = -1,
 ) {
+  const userMenuLabel = new LabelBuilder()
+    .setLabel("Target User")
+    .setDescription("User who will be banned")
+    .setUserSelectMenuComponent((userMenu) =>
+      userMenu
+        .setCustomId("user")
+        .setRequired(true)
+        .addDefaultUsers(user.id)
+        .setMaxValues(1)
+        .setMinValues(1),
+    );
+
   const reasonText = new TextInputBuilder()
     .setCustomId("reason")
     .setStyle(TextInputStyle.Paragraph)
-    .setPlaceholder("Placeholder replace with text from mods")
+    .setPlaceholder("Explain reasoning for user ban")
     .setRequired(true)
     .setMinLength(minBanReason)
     .setMaxLength(maxBanReason);
@@ -131,37 +157,45 @@ export function banModalBuilder(
 
   const reasonLabel = new LabelBuilder()
     .setLabel("Reason")
-    .setDescription("explanation of Ban")
+    .setDescription("explanation of Ban. This will be sent to user")
     .setTextInputComponent(reasonText);
-
-  const deleteMessageMenu = new StringSelectMenuBuilder()
-    .setCustomId("delete_messages")
-    .setRequired(true)
-    .setMinValues(1)
-    .setMaxValues(1)
-    .setOptions(
-      deleteMessagesChoices.map((c) =>
-        new StringSelectMenuOptionBuilder()
-          .setLabel(c.name)
-          .setValue(c.value.toString())
-          .setDefault(deleteMessages === c.value),
-      ),
-    );
 
   const deleteMessageLabel = new LabelBuilder()
     .setLabel("Delete Messages")
-    .setStringSelectMenuComponent(deleteMessageMenu);
+    .setStringSelectMenuComponent((deleteMessageMenu) =>
+      deleteMessageMenu
+        .setCustomId("delete_messages")
+        .setRequired(true)
+        .setMinValues(1)
+        .setMaxValues(1)
+        .setOptions(
+          deleteMessagesChoices.map((c) =>
+            new StringSelectMenuOptionBuilder()
+              .setLabel(c.name)
+              .setValue(c.value.toString())
+              .setDefault(deleteMessages === c.value),
+          ),
+        ),
+    );
+
   return new ModalBuilder()
-    .setCustomId(`ban_${user.id}`)
-    .setTitle(`Confirm Ban of ${user.displayName}`)
-    .addLabelComponents(reasonLabel, deleteMessageLabel);
+    .setCustomId(`ban`)
+    .setTitle(`Confirm User Ban`)
+    .addLabelComponents(userMenuLabel, reasonLabel, deleteMessageLabel);
 }
 
-export function isBannable(member: GuildMember) {
+export function isBannable(member: GuildMember, moderator: GuildMember) {
+  // console.log(
+  //   !member.user.bot,
+  //   member.bannable,
+  //   member.id !== moderator.id,
+  //   !member.permissions.has(PermissionFlagsBits.BanMembers, true),
+  // );
   return (
     !member.user.bot &&
     member.bannable &&
-    member.permissions.has(PermissionFlagsBits.BanMembers, true)
+    member.id !== moderator.id &&
+    !member.permissions.has(PermissionFlagsBits.BanMembers, true)
   );
 }
 
@@ -173,8 +207,7 @@ async function LogUserBan(
   target: User,
   moderator: GuildMember,
   reason: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  messageDeleted: number,
+  deleteMessages: number,
 ) {
   const guild = moderator.guild;
   const settingsChannelId = (await fetchSetting("timeout_log_channel_id")).data;
@@ -195,7 +228,9 @@ async function LogUserBan(
           text.setContent(
             [
               heading("User Banned"),
-              `${target.toString()} was banned by ${moderator.toString()}`,
+              `${bold("Member")}:		${[target.toString(), inlineCode(target.displayName)].join(" ")}`,
+              `${bold("Moderator")}:	${[moderator.toString(), inlineCode(target.displayName)].join(" ")}`,
+              `${bold("Messages Deleted")}: ${deleteMessagesChoices.find((c) => c.value === deleteMessages)?.name}`,
               heading("Reason", HeadingLevel.Three),
               blockQuote(reason),
             ].join("\n"),
@@ -211,10 +246,12 @@ async function LogUserBan(
   const viewWarnHistory = new ActionRowBuilder<ButtonBuilder>().addComponents(
     userViewWarnHistory(target.id, guild),
   );
-  await logChannel.send({
+  const LogMessage: MessageCreateOptions = {
     components: [container, viewWarnHistory],
     flags: MessageFlags.IsComponentsV2,
-  });
+  };
+  await logChannel.send(LogMessage);
+  return LogMessage.components;
 }
 
 /**
