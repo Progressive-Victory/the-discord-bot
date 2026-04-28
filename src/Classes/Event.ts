@@ -1,4 +1,5 @@
 import { ClientEvents } from "discord.js";
+import { Client } from "./Client";
 
 /**
  * Event Class
@@ -12,7 +13,7 @@ export class Event<Key extends keyof ClientEvents = any> {
   private _once: boolean;
 
   // Method to be run when the event occurs
-  private _execute?: (...args: ClientEvents[Key]) => void;
+  private _execute?: (client: Client, ...args: ClientEvents[Key]) => void;
 
   /**
    * @returns the name of the event
@@ -67,7 +68,9 @@ export class Event<Key extends keyof ClientEvents = any> {
    * @param execute - the new event handler to be stored in {@link Event#execute}
    * @returns The modified {@link Event} object
    */
-  public setExecute(execute: (...args: ClientEvents[Key]) => void) {
+  public setExecute(
+    execute: (client: Client, ...args: ClientEvents[Key]) => void,
+  ) {
     this._execute = execute;
     return this;
   }

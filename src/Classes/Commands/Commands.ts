@@ -7,6 +7,7 @@ import {
   ContextMenuCommandType,
   SlashCommandBuilder,
 } from "discord.js";
+import { Client } from "../Client";
 import { BaseCommand } from "./BaseCommand";
 import { AnySlashCommandBuilder } from "./types";
 
@@ -24,6 +25,7 @@ export class ChatInputCommand extends BaseCommand<
    */
   protected _autocomplete?: (
     interaction: AutocompleteInteraction,
+    client: Client,
   ) => Promise<void>;
 
   get autocomplete() {
@@ -56,11 +58,15 @@ export class ChatInputCommand extends BaseCommand<
 
   /**
    * Set Autocomplete method
+   * @param client - bot client
    * @param autocomplete - autocomplete function
    * @returns The modified object
    */
   public setAutocomplete(
-    autocomplete: (interaction: AutocompleteInteraction) => Promise<void>,
+    autocomplete: (
+      interaction: AutocompleteInteraction,
+      client: Client,
+    ) => Promise<void>,
   ) {
     this._autocomplete = autocomplete;
     return this;

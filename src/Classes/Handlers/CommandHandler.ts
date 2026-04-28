@@ -230,7 +230,9 @@ export class CommandHandler {
    * @param interaction - the {@link ChatInputCommandInteraction} received from the Discord WebSocket
    */
   runChatCommand(interaction: ChatInputCommandInteraction) {
-    this.chatCommands.get(interaction.commandName)?.execute(interaction);
+    this.chatCommands
+      .get(interaction.commandName)
+      ?.execute(interaction, this.client);
   }
 
   /**
@@ -238,7 +240,9 @@ export class CommandHandler {
    * @param interaction - the {@link AutocompleteInteraction} received from the Discord WebSocket
    */
   runAutocomplete(interaction: AutocompleteInteraction) {
-    this.chatCommands.get(interaction.commandName)?.autocomplete(interaction);
+    this.chatCommands
+      .get(interaction.commandName)
+      ?.autocomplete(interaction, this.client);
   }
 
   /**
@@ -246,7 +250,9 @@ export class CommandHandler {
    * @param interaction - the {@link UserContextMenuCommandInteraction} received from the Discord WebSocket
    */
   runUserContextMenus(interaction: UserContextMenuCommandInteraction) {
-    this._userContextMenus.get(interaction.commandName)?.execute(interaction);
+    this._userContextMenus
+      .get(interaction.commandName)
+      ?.execute(interaction, this.client);
   }
 
   /**
@@ -256,7 +262,7 @@ export class CommandHandler {
   runMessageContextMenus(interaction: MessageContextMenuCommandInteraction) {
     this._messageContextMenus
       .get(interaction.commandName)
-      ?.execute(interaction);
+      ?.execute(interaction, this.client);
   }
 
   /**

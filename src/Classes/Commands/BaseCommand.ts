@@ -4,6 +4,7 @@ import {
   ContextMenuCommandInteraction,
   Snowflake,
 } from "discord.js";
+import { Client } from "../Client";
 import { AnySlashCommandBuilder } from "./types";
 
 /**
@@ -27,7 +28,10 @@ export class BaseCommand<
 
   protected _guildIds: Snowflake[];
 
-  protected _execute?: (interaction: TypeInteraction) => Promise<void>;
+  protected _execute?: (
+    interaction: TypeInteraction,
+    client: Client,
+  ) => Promise<void>;
 
   get name() {
     return this.builder.name;
@@ -63,7 +67,9 @@ export class BaseCommand<
    * @param execute - the interaction handler
    * @returns The modified object
    */
-  setExecute(execute: (interaction: TypeInteraction) => Promise<void>): this {
+  setExecute(
+    execute: (interaction: TypeInteraction, client: Client) => Promise<void>,
+  ): this {
     this._execute = execute;
     return this;
   }
