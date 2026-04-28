@@ -1,3 +1,4 @@
+import { Client, Event } from "@/Classes";
 import {
   ApplicationCommandType,
   DiscordAPIError,
@@ -7,14 +8,16 @@ import {
   InteractionType,
   MessageFlags,
 } from "discord.js";
-import { Event } from "../Classes/Event";
 
 /**
  * Handles the creation of a new interaction.
  * @param interaction - The interaction object.
  */
-async function onInteractionCreate(interaction: Interaction): Promise<void> {
-  const { client, type } = interaction;
+async function onInteractionCreate(
+  client: Client,
+  interaction: Interaction,
+): Promise<void> {
+  const { type } = interaction;
   const { commands, interactions } = client;
 
   client.emit(Events.Debug, interaction.toString());
