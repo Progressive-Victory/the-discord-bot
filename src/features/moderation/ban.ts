@@ -59,8 +59,6 @@ export const banDefaultMemberPermissions =
 export async function banUserChatCommand(
   interaction: ChatInputCommandInteraction<"cached">,
 ) {
-  // Type guard that Interaction is in guild
-  if (!interaction.inCachedGuild()) return;
   const options = interaction.options;
 
   const member = options.getMember("user");
