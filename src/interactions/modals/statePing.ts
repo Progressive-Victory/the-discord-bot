@@ -1,10 +1,10 @@
 import { Routes } from "@/Classes/API/ApiConnService/routes";
 import { Interaction } from "@/Classes/Interaction";
 import {
-  legacyStateMessageCreate,
-  stateMessageCreate,
-  statePingReply,
-} from "@/features/state/ping";
+  legacyPingMessageCreate,
+  pingMessageCreate,
+  pingReply,
+} from "@/features/ping/helpers";
 import { apiConnService } from "@/util/api/pvapi";
 import {
   IDiscordStateRole,
@@ -68,14 +68,14 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
     let stateMessageCreateOptions: MessageCreateOptions;
 
     if (legacyOption)
-      stateMessageCreateOptions = legacyStateMessageCreate(
+      stateMessageCreateOptions = legacyPingMessageCreate(
         state.memberRoleId,
         user.id,
         content,
         title,
       );
     else
-      stateMessageCreateOptions = stateMessageCreate(
+      stateMessageCreateOptions = pingMessageCreate(
         state.memberRoleId,
         user.id,
         content,
@@ -84,6 +84,6 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
 
     const pingMessage = await stateChannel.send(stateMessageCreateOptions);
 
-    await statePingReply(interaction, pingMessage, true);
+    await pingReply(interaction, pingMessage, true);
   },
 });

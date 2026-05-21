@@ -30,6 +30,11 @@ import {
   userMention,
 } from "discord.js";
 import { messageMaxLength, titleMaxLength } from "./constants";
+import {
+  pingMessageCreate,
+  legacyPingMessageCreate,
+  pingReply,
+} from "../ping/helpers";
 
 /**
  * Executes the ping command to send a message to a channel.
@@ -154,14 +159,14 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   let stateMessageCreateOptions: MessageCreateOptions;
   if (messageOption) {
     if (legacyOption)
-      stateMessageCreateOptions = legacyStateMessageCreate(
+      stateMessageCreateOptions = legacyPingMessageCreate(
         state.memberRoleId,
         member.id,
         messageOption,
         titleOption ?? `${state.stateName} Announcement`,
       );
     else
-      stateMessageCreateOptions = stateMessageCreate(
+      stateMessageCreateOptions = pingMessageCreate(
         state.memberRoleId,
         member.id,
         messageOption,
@@ -169,92 +174,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       );
 
     const pingMessage = await channel.send(stateMessageCreateOptions);
-    await statePingReply(interaction, pingMessage, true);
+    await pingReply(interaction, pingMessage, true);
     return;
-  }
-}
-
-/**
- * @param stateRoleId - The ID of the state role
- * @param authorId - The author of the message
- * @param message - The contents of the message container
- * @param title - The title of the message container
- * @returns a {@link ContainerBuilder} used to format the message the state lead is sending
- * to the guild members with the `stateRoleId` role
- */
-export function stateMessageCreate(
-  stateRoleId: Snowflake,
-  authorId: Snowflake,
-  message: string,
-  title: string,
-): MessageCreateOptions {
-  const container = new ContainerBuilder()
-    // .setAccentColor()
-    .addTextDisplayComponents((builder) =>
-      builder.setContent([heading(title), message].join("\n")),
-    )
-    .addSeparatorComponents((builder) =>
-      builder.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents((builder) =>
-      builder.setContent(
-        [
-          subtext(`Message from your ${roleMention(stateRoleId)} team`),
-          subtext(`Written by ${userMention(authorId)}`),
-        ].join("\n"),
-      ),
-    );
-
-  return {
-    flags: MessageFlags.IsComponentsV2,
-    components: [container],
-    // allowedMentions:{parse:['roles']}
-  };
-}
-
-export function legacyStateMessageCreate(
-  stateRoleId: Snowflake,
-  authorId: Snowflake,
-  message: string,
-  title: string,
-): MessageCreateOptions {
-  return {
-    content: [
-      heading(title),
-      message,
-      "",
-      subtext(`Message from your ${roleMention(stateRoleId)} team`),
-      subtext(`Written by ${userMention(authorId)}`),
-    ].join("\n"),
-    // allowedMentions:{parse:[AllowedMentionsTypes.Role]}
-  };
-}
-
-/**
- * @param interaction - the interaction to reply to
- * @param message - the message to send
- * @returns
- */
-export async function statePingReply(
-  interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
-  message: Message<true>,
-  deferred: boolean = false,
-) {
-  const button = new ButtonBuilder()
-    .setStyle(ButtonStyle.Link)
-    .setURL(message.url)
-    .setLabel("Jump to Message");
-  const row = new ActionRowBuilder<ButtonBuilder>().setComponents(button);
-  if (deferred) {
-    await interaction.editReply({
-      content: "Your message has been sent",
-      components: [row],
-    });
-  } else {
-    await interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      content: "Your message has been sent",
-      components: [row],
-    });
   }
 }
