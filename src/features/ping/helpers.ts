@@ -43,7 +43,7 @@ export function pingMessageCreate(
     .addTextDisplayComponents((builder) =>
       builder.setContent(
         [
-          subtext(`Message from your ${roleMention(roleId)} team`),
+          subtext(`Message from your ${roleMention(roleId)} lead`),
           subtext(`Written by ${userMention(authorId)}`),
         ].join("\n"),
       ),
@@ -67,7 +67,7 @@ export function legacyPingMessageCreate(
       heading(title),
       message,
       "",
-      subtext(`Message from your ${roleMention(roleId)} team`),
+      subtext(`Message from your ${roleMention(roleId)} lead`),
       subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
     // allowedMentions:{parse:[AllowedMentionsTypes.Role]}

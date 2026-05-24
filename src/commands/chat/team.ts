@@ -13,7 +13,7 @@ export const ns = "team";
 /**
  * The `team` command allows team leads to:
  * <ul>
- *     <li>Ping a state role</li>
+ *     <li>Ping a team as a team leader</li>
  * </ul>
  */
 export default new ChatInputCommand()
