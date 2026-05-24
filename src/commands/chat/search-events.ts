@@ -45,9 +45,9 @@ export const searchEvents = new ChatInputCommand({
   execute: async (interaction) => {
     console.debug("[Debug] Event Search Started");
     if (!interaction.inCachedGuild()) return;
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    // await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    const events = await findEventsMatchingQuery(interaction);
+    const events = findEventsMatchingQuery(interaction);
 
     await replyMessageEvents(interaction, events);
   },
@@ -123,7 +123,7 @@ function parse_dates(str: string | null): IDateResult {
   };
 }
 
-async function findEventsMatchingQuery(
+function findEventsMatchingQuery(
   interaction: ChatInputCommandInteraction<"cached">,
 ) {
   const id = interaction.options.getString("id");
@@ -159,8 +159,9 @@ async function replyMessageEvents(
   events: Collection<string, GuildScheduledEvent<GuildScheduledEventStatus>>,
 ) {
   if (events.size === 0) {
-    await interaction.editReply({
+    await interaction.reply({
       content: "No Matching events were found",
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -179,7 +180,8 @@ async function replyMessageEvents(
         "\n"),
   );
 
-  await interaction.editReply({
+  await interaction.reply({
     content: out,
+    flags: MessageFlags.Ephemeral,
   });
 }
