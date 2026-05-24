@@ -142,6 +142,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
         member.id,
         messageOption,
         titleOption ?? `${state.stateName} Announcement`,
+        "team",
       );
     else
       stateMessageCreateOptions = pingMessageCreate(
@@ -149,6 +150,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
         member.id,
         messageOption,
         titleOption ?? `${state.stateName} Announcement`,
+        "team",
       );
 
     const pingMessage = await channel.send(stateMessageCreateOptions);

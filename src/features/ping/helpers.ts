@@ -31,6 +31,7 @@ export function pingMessageCreate(
   authorId: Snowflake,
   message: string,
   title: string,
+  suffix: string,
 ): MessageCreateOptions {
   const container = new ContainerBuilder()
     // .setAccentColor()
@@ -43,7 +44,7 @@ export function pingMessageCreate(
     .addTextDisplayComponents((builder) =>
       builder.setContent(
         [
-          subtext(`Message from your ${roleMention(roleId)} lead`),
+          subtext(`Message from your ${roleMention(roleId)} ${suffix}`),
           subtext(`Written by ${userMention(authorId)}`),
         ].join("\n"),
       ),
@@ -61,13 +62,14 @@ export function legacyPingMessageCreate(
   authorId: Snowflake,
   message: string,
   title: string,
+  suffix: string,
 ): MessageCreateOptions {
   return {
     content: [
       heading(title),
       message,
       "",
-      subtext(`Message from your ${roleMention(roleId)} lead`),
+      subtext(`Message from your ${roleMention(roleId)} ${suffix}`),
       subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
     // allowedMentions:{parse:[AllowedMentionsTypes.Role]}

@@ -79,6 +79,7 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
         user.id,
         content,
         title,
+        "team",
       );
     else
       stateMessageCreateOptions = pingMessageCreate(
@@ -86,6 +87,7 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
         user.id,
         content,
         title,
+        "team",
       );
 
     const pingMessage = await stateChannel.send(stateMessageCreateOptions);

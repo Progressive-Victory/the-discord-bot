@@ -74,8 +74,8 @@ export async function sendTeamPing(
   }
 
   const messageCreateOptions: MessageCreateOptions = legacyOption
-    ? legacyPingMessageCreate(baseRoleId, member.id, message, title)
-    : pingMessageCreate(baseRoleId, member.id, message, title);
+    ? legacyPingMessageCreate(baseRoleId, member.id, message, title, "lead")
+    : pingMessageCreate(baseRoleId, member.id, message, title, "lead");
 
   const pingMessage = await currentChannel.send(messageCreateOptions);
   await pingReply(interaction, pingMessage, true);
