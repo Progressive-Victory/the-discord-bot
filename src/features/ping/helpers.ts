@@ -14,6 +14,8 @@ import {
   Snowflake,
   subtext,
   userMention,
+  Guild,
+  GuildMember,
 } from "discord.js";
 
 /**
@@ -99,4 +101,25 @@ export async function pingReply(
       components: [row],
     });
   }
+}
+
+export async function resolveGuildInteraction(
+  interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
+): Promise<{ guild: Guild; member: GuildMember } | undefined> {
+  if (interaction.inCachedGuild()) {
+    return { guild: interaction.guild, member: interaction.member };
+  }
+
+  if (interaction.inRawGuild()) {
+    try {
+      const guild = await interaction.client.guilds.fetch(interaction.guildId);
+      const member = await guild.members.fetch(interaction.user);
+      return { guild, member };
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
+  }
+
+  return undefined;
 }

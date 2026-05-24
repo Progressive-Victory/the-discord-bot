@@ -7,33 +7,21 @@ import {
 } from "@/util/states/discordStateRole";
 import { isStateAbbreviations } from "@/util/states/types";
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   ChatInputCommandInteraction,
-  ContainerBuilder,
-  Guild,
-  GuildMember,
-  heading,
   LabelBuilder,
-  Message,
   MessageCreateOptions,
   MessageFlags,
   ModalBuilder,
-  ModalSubmitInteraction,
   roleMention,
-  SeparatorSpacingSize,
-  Snowflake,
-  subtext,
   TextInputBuilder,
   TextInputStyle,
-  userMention,
 } from "discord.js";
-import { messageMaxLength, titleMaxLength } from "./constants";
+import { messageMaxLength, titleMaxLength } from "../ping/constants";
 import {
   pingMessageCreate,
   legacyPingMessageCreate,
   pingReply,
+  resolveGuildInteraction,
 } from "../ping/helpers";
 
 /**
@@ -42,30 +30,20 @@ import {
  * @returns interaction
  */
 export default async function ping(interaction: ChatInputCommandInteraction) {
-  let guild: Guild;
-  let member: GuildMember;
-  const { client, options } = interaction;
+  const { options } = interaction;
 
   // interaction.deferReply({flags:MessageFlags.Ephemeral})
 
-  if (interaction.inCachedGuild()) {
-    guild = interaction.guild;
-    member = interaction.member;
-  } else if (interaction.inRawGuild()) {
-    try {
-      guild = await client.guilds.fetch(interaction.guildId);
-      member = await guild.members.fetch(interaction.user);
-    } catch (error) {
-      console.log(error);
-      await interaction.reply({
-        flags: MessageFlags.Ephemeral,
-        content: "An Error has occurred, contact your administrator",
-      });
-      return;
-    }
-  } else {
-    throw Error("ping not in guild");
+  const resolved = await resolveGuildInteraction(interaction);
+  if (!resolved) {
+    await interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "An Error has occurred, contact your administrator",
+    });
+    return;
   }
+  const { guild, member } = resolved;
+
   const stateAbbreviation = options.getString("state", true).toLowerCase();
 
   if (!isStateAbbreviations(stateAbbreviation)) {
@@ -137,7 +115,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       "message" in err &&
       typeof err.message === "string"
     ) {
-      await interaction.reply(err.message);
+      await interaction.editReply(err.message);
       return;
     }
   }

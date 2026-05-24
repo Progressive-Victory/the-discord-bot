@@ -54,10 +54,16 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
       );
     } catch (err) {
       console.error(err);
-      //@ts-expect-error can't type error args
-      return interaction.reply(err.message);
+      if (
+        typeof err === "object" &&
+        err &&
+        "message" in err &&
+        typeof err.message === "string"
+      ) {
+        await interaction.editReply(err.message);
+      }
+      return;
     }
-
     const content = fields.getTextInputValue("message");
     const title = fields.getTextInputValue("title");
     const stateChannel =
