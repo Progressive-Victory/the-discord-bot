@@ -25,16 +25,15 @@ export async function sendTeamPing(
   message: string,
   legacyOption: boolean,
 ): Promise<void> {
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
   const resolved = await resolveGuildInteraction(interaction);
   if (!resolved) {
-    await interaction.reply({
+    await interaction.editReply({
       content: "This command must be used in a guild channel.",
-      flags: MessageFlags.Ephemeral,
     });
     return;
   }
-
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
   const { guild, member } = resolved;
   const baseRole = guild.roles.cache.get(baseRoleId);
