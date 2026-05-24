@@ -129,7 +129,7 @@ export default new ChatInputCommand()
         value: role.id,
       }))
       .slice(0, 14);
-    // console.log(choices);
+
     await interaction.respond(choices).catch(console.error);
   })
   .setExecute(ping);
