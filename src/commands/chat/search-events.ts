@@ -3,9 +3,12 @@ import {
   ApplicationCommandOptionChoiceData,
   ChatInputCommandInteraction,
   Collection,
-  Guild,
+  escapeMarkdown,
   GuildScheduledEvent,
   GuildScheduledEventStatus,
+  heading,
+  HeadingLevel,
+  hyperlink,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
@@ -40,21 +43,13 @@ export const searchEvents = new ChatInputCommand({
         .setMaxLength(100),
     ),
   execute: async (interaction) => {
-    console.log("execute");
+    console.debug("[Debug] Event Search Started");
+    if (!interaction.inCachedGuild()) return;
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    if (interaction.isChatInputCommand()) {
-      await interaction.reply({
-        content: "working on it",
-        flags: MessageFlags.Ephemeral,
-      });
+    const events = await findEventsMatchingQuery(interaction);
 
-      const events = await findEventsMatchingQuery(
-        interaction,
-        interaction.guild,
-      );
-
-      directMessageEvents(interaction, events);
-    }
+    await replyMessageEvents(interaction, events);
   },
   autocomplete: async (interaction) => {
     if (!interaction.isAutocomplete() || !interaction.inCachedGuild()) return;
@@ -63,12 +58,21 @@ export const searchEvents = new ChatInputCommand({
     const events = interaction.guild.scheduledEvents;
 
     let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
-    let list: Collection<string, GuildScheduledEvent>;
+    let list: Collection<
+      string,
+      GuildScheduledEvent<GuildScheduledEventStatus>
+    >;
     switch (focus.name) {
       // autocomplete for id option
       case "id":
         list =
-          events.cache.filter((event) => event.id.startsWith(focus.value)) ??
+          events.cache.filter(
+            (event) =>
+              event.id.includes(focus.value) ||
+              event.name
+                .toLocaleLowerCase()
+                .includes(focus.value.toLowerCase()),
+          ) ??
           events.cache.sort(
             (eventA, eventB) =>
               eventA.createdAt.getTime() - eventB.createdAt.getTime(),
@@ -82,7 +86,7 @@ export const searchEvents = new ChatInputCommand({
       case "name":
         list =
           events.cache.filter((event) =>
-            event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
+            event.name.toLocaleLowerCase().includes(focus.value.toLowerCase()),
           ) ??
           events.cache.sort(
             (eventA, eventB) =>
@@ -100,9 +104,6 @@ export const searchEvents = new ChatInputCommand({
     await interaction.respond(filtered.slice(0, 24)).catch(console.error);
   },
 });
-
-let prevEventCacheTimestamp = 0;
-const CACHE_DURATION = 60 * 1000; // 1 minute
 
 interface IDateResult {
   startDate: Date | null;
@@ -122,32 +123,14 @@ function parse_dates(str: string | null): IDateResult {
   };
 }
 
-async function fast_fetch_events(guild: Guild): Promise<GuildScheduledEvent[]> {
-  if (
-    Date.now() - prevEventCacheTimestamp < CACHE_DURATION &&
-    guild.scheduledEvents.cache.size > 0
-  ) {
-    return guild.scheduledEvents.cache.map((event) => event);
-  } else {
-    const events = await guild.scheduledEvents.fetch();
-    prevEventCacheTimestamp = Date.now();
-    return events.map((event) => event);
-  }
-}
-
 async function findEventsMatchingQuery(
-  interaction: ChatInputCommandInteraction,
-  guild: Guild | null,
-): Promise<GuildScheduledEvent[] | null> {
-  if (guild === null) {
-    return null;
-  }
+  interaction: ChatInputCommandInteraction<"cached">,
+) {
   const id = interaction.options.getString("id");
   const name = interaction.options.getString("name");
   const dates = interaction.options.getString("date-range");
   const { startDate, endDate } = parse_dates(dates);
-  const events_list = await fast_fetch_events(guild);
-  const out = events_list.filter((v) => {
+  const out = interaction.guild.scheduledEvents.cache.filter((v) => {
     return (
       (name === null &&
         id === null &&
@@ -171,27 +154,32 @@ async function findEventsMatchingQuery(
 }
 
 const max_num_events = 20;
-async function directMessageEvents(
+async function replyMessageEvents(
   interaction: ChatInputCommandInteraction,
-  events: GuildScheduledEvent<GuildScheduledEventStatus>[] | null,
+  events: Collection<string, GuildScheduledEvent<GuildScheduledEventStatus>>,
 ) {
-  if (events === null || events.length === 0) {
-    await interaction.followUp({
+  if (events.size === 0) {
+    await interaction.editReply({
       content: "No Matching events were found",
-      flags: MessageFlags.Ephemeral,
     });
     return;
   }
   let out = "";
-  const max = Math.min(events.length, max_num_events);
-  if (events.length > max_num_events) {
-    out += `Showing top ${max_num_events} results:\n\n`;
+  if (events.size > max_num_events) {
+    out += heading(
+      `Showing top ${max_num_events} results:\n`,
+      HeadingLevel.Two,
+    );
   }
-  for (let i = 0; i < max; i++) {
-    out += events[i].toString() + "\n";
-  }
-  await interaction.followUp({
+
+  events.forEach(
+    (scheduledEvent) =>
+      (out +=
+        hyperlink(escapeMarkdown(scheduledEvent.name), scheduledEvent.url) +
+        "\n"),
+  );
+
+  await interaction.editReply({
     content: out,
-    flags: MessageFlags.Ephemeral,
   });
 }
