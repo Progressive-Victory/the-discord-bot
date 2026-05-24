@@ -1,10 +1,11 @@
 import { ChatInputCommand } from "@/Classes";
 import ping from "@/features/team/ping";
-import { messageMaxLength, titleMaxLength } from "@/features/state/constants";
+import { messageMaxLength, titleMaxLength } from "@/features/ping/constants";
 import {
   ApplicationCommandOptionType,
   InteractionContextType,
 } from "discord.js";
+import { isGuildMember } from "@/util";
 
 export default new ChatInputCommand()
   .setBuilder((builder) =>
@@ -56,11 +57,21 @@ export default new ChatInputCommand()
       return;
     }
 
-    const roles = guild.roles.cache;
+    const member = interaction.member;
 
-    const roleNames = new Set(roles.map((role) => role.name.toLowerCase()));
+    if (!isGuildMember(member)) {
+      await interaction.respond([]).catch(console.error);
+      return;
+    }
 
-    const choices = roles
+    // need to "fetch" if not cached maybe?
+    const guildRoles = guild.roles.cache;
+
+    const memberRoles = new Set(
+      member.roles.cache.map((role) => role.name.toLowerCase()),
+    );
+
+    const choices = guildRoles
       .filter((role) => {
         const roleName = role.name.toLowerCase();
 
@@ -68,7 +79,7 @@ export default new ChatInputCommand()
         if (role.name === "@everyone") return false;
         if (roleName.endsWith(" lead")) return false;
 
-        return roleNames.has(`${roleName} lead`);
+        return memberRoles.has(`${roleName} lead`);
       })
       .map((role) => ({
         name: role.name,

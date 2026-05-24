@@ -67,6 +67,7 @@ pnpm dev
 ```
 
 Sync commands with discord (only do if necessary so we don't get rate limited):
+
 ```sh
 pnpm dev-deploy
 ```
@@ -93,6 +94,12 @@ State lead tools. This command has two subcommands:
 
 - ping - Allows our state leads to ping members' state roles
 - members - Gets a list of all members with a specified role
+
+### team
+
+Team lead tools. This command has one subcommand:
+
+- ping - Allows team leads to ping their team's members.
 
 ### feedback
 
