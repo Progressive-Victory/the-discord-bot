@@ -1,26 +1,51 @@
 import { ChatInputCommand } from "@/Classes";
 import ping from "@/features/team/ping";
 import { messageMaxLength, titleMaxLength } from "@/features/ping/constants";
+import { localize } from "@/i18n";
 import {
   ApplicationCommandOptionType,
   InteractionContextType,
 } from "discord.js";
 import { isGuildMember } from "@/util";
 
+export const ns = "team";
+
+/**
+ * The `team` command allows team leads to:
+ * <ul>
+ *     <li>Ping a state role</li>
+ * </ul>
+ */
 export default new ChatInputCommand()
   .setBuilder((builder) =>
     builder
       .setName("team")
       .setDescription("Commands for skill team leads")
+      .setNameLocalizations(localize.discordLocalizationRecord("team-name", ns))
+      .setDescriptionLocalizations(
+        localize.discordLocalizationRecord("team-description", ns),
+      )
       .setContexts(InteractionContextType.Guild)
       .addSubcommand((subcommand) =>
         subcommand
           .setName("ping")
           .setDescription("Ping Team")
+          .setNameLocalizations(
+            localize.discordLocalizationRecord("ping-name", ns),
+          )
+          .setDescriptionLocalizations(
+            localize.discordLocalizationRecord("ping-description", ns),
+          )
           .addStringOption((option) =>
             option
               .setName("team")
               .setDescription("team to ping")
+              .setNameLocalizations(
+                localize.discordLocalizationRecord("ping-team-name", ns),
+              )
+              .setDescriptionLocalizations(
+                localize.discordLocalizationRecord("ping-team-description", ns),
+              )
               .setRequired(true)
               .setAutocomplete(true),
           )
@@ -28,6 +53,15 @@ export default new ChatInputCommand()
             title
               .setName("title")
               .setDescription("Title of announcement")
+              .setNameLocalizations(
+                localize.discordLocalizationRecord("ping-title-name", ns),
+              )
+              .setDescriptionLocalizations(
+                localize.discordLocalizationRecord(
+                  "ping-title-description",
+                  ns,
+                ),
+              )
               .setMaxLength(titleMaxLength)
               .setRequired(false),
           )
@@ -35,6 +69,15 @@ export default new ChatInputCommand()
             message
               .setName("message")
               .setDescription("Text to send in message")
+              .setNameLocalizations(
+                localize.discordLocalizationRecord("ping-message-name", ns),
+              )
+              .setDescriptionLocalizations(
+                localize.discordLocalizationRecord(
+                  "ping-message-description",
+                  ns,
+                ),
+              )
               .setMaxLength(messageMaxLength)
               .setRequired(false),
           ),
