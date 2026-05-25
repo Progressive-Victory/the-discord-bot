@@ -88,8 +88,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
 
   const resolved = await resolveGuildInteraction(interaction);
   if (!resolved) {
-    await interaction.reply({
-      flags: MessageFlags.Ephemeral,
+    await interaction.editReply({
       content: "An Error has occurred, contact your administrator",
     });
     return;
