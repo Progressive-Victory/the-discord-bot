@@ -5,6 +5,7 @@ import { localize } from "@/i18n";
 import {
   ApplicationCommandOptionType,
   InteractionContextType,
+  PermissionFlagsBits,
 } from "discord.js";
 import { isGuildMember } from "@/util";
 
@@ -25,6 +26,7 @@ export default new ChatInputCommand()
       .setDescriptionLocalizations(
         localize.discordLocalizationRecord("team-description", ns),
       )
+      .setDefaultMemberPermissions(PermissionFlagsBits.MentionEveryone)
       .setContexts(InteractionContextType.Guild)
       .addSubcommand((subcommand) =>
         subcommand
@@ -107,7 +109,7 @@ export default new ChatInputCommand()
       return;
     }
 
-    // need to "fetch" if not cached maybe?
+    await guild.roles.fetch().catch(console.error);
     const guildRoles = guild.roles.cache;
 
     const memberRoles = new Set(
@@ -128,7 +130,7 @@ export default new ChatInputCommand()
         name: role.name,
         value: role.id,
       }))
-      .slice(0, 14);
+      .slice(0, 25);
 
     await interaction.respond(choices).catch(console.error);
   })
