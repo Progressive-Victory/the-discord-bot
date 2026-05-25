@@ -32,18 +32,6 @@ import {
 export default async function ping(interaction: ChatInputCommandInteraction) {
   const { options } = interaction;
 
-  // interaction.deferReply({flags:MessageFlags.Ephemeral})
-
-  const resolved = await resolveGuildInteraction(interaction);
-  if (!resolved) {
-    await interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      content: "An Error has occurred, contact your administrator",
-    });
-    return;
-  }
-  const { guild, member } = resolved;
-
   const stateAbbreviation = options.getString("state", true).toLowerCase();
 
   if (!isStateAbbreviations(stateAbbreviation)) {
@@ -97,6 +85,16 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   }
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+  const resolved = await resolveGuildInteraction(interaction);
+  if (!resolved) {
+    await interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "An Error has occurred, contact your administrator",
+    });
+    return;
+  }
+  const { guild, member } = resolved;
 
   let state: IDiscordStateRole | undefined = undefined;
 

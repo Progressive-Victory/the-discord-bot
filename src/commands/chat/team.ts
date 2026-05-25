@@ -109,7 +109,6 @@ export default new ChatInputCommand()
       return;
     }
 
-    await guild.roles.fetch().catch(console.error);
     const guildRoles = guild.roles.cache;
 
     const memberRoles = new Set(
