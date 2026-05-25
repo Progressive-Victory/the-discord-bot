@@ -69,9 +69,7 @@ export const searchEvents = new ChatInputCommand({
           events.cache.filter(
             (event) =>
               event.id.includes(focus.value) ||
-              event.name
-                .toLocaleLowerCase()
-                .includes(focus.value.toLowerCase()),
+              event.name.toLowerCase().includes(focus.value.toLowerCase()),
           ) ??
           events.cache.sort(
             (eventA, eventB) =>
@@ -86,7 +84,7 @@ export const searchEvents = new ChatInputCommand({
       case "name":
         list =
           events.cache.filter((event) =>
-            event.name.toLocaleLowerCase().includes(focus.value.toLowerCase()),
+            event.name.toLowerCase().includes(focus.value.toLowerCase()),
           ) ??
           events.cache.sort(
             (eventA, eventB) =>
