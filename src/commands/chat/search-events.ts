@@ -13,6 +13,7 @@ import {
   MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
+  Snowflake,
 } from "discord.js";
 
 export const searchEvents = new ChatInputCommand({
@@ -21,13 +22,6 @@ export const searchEvents = new ChatInputCommand({
     .setDescription("Find events that match criteria")
     .setDefaultMemberPermissions(PermissionFlagsBits.ViewChannel)
     .setContexts(InteractionContextType.Guild)
-    .addStringOption((option) =>
-      option
-        .setName("id")
-        .setDescription("find by id")
-        .setAutocomplete(true)
-        .setMaxLength(30),
-    )
     .addStringOption((option) =>
       option
         .setName("name")
@@ -45,7 +39,6 @@ export const searchEvents = new ChatInputCommand({
   execute: async (interaction) => {
     console.debug("[Debug] Event Search Started");
     if (!interaction.inCachedGuild()) return;
-    // await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     const events = findEventsMatchingQuery(interaction);
 
@@ -59,27 +52,10 @@ export const searchEvents = new ChatInputCommand({
 
     let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
     let list: Collection<
-      string,
+      Snowflake,
       GuildScheduledEvent<GuildScheduledEventStatus>
     >;
     switch (focus.name) {
-      // autocomplete for id option
-      case "id":
-        list =
-          events.cache.filter(
-            (event) =>
-              event.id.includes(focus.value) ||
-              event.name.toLowerCase().includes(focus.value.toLowerCase()),
-          ) ??
-          events.cache.sort(
-            (eventA, eventB) =>
-              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
-          );
-        filtered = list.map((event) => ({
-          name: event.name,
-          value: event.id,
-        }));
-        break;
       // autocomplete for name option
       case "name":
         list =
@@ -92,7 +68,7 @@ export const searchEvents = new ChatInputCommand({
           );
         filtered = list.map((event) => ({
           name: event.name,
-          value: event.name,
+          value: event.id,
         }));
         break;
 
@@ -124,24 +100,18 @@ function parse_dates(str: string | null): IDateResult {
 function findEventsMatchingQuery(
   interaction: ChatInputCommandInteraction<"cached">,
 ) {
-  const id = interaction.options.getString("id");
-  const name = interaction.options.getString("name");
+  const name = interaction.options.getString("name", true).toLowerCase();
   const dates = interaction.options.getString("date-range");
   const { startDate, endDate } = parse_dates(dates);
   const out = interaction.guild.scheduledEvents.cache.filter((v) => {
     return (
-      (name === null &&
-        id === null &&
-        startDate === null &&
-        endDate === null) ||
-      (id !== null && v.id.includes(id) && id !== "") ||
-      (name !== null &&
-        v.name.toLowerCase().includes(name.toLowerCase()) &&
-        name !== "") ||
-      (startDate !== null &&
-        endDate !== null &&
+      (!startDate && !endDate) ||
+      v.id === name ||
+      v.name.toLowerCase().includes(name) ||
+      (startDate &&
+        endDate &&
         endDate >= startDate &&
-        v.scheduledStartAt !== null &&
+        v.scheduledStartAt &&
         v.scheduledStartAt.setUTCHours(0, 0, 0, 0) >=
           startDate.setUTCHours(0, 0, 0, 0) &&
         v.scheduledStartAt.setUTCHours(0, 0, 0, 0) <=
