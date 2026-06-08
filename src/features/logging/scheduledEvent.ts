@@ -23,7 +23,6 @@ import {
 } from "discord.js";
 import { client } from "../..";
 
-
 /**
  * Logging function to log a discord event
  * @param event the discord event to log

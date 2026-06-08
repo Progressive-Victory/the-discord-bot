@@ -3,13 +3,17 @@ import {
   ApplicationCommandOptionChoiceData,
   ChatInputCommandInteraction,
   Collection,
-  Guild,
+  escapeMarkdown,
   GuildScheduledEvent,
   GuildScheduledEventStatus,
+  heading,
+  HeadingLevel,
+  hyperlink,
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
   SlashCommandBuilder,
+  Snowflake,
 } from "discord.js";
 
 export const searchEvents = new ChatInputCommand({
@@ -18,13 +22,6 @@ export const searchEvents = new ChatInputCommand({
     .setDescription("Find events that match criteria")
     .setDefaultMemberPermissions(PermissionFlagsBits.ViewChannel)
     .setContexts(InteractionContextType.Guild)
-    .addStringOption((option) =>
-      option
-        .setName("id")
-        .setDescription("find by id")
-        .setAutocomplete(true)
-        .setMaxLength(30),
-    )
     .addStringOption((option) =>
       option
         .setName("name")
@@ -40,21 +37,12 @@ export const searchEvents = new ChatInputCommand({
         .setMaxLength(100),
     ),
   execute: async (interaction) => {
-    console.log("execute");
+    console.debug("[Debug] Event Search Started");
+    if (!interaction.inCachedGuild()) return;
 
-    if (interaction.isChatInputCommand()) {
-      await interaction.reply({
-        content: "working on it",
-        flags: MessageFlags.Ephemeral,
-      });
+    const events = findEventsMatchingQuery(interaction);
 
-      const events = await findEventsMatchingQuery(
-        interaction,
-        interaction.guild,
-      );
-
-      directMessageEvents(interaction, events);
-    }
+    await replyMessageEvents(interaction, events);
   },
   autocomplete: async (interaction) => {
     if (!interaction.isAutocomplete() || !interaction.inCachedGuild()) return;
@@ -63,12 +51,17 @@ export const searchEvents = new ChatInputCommand({
     const events = interaction.guild.scheduledEvents;
 
     let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
-    let list: Collection<string, GuildScheduledEvent>;
+    let list: Collection<
+      Snowflake,
+      GuildScheduledEvent<GuildScheduledEventStatus>
+    >;
     switch (focus.name) {
-      // autocomplete for id option
-      case "id":
+      // autocomplete for name option
+      case "name":
         list =
-          events.cache.filter((event) => event.id.startsWith(focus.value)) ??
+          events.cache.filter((event) =>
+            event.name.toLowerCase().includes(focus.value.toLowerCase()),
+          ) ??
           events.cache.sort(
             (eventA, eventB) =>
               eventA.createdAt.getTime() - eventB.createdAt.getTime(),
@@ -78,21 +71,6 @@ export const searchEvents = new ChatInputCommand({
           value: event.id,
         }));
         break;
-      // autocomplete for name option
-      case "name":
-        list =
-          events.cache.filter((event) =>
-            event.name.toLowerCase().startsWith(focus.value.toLowerCase()),
-          ) ??
-          events.cache.sort(
-            (eventA, eventB) =>
-              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
-          );
-        filtered = list.map((event) => ({
-          name: event.name,
-          value: event.name,
-        }));
-        break;
 
       default:
         break;
@@ -100,9 +78,6 @@ export const searchEvents = new ChatInputCommand({
     await interaction.respond(filtered.slice(0, 24)).catch(console.error);
   },
 });
-
-let prevEventCacheTimestamp = 0;
-const CACHE_DURATION = 60 * 1000; // 1 minute
 
 interface IDateResult {
   startDate: Date | null;
@@ -122,45 +97,21 @@ function parse_dates(str: string | null): IDateResult {
   };
 }
 
-async function fast_fetch_events(guild: Guild): Promise<GuildScheduledEvent[]> {
-  if (
-    Date.now() - prevEventCacheTimestamp < CACHE_DURATION &&
-    guild.scheduledEvents.cache.size > 0
-  ) {
-    return guild.scheduledEvents.cache.map((event) => event);
-  } else {
-    const events = await guild.scheduledEvents.fetch();
-    prevEventCacheTimestamp = Date.now();
-    return events.map((event) => event);
-  }
-}
-
-async function findEventsMatchingQuery(
-  interaction: ChatInputCommandInteraction,
-  guild: Guild | null,
-): Promise<GuildScheduledEvent[] | null> {
-  if (guild === null) {
-    return null;
-  }
-  const id = interaction.options.getString("id");
-  const name = interaction.options.getString("name");
+function findEventsMatchingQuery(
+  interaction: ChatInputCommandInteraction<"cached">,
+) {
+  const name = interaction.options.getString("name", true).toLowerCase();
   const dates = interaction.options.getString("date-range");
   const { startDate, endDate } = parse_dates(dates);
-  const events_list = await fast_fetch_events(guild);
-  const out = events_list.filter((v) => {
+  const out = interaction.guild.scheduledEvents.cache.filter((v) => {
     return (
-      (name === null &&
-        id === null &&
-        startDate === null &&
-        endDate === null) ||
-      (id !== null && v.id.includes(id) && id !== "") ||
-      (name !== null &&
-        v.name.toLowerCase().includes(name.toLowerCase()) &&
-        name !== "") ||
-      (startDate !== null &&
-        endDate !== null &&
+      (!startDate && !endDate) ||
+      v.id === name ||
+      v.name.toLowerCase().includes(name) ||
+      (startDate &&
+        endDate &&
         endDate >= startDate &&
-        v.scheduledStartAt !== null &&
+        v.scheduledStartAt &&
         v.scheduledStartAt.setUTCHours(0, 0, 0, 0) >=
           startDate.setUTCHours(0, 0, 0, 0) &&
         v.scheduledStartAt.setUTCHours(0, 0, 0, 0) <=
@@ -171,26 +122,33 @@ async function findEventsMatchingQuery(
 }
 
 const max_num_events = 20;
-async function directMessageEvents(
+async function replyMessageEvents(
   interaction: ChatInputCommandInteraction,
-  events: GuildScheduledEvent<GuildScheduledEventStatus>[] | null,
+  events: Collection<string, GuildScheduledEvent<GuildScheduledEventStatus>>,
 ) {
-  if (events === null || events.length === 0) {
-    await interaction.followUp({
+  if (events.size === 0) {
+    await interaction.reply({
       content: "No Matching events were found",
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
   let out = "";
-  const max = Math.min(events.length, max_num_events);
-  if (events.length > max_num_events) {
-    out += `Showing top ${max_num_events} results:\n\n`;
+  if (events.size > max_num_events) {
+    out += heading(
+      `Showing top ${max_num_events} results:\n`,
+      HeadingLevel.Two,
+    );
   }
-  for (let i = 0; i < max; i++) {
-    out += events[i].toString() + "\n";
-  }
-  await interaction.followUp({
+
+  events.forEach(
+    (scheduledEvent) =>
+      (out +=
+        hyperlink(escapeMarkdown(scheduledEvent.name), scheduledEvent.url) +
+        "\n"),
+  );
+
+  await interaction.reply({
     content: out,
     flags: MessageFlags.Ephemeral,
   });
