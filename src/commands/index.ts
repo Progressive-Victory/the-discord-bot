@@ -17,3 +17,5 @@ export { stateAdmin } from "./chat/state-admin";
 export { searchEvents } from "./chat/search-events";
 
 export { mute } from "./chat/mute";
+
+export { BanUser } from "./context_menu/ban-user";
