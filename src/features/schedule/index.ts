@@ -17,6 +17,8 @@ export async function lead(interaction: ChatInputCommandInteraction) {
       return listScheduledMessages(interaction);
     case "delete":
       return deleteScheduledMessage(interaction);
+    case "recurring":
+      return createScheduledMessage(interaction); // I'll either
     default:
       throw Error("No Subcommand");
   }
@@ -29,7 +31,7 @@ export async function lead(interaction: ChatInputCommandInteraction) {
  */
 export async function autoComplete(): Promise<void> {
   //  interaction: AutocompleteInteraction,
-  /* stolen from state file. to be used to help with date */
+  /* To be used to help with dates */
 }
 
 // Export the lead and autoComplete functions as properties of the exported object.

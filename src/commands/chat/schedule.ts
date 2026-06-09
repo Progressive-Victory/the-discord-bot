@@ -11,7 +11,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 
-export const ns = "schedule";
+const ns = "schedule";
 
 export default new ChatInputCommand()
   .setBuilder((builder) =>
@@ -58,6 +58,12 @@ export default new ChatInputCommand()
               .setDescription("Text to send in message")
               .setMaxLength(messageMaxLength)
               .setRequired(false),
+          )
+          .addStringOption((cronExpression) =>
+            cronExpression
+              .setName("cron")
+              .setDescription("Cron expression for scheduling") // This is *not* permanent. but Conversion logic hasn't been done yet
+              .setRequired(false),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -83,6 +89,52 @@ export default new ChatInputCommand()
               "schedule-delete-description",
               ns,
             ),
+          )
+          .addStringOption((id) =>
+            id
+              .setName("id")
+              .setDescription("ID of the message to delete")
+              .setRequired(true),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("recurring")
+          .setDescription("Create a new scheduled message that repeats") // This wasn't requested, but we're (mis)using cron for the normal scheduling. Let us at least allow it to serve it's usual purpose
+          .setNameLocalizations(
+            localize.discordLocalizationRecord("schedule-recurring-name", ns),
+          )
+          .setDescriptionLocalizations(
+            localize.discordLocalizationRecord(
+              "schedule-recurring-description",
+              ns,
+            ),
+          )
+          .addBooleanOption((legacy) =>
+            legacy
+              .setName("usecomponents")
+              .setDescription("send message using components V2")
+              .setRequired(false),
+          )
+          .addStringOption((title) =>
+            title
+              .setName("title")
+              .setDescription("Title of announcement")
+              .setMaxLength(titleMaxLength)
+              .setRequired(false),
+          )
+          .addStringOption((message) =>
+            message
+              .setName("message")
+              .setDescription("Text to send in message")
+              .setMaxLength(messageMaxLength)
+              .setRequired(false),
+          )
+          .addStringOption((cronExpression) =>
+            cronExpression
+              .setName("cron")
+              .setDescription("Cron expression for scheduling") // This is *not* permanent. but Conversion logic hasn't been done yet
+              .setRequired(false),
           ),
       ),
   )

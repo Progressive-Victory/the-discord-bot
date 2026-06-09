@@ -13,3 +13,7 @@ schedule-list-description = List all scheduled messages
 ## delete command
 schedule-delete-name = delete
 schedule-delete-description = Delete a scheduled message
+
+## recurring command
+schedule-recurring-name = recurring
+schedule-recurring-description = "Create a new scheduled message that repeats"

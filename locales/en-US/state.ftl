@@ -14,7 +14,7 @@ ping-message-description = Message you wish to add to the ping
 ping-cant-send = Message can't be sent in {$channel}
 ping-not-no-perms = {$user} does not have permission to send message
 ping-success = Ping message has been sent
-ping-role-match-fail = Channel and selected role do not match. Please selected a differant role or use in the correct channel
+ping-role-match-fail = Channel and selected role do not match. Please selected a different role or use in the correct channel
 ping-sent-by = Sent by {$user}
 ping-no-thread = Command can not be used in a thread. Use the state text channel
 
