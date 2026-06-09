@@ -22,14 +22,15 @@
     "dev": "node --env-file=.env .",
     "predev-deploy": "pnpm build",
     "dev-deploy": "node --env-file=.env . --deploy",
-    "start": "node .",
+    "start": "node . --deploy",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier -w src",
     "doc": "typedoc"
   },
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.13.0",
+    "pnpm": ">=10.26.0"
   },
   "dependencies": {
     "@fluent/bundle": "^0.19.1",
