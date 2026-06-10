@@ -21,8 +21,8 @@ steps:
     args:
       - "-c"
       - |
-        gcloud compute instances update-container ${_COMPUTE_INSTANCE} \
-          --zone=us-central1-c \
+        gcloud compute instances update-container ${_COMPUTE_INSTANCE_NAME} \
+          --zone=us-central1-${_ZONE} \
           --container-image=us-central1-docker.pkg.dev/$PROJECT_ID/docker-deploy/pv-bot:$SHORT_SHA \
           --container-env "PORT=${_PORT},DISCORD_TOKEN=$$DISCORD_TOKEN,API_HOST_ADDR=${_API_HOST_ADDR},PV_GUILD_ID=${_PV_GUILD_ID}"
     secretEnv: ["DISCORD_TOKEN"]
