@@ -1,7 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import {
   ApplicationCommandOptionChoiceData,
-  ChatInputCommandInteraction,
   Collection,
   escapeMarkdown,
   GuildScheduledEvent,
@@ -16,6 +15,8 @@ import {
   Snowflake,
 } from "discord.js";
 
+const MAX_NUM_EVENTS = 20;
+
 export const searchEvents = new ChatInputCommand({
   builder: new SlashCommandBuilder()
     .setName("search-events")
@@ -27,28 +28,83 @@ export const searchEvents = new ChatInputCommand({
         .setName("name")
         .setDescription("find by name")
         .setAutocomplete(true)
-        .setMaxLength(100),
+        .setMaxLength(100)
+        .setRequired(true),
     )
     .addStringOption((option) =>
       option
         .setName("date-range")
         .setDescription("find by range of dates; ex: mm/dd/yyyy-mm/dd/yyyy")
         .setAutocomplete(false)
-        .setMaxLength(100),
+        .setMaxLength(100)
+        .setRequired(false),
     ),
   execute: async (interaction) => {
     console.debug("[Debug] Event Search Started");
     if (!interaction.inCachedGuild()) return;
 
-    const events = findEventsMatchingQuery(interaction);
+    const name = interaction.options.getString("name", true).toLowerCase();
+    const dates = interaction.options.getString("date-range");
+    const { startDate, endDate } = parse_dates(dates);
 
-    await replyMessageEvents(interaction, events);
+    const events = interaction.guild.scheduledEvents.cache;
+
+    // console.log(name, dates, startDate, endDate);
+
+    // Check if name is the event Id
+    const event = events.get(name);
+
+    if (event) {
+      await interaction.reply({
+        content: hyperlink(escapeMarkdown(event.name), event.url),
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
+    }
+
+    // Defer response before filtering due to parse time
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    events.filter(
+      (v) =>
+        v.name.toLowerCase().includes(name) &&
+        ((startDate &&
+          v.scheduledStartAt &&
+          v.scheduledStartAt >= startDate &&
+          v.scheduledStartAt <= endDate) ||
+          !startDate),
+    );
+
+    // Check that 1 or more events are found
+    if (events.size < 1) {
+      await interaction.editReply({
+        content: "No Matching events were found",
+      });
+      return;
+    }
+
+    // sort collection and map it to string
+    let contentMap: string[] = events
+      .sort(sortEventByDate)
+      .map((e) => hyperlink(escapeMarkdown(e.name), e.url));
+
+    // Add header when over MAX_NUM_EVENTS of events
+    if (contentMap.length > MAX_NUM_EVENTS) {
+      contentMap = [
+        `${heading(`Showing top ${MAX_NUM_EVENTS} results:`, HeadingLevel.Two)}`,
+      ]
+        .concat(contentMap)
+        .slice(0, MAX_NUM_EVENTS);
+    }
+    await interaction.editReply({
+      content: contentMap.join("\n"),
+    });
   },
   autocomplete: async (interaction) => {
     if (!interaction.isAutocomplete() || !interaction.inCachedGuild()) return;
 
     const focus = interaction.options.getFocused(true);
-    const events = interaction.guild.scheduledEvents;
+    const events = interaction.guild.scheduledEvents.cache;
 
     let filtered: ApplicationCommandOptionChoiceData<string>[] = [];
     let list: Collection<
@@ -59,13 +115,9 @@ export const searchEvents = new ChatInputCommand({
       // autocomplete for name option
       case "name":
         list =
-          events.cache.filter((event) =>
+          events.filter((event) =>
             event.name.toLowerCase().includes(focus.value.toLowerCase()),
-          ) ??
-          events.cache.sort(
-            (eventA, eventB) =>
-              eventA.createdAt.getTime() - eventB.createdAt.getTime(),
-          );
+          ) ?? events.sort(sortEventByDate);
         filtered = list.map((event) => ({
           name: event.name,
           value: event.id,
@@ -79,12 +131,7 @@ export const searchEvents = new ChatInputCommand({
   },
 });
 
-interface IDateResult {
-  startDate: Date | null;
-  endDate: Date | null;
-}
-
-function parse_dates(str: string | null): IDateResult {
+function parse_dates(str: string | null) {
   if (!str)
     return {
       startDate: null,
@@ -97,59 +144,13 @@ function parse_dates(str: string | null): IDateResult {
   };
 }
 
-function findEventsMatchingQuery(
-  interaction: ChatInputCommandInteraction<"cached">,
+function sortEventByDate(
+  eventA: GuildScheduledEvent,
+  eventB: GuildScheduledEvent,
 ) {
-  const name = interaction.options.getString("name", true).toLowerCase();
-  const dates = interaction.options.getString("date-range");
-  const { startDate, endDate } = parse_dates(dates);
-  const out = interaction.guild.scheduledEvents.cache.filter((v) => {
-    return (
-      (!startDate && !endDate) ||
-      v.id === name ||
-      v.name.toLowerCase().includes(name) ||
-      (startDate &&
-        endDate &&
-        endDate >= startDate &&
-        v.scheduledStartAt &&
-        v.scheduledStartAt.setUTCHours(0, 0, 0, 0) >=
-          startDate.setUTCHours(0, 0, 0, 0) &&
-        v.scheduledStartAt.setUTCHours(0, 0, 0, 0) <=
-          endDate.setUTCHours(0, 0, 0, 0))
-    );
-  });
-  return out;
-}
-
-const max_num_events = 20;
-async function replyMessageEvents(
-  interaction: ChatInputCommandInteraction,
-  events: Collection<string, GuildScheduledEvent<GuildScheduledEventStatus>>,
-) {
-  if (events.size === 0) {
-    await interaction.reply({
-      content: "No Matching events were found",
-      flags: MessageFlags.Ephemeral,
-    });
-    return;
+  if (eventA.scheduledStartAt && eventB.scheduledStartAt) {
+    return eventA.scheduledStartAt.getTime() - eventB.createdAt.getTime();
+  } else {
+    return eventA.createdAt.getTime() - eventB.createdAt.getTime();
   }
-  let out = "";
-  if (events.size > max_num_events) {
-    out += heading(
-      `Showing top ${max_num_events} results:\n`,
-      HeadingLevel.Two,
-    );
-  }
-
-  events.forEach(
-    (scheduledEvent) =>
-      (out +=
-        hyperlink(escapeMarkdown(scheduledEvent.name), scheduledEvent.url) +
-        "\n"),
-  );
-
-  await interaction.reply({
-    content: out,
-    flags: MessageFlags.Ephemeral,
-  });
 }
