@@ -73,6 +73,7 @@ export const searchEvents = new ChatInputCommand({
     if (events.size < 1) {
       await interaction.reply({
         content: "No Matching events were found",
+        flags: MessageFlags.Ephemeral,
       });
       return;
     }
@@ -94,6 +95,7 @@ export const searchEvents = new ChatInputCommand({
     }
     await interaction.reply({
       content: contentMap.join("\n"),
+      flags: MessageFlags.Ephemeral | MessageFlags.SuppressEmbeds,
     });
   },
   autocomplete: async (interaction) => {
