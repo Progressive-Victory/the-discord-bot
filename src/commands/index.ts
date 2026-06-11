@@ -8,7 +8,7 @@ export { warn } from "./chat/moderation";
 
 export { settings } from "./chat/setting";
 
-export { reportMessage, reportUser } from "./context_menu/report";
+export { reportUser } from "./context_menu/report";
 
 export { timeout } from "./chat/timeout";
 
