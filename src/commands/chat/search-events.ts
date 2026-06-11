@@ -47,9 +47,7 @@ export const searchEvents = new ChatInputCommand({
     const dates = interaction.options.getString("date-range");
     const { startDate, endDate } = parse_dates(dates);
 
-    const events = interaction.guild.scheduledEvents.cache;
-
-    // console.log(name, dates, startDate, endDate);
+    let events = interaction.guild.scheduledEvents.cache;
 
     // Check if name is the event Id
     const event = events.get(name);
@@ -62,22 +60,18 @@ export const searchEvents = new ChatInputCommand({
       return;
     }
 
-    // Defer response before filtering due to parse time
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    events.filter(
+    events = events.filter(
       (v) =>
         v.name.toLowerCase().includes(name) &&
-        ((startDate &&
-          v.scheduledStartAt &&
-          v.scheduledStartAt >= startDate &&
-          v.scheduledStartAt <= endDate) ||
-          !startDate),
+        (!startDate ||
+          !endDate ||
+          !v.scheduledStartAt ||
+          (v.scheduledStartAt >= startDate && v.scheduledStartAt <= endDate)),
     );
 
     // Check that 1 or more events are found
     if (events.size < 1) {
-      await interaction.editReply({
+      await interaction.reply({
         content: "No Matching events were found",
       });
       return;
@@ -86,7 +80,9 @@ export const searchEvents = new ChatInputCommand({
     // sort collection and map it to string
     let contentMap: string[] = events
       .sort(sortEventByDate)
-      .map((e) => hyperlink(escapeMarkdown(e.name), e.url));
+      .map((e) =>
+        heading(hyperlink(escapeMarkdown(e.name), e.url), HeadingLevel.Three),
+      );
 
     // Add header when over MAX_NUM_EVENTS of events
     if (contentMap.length > MAX_NUM_EVENTS) {
@@ -96,7 +92,7 @@ export const searchEvents = new ChatInputCommand({
         .concat(contentMap)
         .slice(0, MAX_NUM_EVENTS);
     }
-    await interaction.editReply({
+    await interaction.reply({
       content: contentMap.join("\n"),
     });
   },
