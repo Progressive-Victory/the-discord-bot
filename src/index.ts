@@ -17,7 +17,6 @@ export const client = new Client({
     Intents.Guilds,
     Intents.GuildMessages,
     Intents.GuildVoiceStates,
-    Intents.MessageContent,
     Intents.GuildMembers,
     Intents.GuildModeration,
     Intents.GuildScheduledEvents,
