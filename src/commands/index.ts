@@ -9,7 +9,8 @@ export { default as schedule } from "./chat/schedule";
 
 export { settings } from "./chat/setting";
 
-export { reportMessage, reportUser } from "./context_menu/report";
+// TODO: re-enabled reportMessage once intent permission is received
+export { reportUser } from "./context_menu/report";
 
 export { timeout } from "./chat/timeout";
 

@@ -18,8 +18,6 @@ export class ApiConnService {
   }
 
   async auth(token: string) {
-    console.log("Bot " + token);
-
     await fetch(`${this.host}/auth`, {
       //process.env.API_HOST_ADDR
       method: "POST",
