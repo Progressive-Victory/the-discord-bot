@@ -19,9 +19,12 @@
   "scripts": {
     "build": "pnpm format && node esbuild.config.js",
     "predev": "pnpm build",
-    "dev": "pnpm predev && node --env-file=.env .",
+    "dev": " node --env-file=.env .",
+    "predev-test": "pnpm build",
+    "dev-test": "node --env-file=.env.test .",
     "predev-deploy": "pnpm build",
-    "dev-deploy": "pnpm predev-deploy && node --env-file=.env . --deploy",
+    "dev-deploy": "node --env-file=.env . --deploy",
+    "dev-test-deploy": "pnpm predev-deploy && node --env-file=.env . --deploy",
     "start": "node . --deploy",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
@@ -41,7 +44,6 @@
     "discord.js": "^14.26.4",
     "esbuild": "^0.27.4",
     "express": "^5.2.1",
-    "node-cron": "^4.2.1",
     "ts-transformer-keys": "^0.4.4",
     "zod": "^4.4.3"
   },
