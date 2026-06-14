@@ -97,10 +97,7 @@ export const messageReport = new Interaction<ModalSubmitInteraction>({
     if (!channel?.isSendable()) return;
 
     const messageId = customId.split(client.splitCustomIdOn!)[2];
-    const message =
-      channel.messages.cache.get(messageId) ??
-      (await channel.messages.fetch(messageId)) ??
-      undefined;
+    const message = channel.messages.cache.get(messageId) ?? undefined;
     if (!message) return;
 
     const author =

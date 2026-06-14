@@ -19,26 +19,27 @@ export const reportUser =
       .setName("Report User")
       .setContexts(InteractionContextType.Guild)
       .setType(ApplicationCommandType.User),
-    execute: (interaction) => {
+    execute: async (interaction) => {
       if (interaction.targetUser.bot) {
-        interaction.reply({
+        await interaction.reply({
           flags: MessageFlags.Ephemeral,
           content: "You can not report a bot",
         });
         return;
       } else if (interaction.targetUser === interaction.user) {
-        interaction.reply({
+        await interaction.reply({
           flags: MessageFlags.Ephemeral,
           content: "You can not report yourself",
         });
         return;
       }
+
       const modal = reportModel;
       modal.setCustomId(
         AddSplitCustomId(reportModalPrefix.userReport, interaction.targetId),
       );
 
-      interaction.showModal(modal);
+      await interaction.showModal(modal);
     },
   });
 
@@ -51,27 +52,30 @@ export const reportMessage =
       .setName("Report Message")
       .setContexts(InteractionContextType.Guild)
       .setType(ApplicationCommandType.Message),
-    execute: (interaction) => {
+    execute: async (interaction) => {
       if (interaction.targetMessage.author.bot) {
-        interaction.reply({
+        await interaction.reply({
           flags: MessageFlags.Ephemeral,
           content: "You can not report a bot message",
         });
         return;
       } else if (interaction.targetMessage.author === interaction.user) {
-        interaction.reply({
+        await interaction.reply({
           flags: MessageFlags.Ephemeral,
           content: "You can not report yourself",
         });
         return;
       }
 
+      const targetMessage = interaction.targetMessage;
+      const channel = targetMessage.channel;
+
       const modal = reportModel;
       modal.setCustomId(
         AddSplitCustomId(
           reportModalPrefix.messageReport,
-          interaction.targetMessage.channelId,
-          interaction.targetMessage.id,
+          channel.id,
+          targetMessage.id,
         ),
       );
 
