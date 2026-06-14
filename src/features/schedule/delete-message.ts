@@ -1,6 +1,6 @@
 //Is nor actually working.
 import { ChatInputCommandInteraction } from "discord.js";
-import cron from "node-cron";
+
 import { scheduledMessages } from "./create-message.js";
 export async function deleteScheduledMessage(
   interaction: ChatInputCommandInteraction,
@@ -11,11 +11,12 @@ export async function deleteScheduledMessage(
   const message = scheduledMessages.get(id);
   if (!message) {
     await interaction.reply({ content: "Message not found." });
+    console.debug(scheduledMessages);
     return;
   }
 
-  cron.getTask(id)?.destroy();
-  console.log(cron.getTasks().entries);
+  message.task.stop();
+  // console.log(message.task);
   scheduledMessages.delete(id);
   await interaction.reply({ content: "Message Unscheduled." });
   return;

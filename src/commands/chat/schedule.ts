@@ -63,7 +63,8 @@ export default new ChatInputCommand()
             cronExpression
               .setName("cron")
               .setDescription("Cron expression for scheduling") // This is *not* permanent. but Conversion logic hasn't been done yet
-              .setRequired(false),
+              .setRequired(false)
+              .setAutocomplete(true),
           ),
       )
       .addSubcommand((subcommand) =>

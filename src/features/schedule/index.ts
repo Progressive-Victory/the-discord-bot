@@ -9,7 +9,6 @@ import { deleteScheduledMessage } from "./delete-message";
  */
 export async function lead(interaction: ChatInputCommandInteraction) {
   const subcommand = interaction.options.getSubcommand(true);
-
   switch (subcommand) {
     case "create":
       return createScheduledMessage(interaction);

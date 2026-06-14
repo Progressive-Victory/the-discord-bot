@@ -4,13 +4,19 @@ import { scheduledMessages } from "./create-message.js";
 export async function listScheduledMessages(
   interaction: ChatInputCommandInteraction,
 ) {
+  if (scheduledMessages.size === 0) {
+    await interaction.reply({
+      content: "There are no scheduled messages.",
+    });
+    return;
+  }
   await interaction.reply({
     content: [
       "Currently Scheduled Messages:",
       ...scheduledMessages
         .values()
         .map((msg) => `- \`${msg.id}\` (${msg.cronExpression})`),
-        // Here's where a message preview would go
+      // Here's where a message preview would go
     ].join("\n\n"),
   });
   return;
