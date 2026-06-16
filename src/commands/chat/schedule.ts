@@ -1,10 +1,7 @@
 import { ChatInputCommand } from "@/Classes";
 import { lead } from "@/features/schedule";
-import {
-  messageMaxLength,
-  titleMaxLength,
-} from "@/features/schedule/constants";
 import { localize } from "@/i18n";
+import { messageMaxLength, titleMaxLength } from "@/util/schedule/constants";
 import {
   ApplicationCommandOptionType,
   InteractionContextType,
@@ -39,6 +36,50 @@ export default new ChatInputCommand()
               ns,
             ),
           )
+          .addStringOption((when) =>
+            when
+              .setName("when")
+              .setDescription(
+                "When the message should be sent. Allows natural input (ex: Friday at 4, Today at 13:00UTC)",
+              )
+              .setMaxLength(messageMaxLength)
+              .setRequired(true),
+          )
+          .addBooleanOption((legacy) =>
+            legacy
+              .setName("usecomponents")
+              .setDescription("send message using components V2")
+              .setRequired(false),
+          )
+          .addStringOption((title) =>
+            title
+              .setName("title")
+              .setDescription("Title of announcement")
+              .setMaxLength(titleMaxLength)
+              .setRequired(false),
+          )
+          .addStringOption((message) =>
+            message
+              .setName("message")
+              .setDescription("Text to send in message")
+              .setMaxLength(messageMaxLength)
+              .setRequired(false),
+          ),
+      )
+      .addSubcommand((subcommand) =>
+        subcommand
+          .setName("create-cron")
+          .setDescription(
+            "Create a new scheduled message using an OCPS cron expression",
+          )
+          .addStringOption((cronExpression) =>
+            cronExpression
+              .setName("cron")
+              .setDescription(
+                "Cron expression for scheduling. 5-7 field format <https://croner.56k.guru/usage/pattern/>",
+              )
+              .setRequired(true),
+          )
           .addBooleanOption((legacy) =>
             legacy
               .setName("usecomponents")
@@ -59,12 +100,13 @@ export default new ChatInputCommand()
               .setMaxLength(messageMaxLength)
               .setRequired(false),
           )
-          .addStringOption((cronExpression) =>
-            cronExpression
-              .setName("cron")
-              .setDescription("Cron expression for scheduling") // This is *not* permanent. but Conversion logic hasn't been done yet
-              .setRequired(false)
-              .setAutocomplete(true),
+          .addIntegerOption((runs) =>
+            runs
+              .setName("runs")
+              .setDescription(
+                "Number of times this is allowed to run. Leave blank for unlimited.",
+              )
+              .setRequired(false),
           ),
       )
       .addSubcommand((subcommand) =>
@@ -97,46 +139,6 @@ export default new ChatInputCommand()
               .setDescription("ID of the message to delete")
               .setRequired(true),
           ),
-      )
-      .addSubcommand((subcommand) =>
-        subcommand
-          .setName("recurring")
-          .setDescription("Create a new scheduled message that repeats") // This wasn't requested, but we're (mis)using cron for the normal scheduling. Let us at least allow it to serve it's usual purpose
-          .setNameLocalizations(
-            localize.discordLocalizationRecord("schedule-recurring-name", ns),
-          )
-          .setDescriptionLocalizations(
-            localize.discordLocalizationRecord(
-              "schedule-recurring-description",
-              ns,
-            ),
-          )
-          .addBooleanOption((legacy) =>
-            legacy
-              .setName("usecomponents")
-              .setDescription("send message using components V2")
-              .setRequired(false),
-          )
-          .addStringOption((title) =>
-            title
-              .setName("title")
-              .setDescription("Title of announcement")
-              .setMaxLength(titleMaxLength)
-              .setRequired(false),
-          )
-          .addStringOption((message) =>
-            message
-              .setName("message")
-              .setDescription("Text to send in message")
-              .setMaxLength(messageMaxLength)
-              .setRequired(false),
-          )
-          .addStringOption((cronExpression) =>
-            cronExpression
-              .setName("cron")
-              .setDescription("Cron expression for scheduling") // This is *not* permanent. but Conversion logic hasn't been done yet
-              .setRequired(false),
-          ),
       ),
   )
   .setAutocomplete(async (interaction) => {
@@ -146,7 +148,6 @@ export default new ChatInputCommand()
       focus.name !== "state"
     ) {
       await interaction.respond([]);
-      return;
     }
   })
   .setExecute(lead);

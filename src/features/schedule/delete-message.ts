@@ -1,7 +1,8 @@
 //Is nor actually working.
 import { ChatInputCommandInteraction } from "discord.js";
 
-import { scheduledMessages } from "./create-message.js";
+import { replyEphemeral } from "@/util/schedule/helpers.js";
+import { scheduledMessages } from "../../util/schedule/state.js";
 export async function deleteScheduledMessage(
   interaction: ChatInputCommandInteraction,
 ) {
@@ -10,14 +11,15 @@ export async function deleteScheduledMessage(
 
   const message = scheduledMessages.get(id);
   if (!message) {
-    await interaction.reply({ content: "Message not found." });
+    await replyEphemeral(interaction, "Message not found.");
     console.debug(scheduledMessages);
     return;
   }
 
   message.task.stop();
-  // console.log(message.task);
+  await replyEphemeral(
+    interaction,
+    "Message ```" + message.payload.content + "``` Unscheduled.",
+  );
   scheduledMessages.delete(id);
-  await interaction.reply({ content: "Message Unscheduled." });
-  return;
 }

@@ -40,7 +40,7 @@ export function isRole(data: Role | APIRole | null): data is Role {
  */
 export function AddSplitCustomId(...args: (string | number | boolean)[]) {
   if (!client.splitCustomIdOn) {
-    throw Error("client.splitCustomIdOn not set in index");
+    throw new Error("client.splitCustomIdOn not set in index");
   }
   let output = args[0].toString();
   for (let index = 1; index < args.length; index++) {
