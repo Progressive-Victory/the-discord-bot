@@ -68,7 +68,7 @@ export default new ChatInputCommand()
       )
       .addSubcommand((subcommand) =>
         subcommand
-          .setName("create-cron") //I've changed my mind i don't
+          .setName("create-cron") //I've changed my mind i don't see a reason to get rid of this
           .setDescription(
             "Create a new scheduled message using an OCPS cron expression. Fragile",
           )

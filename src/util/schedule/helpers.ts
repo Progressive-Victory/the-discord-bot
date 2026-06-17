@@ -1,13 +1,12 @@
 import { AddSplitCustomId, getGuildChannel } from "@/util";
+import { DiscordSnowflake } from "@sapphire/snowflake";
 import { Cron } from "croner";
 import {
   ChatInputCommandInteraction,
   MessageCreateOptions,
   MessageFlags,
-  PermissionsBitField,
   TextChannel,
 } from "discord.js";
-// import { FixedOffsetZone, IANAZone } from "luxon";
 import { messageMaxLength, titleMaxLength } from "./constants";
 import { ScheduledMessage, scheduledMessages } from "./state";
 
@@ -35,11 +34,6 @@ export function getScheduleInput(
   interaction: ChatInputCommandInteraction,
 ): ScheduleInput {
   const time = interaction.createdAt;
-
-  /*   // Fucked up and evil line of code, but I'm not sure how else to do it
-  const zone: IANAZone = FixedOffsetZone.instance(time.getTimezoneOffset());
-  // Does not even work. Coerces into simplest state (UTC+6) which croner can't
-  //  handle (It needs proper IANA zone e.g. Europe/Stockholm) */
   return {
     channelId: interaction.channelId,
     guild: interaction.guild!,
@@ -93,52 +87,41 @@ export function createScheduledTask(
 
 /**
  *
- * @param interaction - The "message" that triggered the bot
+ * @param trigger - The "message" that triggered the bot
  * @param numRuns - The number of times the message will be sent. For practical
  *    purposes, this will almost always be 1
  * @returns
  */
 export async function prepareScheduledMessage(
-  interaction: ChatInputCommandInteraction,
+  trigger: ChatInputCommandInteraction,
   numRuns: number,
   input: ScheduleInput,
 ) {
-  if (!interaction.inGuild()) {
-    await replyEphemeral(
-      interaction,
-      "This command can only be used in a server.",
-    );
+  if (!trigger.inGuild()) {
+    await replyEphemeral(trigger, "This command can only be used in a server.");
     return null;
   }
   const validationError = validateScheduleInput(input);
   if (validationError) {
-    await replyEphemeral(interaction, validationError);
+    await replyEphemeral(trigger, validationError);
     return null;
   }
-  console.debug(interaction.memberPermissions);
-  console.debug(
-    `(have ${interaction.memberPermissions.toArray()}, need ${PermissionsBitField.Flags.MentionEveryone}, missing: ${interaction.memberPermissions.missing(PermissionsBitField.All)})`,
-  );
-  // if (!member.roles.cache.values().some((value) => value.name.includes(" Lead"))) {
-  if (!interaction.memberPermissions.has("MentionEveryone")) {
-    await replyEphemeral(
-      interaction,
-      `You are missing the permissions required for this.`,
-    );
+  console.debug(trigger.memberPermissions);
+  if (!trigger.memberPermissions.has("MentionEveryone")) {
+    await replyEphemeral(trigger, "You are missing the required permissions.");
     return null;
   }
 
   const payload = buildScheduledPayload(input);
   const id = AddSplitCustomId(
-    interaction.channel?.name ?? "schedule",
-    Date.now().toString(), // Should probably be a snowflake
+    trigger.channel?.name ?? "schedule",
+    DiscordSnowflake.generate().toString(),
   );
   const task = createScheduledTask(id, input.pattern, input.timezone, numRuns);
 
   return { input, payload, id, task };
 }
 
-// Add message to our central message map
 export function registerScheduledMessage(
   input: ScheduleInput,
   id: string,

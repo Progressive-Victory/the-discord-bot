@@ -5,22 +5,22 @@ import { deleteScheduledMessage } from "./delete-message";
 import { listScheduledMessages } from "./list-scheduled";
 /**
  * Executes the lead command based on the subcommand and subcommand group provided in the interaction options.
- * @param interaction - The chat input command interaction object.
+ * @param trigger - The chat input command interaction object.
  * @returns Interaction from subcommand
  */
-export async function lead(interaction: ChatInputCommandInteraction) {
-  const subcommand = interaction.options.getSubcommand(true);
+export async function lead(trigger: ChatInputCommandInteraction) {
+  const subcommand = trigger.options.getSubcommand(true);
   switch (subcommand) {
     case "create":
-      return createScheduledMessage(interaction);
+      return createScheduledMessage(trigger);
     case "list":
-      return listScheduledMessages(interaction);
+      return listScheduledMessages(trigger);
     case "delete":
-      return deleteScheduledMessage(interaction);
+      return deleteScheduledMessage(trigger);
     case "create-cron":
       return createCronMessage(
-        interaction,
-        interaction.options.getInteger("runs") ?? undefined,
+        trigger,
+        trigger.options.getInteger("runs") ?? undefined,
       );
     // TODO: Undo/reschedule command to fix a previously sent message that the bot misinterpreted (ideally doesn't lose the payload)
 
@@ -29,7 +29,4 @@ export async function lead(interaction: ChatInputCommandInteraction) {
   }
 }
 
-// Export the lead and autoComplete functions as properties of the exported object.
-export default {
-  lead,
-};
+export default { lead };

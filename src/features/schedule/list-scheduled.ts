@@ -1,17 +1,16 @@
-//stub file
 import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { scheduledMessages } from "../../util/schedule/state.js";
 export async function listScheduledMessages(
-  interaction: ChatInputCommandInteraction,
+  trigger: ChatInputCommandInteraction,
 ) {
   if (scheduledMessages.size === 0) {
-    await interaction.reply({
+    await trigger.reply({
       content: "There are no scheduled messages.",
       flags: MessageFlags.Ephemeral,
     });
     return;
   }
-  await interaction.reply({
+  await trigger.reply({
     content: [
       "Currently Scheduled Messages:",
       ...scheduledMessages
@@ -20,7 +19,7 @@ export async function listScheduledMessages(
           (msg) =>
             `- \`${msg.id}\` (${msg.pattern}) \`\`\`${msg.payload.content}\`\`\``,
         ),
-      // TODO: Here's where a message preview would go
+      // TODO: Here's where a (better) message preview would go
     ].join("\n\n"),
     flags: MessageFlags.Ephemeral,
   });

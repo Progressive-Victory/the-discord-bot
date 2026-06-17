@@ -1,6 +1,5 @@
-// This is being created/left in here as a starting point. Besides the inconvenient input method, this would be to fragile to rely upon.
-// Ideally, for this to be a real feature, recurring messages would be stored in *a* db (not the main one) and this entire system would be made stateless (aside from the state croner holds; that would be recreated on restart)
-// also it makes demo and troubleshooting the "real" one when the cron conversion breaks down
+// This is being created/left in here as a starting point. Besides the inconvenient input method, this would be too fragile to rely upon.
+// To have a shippable recurring message feature, data would need to be stored such that all scheduled messages would persist after a server restart.
 import {
   getScheduleInput,
   prepareScheduledMessage,
@@ -10,12 +9,12 @@ import {
 import { ChatInputCommandInteraction } from "discord.js";
 
 export async function createCronMessage(
-  interaction: ChatInputCommandInteraction,
+  trigger: ChatInputCommandInteraction,
   numRuns: number = 1,
 ) {
-  const input = getScheduleInput(interaction);
-  input.pattern = interaction.options.getString("cron")!; // Required field, so we can just assert and move on
-  const prepared = await prepareScheduledMessage(interaction, numRuns, input);
+  const input = getScheduleInput(trigger);
+  input.pattern = trigger.options.getString("cron")!; // Required field, so we can just assert and move on
+  const prepared = await prepareScheduledMessage(trigger, numRuns, input);
   if (!prepared) {
     return;
   }
@@ -28,7 +27,7 @@ export async function createCronMessage(
   );
 
   await replyEphemeral(
-    interaction,
+    trigger,
     `Cron message created (\`${prepared.id}\`) for \`${prepared.task.nextRun()}\`.`,
   );
 }
