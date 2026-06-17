@@ -29,18 +29,7 @@ export async function lead(interaction: ChatInputCommandInteraction) {
   }
 }
 
-/**
- * Responds to autocomplete requests by providing suggestions based on the interaction options.
- * @param interaction - The autocomplete interaction object.
- * @returns The interaction response.
- */
-export async function autoComplete(): Promise<void> {
-  //  interaction: AutocompleteInteraction,
-  /* To be used to help with dates */
-}
-
 // Export the lead and autoComplete functions as properties of the exported object.
 export default {
   lead,
-  autoComplete,
 };

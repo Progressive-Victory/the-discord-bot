@@ -68,9 +68,9 @@ export default new ChatInputCommand()
       )
       .addSubcommand((subcommand) =>
         subcommand
-          .setName("create-cron")
+          .setName("create-cron") //I've changed my mind i don't
           .setDescription(
-            "Create a new scheduled message using an OCPS cron expression",
+            "Create a new scheduled message using an OCPS cron expression. Fragile",
           )
           .addStringOption((cronExpression) =>
             cronExpression

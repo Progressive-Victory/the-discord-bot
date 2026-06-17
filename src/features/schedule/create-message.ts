@@ -9,7 +9,6 @@ import { ChatInputCommandInteraction } from "discord.js";
 
 export async function createScheduledMessage(
   interaction: ChatInputCommandInteraction,
-  numRuns: number = 1,
 ) {
   const input = getScheduleInput(interaction);
   const dateParsed = parseDate(
@@ -33,7 +32,7 @@ export async function createScheduledMessage(
     return;
   }
   input.pattern = dateParsed;
-  const prepared = await prepareScheduledMessage(interaction, numRuns, input);
+  const prepared = await prepareScheduledMessage(interaction, 1, input);
   if (!prepared) {
     return;
   }

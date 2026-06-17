@@ -4,6 +4,7 @@ import {
   ChatInputCommandInteraction,
   MessageCreateOptions,
   MessageFlags,
+  PermissionsBitField,
   TextChannel,
 } from "discord.js";
 // import { FixedOffsetZone, IANAZone } from "luxon";
@@ -93,7 +94,7 @@ export function createScheduledTask(
 /**
  *
  * @param interaction - The "message" that triggered the bot
- * @param numRuns - The number of times the message will be sent. For practical 
+ * @param numRuns - The number of times the message will be sent. For practical
  *    purposes, this will almost always be 1
  * @returns
  */
@@ -112,6 +113,18 @@ export async function prepareScheduledMessage(
   const validationError = validateScheduleInput(input);
   if (validationError) {
     await replyEphemeral(interaction, validationError);
+    return null;
+  }
+  console.debug(interaction.memberPermissions);
+  console.debug(
+    `(have ${interaction.memberPermissions.toArray()}, need ${PermissionsBitField.Flags.MentionEveryone}, missing: ${interaction.memberPermissions.missing(PermissionsBitField.All)})`,
+  );
+  // if (!member.roles.cache.values().some((value) => value.name.includes(" Lead"))) {
+  if (!interaction.memberPermissions.has("MentionEveryone")) {
+    await replyEphemeral(
+      interaction,
+      `You are missing the permissions required for this.`,
+    );
     return null;
   }
 
