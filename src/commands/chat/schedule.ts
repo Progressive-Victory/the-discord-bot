@@ -1,10 +1,7 @@
 import { ChatInputCommand } from "@/Classes";
 import { lead } from "@/features/schedule";
 import { messageMaxLength, titleMaxLength } from "@/util/schedule/constants";
-import {
-  InteractionContextType,
-  PermissionFlagsBits,
-} from "discord.js";
+import { InteractionContextType, PermissionFlagsBits } from "discord.js";
 
 export default new ChatInputCommand()
   .setBuilder((builder) =>
@@ -90,10 +87,11 @@ export default new ChatInputCommand()
               .setRequired(false),
           ),
       )
-      .addSubcommand((subcommand) =>
-        subcommand
-          .setName("list")
-          .setDescription("List all scheduled messages") // I'd want it to list scheduled *in that channel*, but we'll see
+      .addSubcommand(
+        (subcommand) =>
+          subcommand
+            .setName("list")
+            .setDescription("List all scheduled messages"), // I'd want it to list scheduled *in that channel*, but we'll see
       )
       .addSubcommand((subcommand) =>
         subcommand

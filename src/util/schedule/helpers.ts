@@ -2,6 +2,7 @@ import { AddSplitCustomId, getGuildChannel } from "@/util";
 import { DiscordSnowflake } from "@sapphire/snowflake";
 import { Cron } from "croner";
 import {
+  bold,
   ChatInputCommandInteraction,
   MessageCreateOptions,
   MessageFlags,
@@ -64,7 +65,7 @@ export function buildScheduledPayload(
   input: ScheduleInput,
 ): MessageCreateOptions {
   return {
-    content: [input.title && `**${input.title}**`, input.body]
+    content: [input.title && bold(input.title), input.body]
       .filter(Boolean)
       .join("\n\n"),
   };

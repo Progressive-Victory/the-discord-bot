@@ -1,4 +1,9 @@
-import { ChatInputCommandInteraction, MessageFlags } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  codeBlock,
+  bold,
+  MessageFlags,
+} from "discord.js";
 import { scheduledMessages } from "../../util/schedule/state.js";
 export async function listScheduledMessages(
   trigger: ChatInputCommandInteraction,
@@ -17,7 +22,7 @@ export async function listScheduledMessages(
         .values()
         .map(
           (msg) =>
-            `- \`${msg.id}\` (${msg.pattern}) \`\`\`${msg.payload.content}\`\`\``,
+            `${bold(msg.id)} (${msg.pattern}) ${codeBlock(msg.payload.content ?? "Unknown")}`,
         ),
       // TODO: Here's where a (better) message preview would go
     ].join("\n\n"),

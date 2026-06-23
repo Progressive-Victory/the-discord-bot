@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, codeBlock } from "discord.js";
 
 import { replyEphemeral } from "@/util/schedule/helpers.js";
 import { scheduledMessages } from "../../util/schedule/state.js";
@@ -18,7 +18,9 @@ export async function deleteScheduledMessage(
   message.task.stop();
   await replyEphemeral(
     trigger,
-    "Message ```" + message.payload.content + "``` Unscheduled.",
+    "Message " +
+      codeBlock(message.payload.content ?? "(Unknown)") +
+      " Unscheduled.",
   );
   scheduledMessages.delete(id);
 }

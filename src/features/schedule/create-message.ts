@@ -5,7 +5,7 @@ import {
   replyEphemeral,
 } from "@/util/schedule/helpers";
 import { parseDate } from "chrono-node";
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, inlineCode } from "discord.js";
 
 export async function createScheduledMessage(
   trigger: ChatInputCommandInteraction,
@@ -46,6 +46,6 @@ export async function createScheduledMessage(
 
   await replyEphemeral(
     trigger,
-    `Scheduled message created (\`${prepared.id}\`) for \`${prepared.task.nextRun()}\`.`,
+    `Scheduled message created (${inlineCode(prepared.id)}) for ${inlineCode(prepared.task.nextRun()?.toLocaleString() ?? "Unknown")}.`,
   );
 }

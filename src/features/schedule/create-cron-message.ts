@@ -6,7 +6,7 @@ import {
   registerScheduledMessage,
   replyEphemeral,
 } from "@/util/schedule/helpers";
-import { ChatInputCommandInteraction } from "discord.js";
+import { ChatInputCommandInteraction, inlineCode } from "discord.js";
 
 export async function createCronMessage(
   trigger: ChatInputCommandInteraction,
@@ -28,6 +28,6 @@ export async function createCronMessage(
 
   await replyEphemeral(
     trigger,
-    `Cron message created (\`${prepared.id}\`) for \`${prepared.task.nextRun()}\`.`,
+    `Cron message created (${inlineCode(prepared.id)}) for ${inlineCode(prepared.task.nextRun()?.toLocaleString() ?? "Unknown")}.`,
   );
 }
