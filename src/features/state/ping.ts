@@ -132,7 +132,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       "message" in err &&
       typeof err.message === "string"
     ) {
-      await interaction.reply(err.message);
+      await interaction.editReply(err.message);
       return;
     }
   }
@@ -168,7 +168,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
         titleOption ?? `${state.stateName} Announcement`,
       );
 
-    const pingMessage = await channel.send(stateMessageCreateOptions);
+      const pingMessage = await channel.send(stateMessageCreateOptions);
     await statePingReply(interaction, pingMessage, true);
     return;
   }
@@ -208,7 +208,7 @@ export function stateMessageCreate(
   return {
     flags: MessageFlags.IsComponentsV2,
     components: [container],
-    // allowedMentions:{parse:['roles']}
+    allowedMentions: { parse: ["users", "roles"] },
   };
 }
 
@@ -226,7 +226,7 @@ export function legacyStateMessageCreate(
       subtext(`Message from your ${roleMention(stateRoleId)} team`),
       subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
-    // allowedMentions:{parse:[AllowedMentionsTypes.Role]}
+    allowedMentions: { parse: ["users", "roles"] },
   };
 }
 
