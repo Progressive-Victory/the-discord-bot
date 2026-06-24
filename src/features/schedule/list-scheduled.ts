@@ -1,8 +1,9 @@
 import {
+  bold,
   ChatInputCommandInteraction,
   codeBlock,
-  bold,
   MessageFlags,
+  unorderedList,
 } from "discord.js";
 import { scheduledMessages } from "../../util/schedule/state.js";
 export async function listScheduledMessages(
@@ -15,17 +16,23 @@ export async function listScheduledMessages(
     });
     return;
   }
+
+  const messageList = unorderedList(
+    scheduledMessages
+      .values()
+      .toArray()
+      .map(
+        (msg) =>
+          `${bold(msg.id)} (${msg.pattern})\n${codeBlock(msg.payload.content ?? "Unknown")}`,
+      ),
+  );
+  console.debug(messageList);
   await trigger.reply({
     content: [
       "Currently Scheduled Messages:",
-      ...scheduledMessages
-        .values()
-        .map(
-          (msg) =>
-            `${bold(msg.id)} (${msg.pattern}) ${codeBlock(msg.payload.content ?? "Unknown")}`,
-        ),
+      messageList,
       // TODO: Here's where a (better) message preview would go
-    ].join("\n\n"),
+    ].join("\n"),
     flags: MessageFlags.Ephemeral,
   });
 }
