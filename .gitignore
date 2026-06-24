@@ -116,3 +116,9 @@ docs/
 # Temp Folder
 assets/temp/*
 !assets/temp/.gitkeep
+
+# Nix/Direnv 
+flake.lock
+.envrc
+.direnv/
+.devenv/
