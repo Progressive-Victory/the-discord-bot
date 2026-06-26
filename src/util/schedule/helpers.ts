@@ -6,12 +6,13 @@ import {
   ChatInputCommandInteraction,
   MessageCreateOptions,
   MessageFlags,
+  PermissionFlagsBits,
   TextChannel,
 } from "discord.js";
 import { messageMaxLength, titleMaxLength } from "./constants";
 import { ScheduledMessage, scheduledMessages } from "./state";
 
-type ScheduleInput = {
+interface ScheduleInput {
   channelId: string;
   authorId: string;
   guild: ScheduledMessage["guild"];
@@ -108,7 +109,7 @@ export async function prepareScheduledMessage(
     return null;
   }
   console.debug(trigger.memberPermissions);
-  if (!trigger.memberPermissions.has("MentionEveryone")) {
+  if (!trigger.memberPermissions.has(PermissionFlagsBits.MentionEveryone)) {
     await replyEphemeral(trigger, "You are missing the required permissions.");
     return null;
   }
@@ -151,7 +152,7 @@ export async function executeScheduledMessage(messageId: string) {
   console.log(`[schedule:${messageId}] Executing scheduled message`);
   try {
     const channel = await getGuildChannel(message.guild, message.channelId);
-    if (!channel || !("send" in channel)) return;
+    if (!channel?.isSendable()) return;
     await (channel as TextChannel).send(message.payload);
   } catch (error) {
     console.error(`[schedule:${messageId}] send failed`, error);
