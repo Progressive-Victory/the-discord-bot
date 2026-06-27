@@ -63,6 +63,17 @@ export const mute = new ChatInputCommand({
           { name: "1 day", value: 60 * 24 },
         ),
     )
+    .addIntegerOption((option) =>
+      option
+        .setName("mute_type")
+        .setDescription("What should this user be muted from?")
+        .setRequired(true)
+        .addChoices(
+          { name: "Chat", value: 0 },
+          { name: "Voice Channel", value: 1 },
+          { name: "Both", value: 2 },
+        ),
+     )
     .addStringOption((option) =>
       option
         .setName("reason")
@@ -128,6 +139,13 @@ export const mute = new ChatInputCommand({
     const endDate = new Date(new Date().getTime() + durationMinutes * 60000);
 
     // Message to be sent to channels
+    const mute_type = interaction.options.getInteger("mute_type", true);
+    // VC Mute
+    if (mute_type == 1) {
+      vcMessage(targetMember, mutingMember, durationMinutes);
+      logMessage(targetMember, mutingMember, durationMinutes, reason);
+    }
+
     vcMessage(targetMember, mutingMember, durationMinutes);
     logMessage(targetMember, mutingMember, durationMinutes, reason);
 
