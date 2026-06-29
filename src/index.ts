@@ -3,6 +3,7 @@ import {
   GatewayIntentBits as Intents,
   Partials,
 } from "discord.js";
+import { config } from "dotenv";
 import express from "express";
 import { Client, Interaction } from "./Classes";
 import * as commands from "./commands";
@@ -10,6 +11,8 @@ import * as events from "./events";
 import * as buttons from "./interactions/buttons";
 import * as modals from "./interactions/modals";
 import * as selectMenus from "./interactions/select_menus";
+
+config({ override: true });
 
 // Initialization (specify intents and partials)
 export const client = new Client({

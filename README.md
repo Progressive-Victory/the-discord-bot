@@ -19,7 +19,9 @@ To contribute to this repo, follow the contribution standards and instructions o
 
 ### Installation
 
-To get started we recommend you install the following software:
+If you're running this through `the-local-setup`, you don't need to do anything here. Just run `pnpm dev` and you're ready to go.
+
+Otherwise, to get started we recommend you install the following software:
 
 - [git](https://git-scm.com/downloads)
 - [Visual Studio Code](https://code.visualstudio.com/Download)
