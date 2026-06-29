@@ -226,7 +226,7 @@ export function legacyStateMessageCreate(
       subtext(`Message from your ${roleMention(stateRoleId)} team`),
       subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
-    allowedMentions: { parse: ["users", "roles"] },
+    allowedMentions: { parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role ] },
   };
 }
 
