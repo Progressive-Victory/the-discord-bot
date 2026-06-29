@@ -49,7 +49,7 @@ for (const selectMenu of Object.values(selectMenus))
   );
 
 // Bot logins to Discord services
-void client.login(process.env.DISCORD_TOKEN).then(() => {
+void client.login(process.env.PV_DISCORD_TOKEN).then(() => {
   // Skip if no-deployment flag is set, else deploys command
   if (process.argv.includes("--deploy"))
     // removes guild command from set guild
@@ -60,7 +60,7 @@ void client.login(process.env.DISCORD_TOKEN).then(() => {
 
 // Express Server
 const app = express();
-const port = process.env.PORT ?? "No port set";
+const port = process.env.PV_DISCORD_BOT_PORT ?? "No port set";
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
 });

@@ -36,13 +36,13 @@ Finally, copy `./.env.sample` to a file `./.env` then edit the following vaules 
 ```txt
 # Required for minimum function
 # Discord Bot Token from Dev portal
-DISCORD_TOKEN = "<bot_token>"
+PV_DISCORD_TOKEN = "<bot_token>"
 
 # Express server port
-PORT = "<port>"
+PV_DISCORD_BOT_PORT = "<port>"
 
-# host address (including port) for the api
-API_HOST_ADDR = "<api_address>"
+# host address (including port for localhost) for the api
+PV_API_URL = "<api_address>"
 
 # guild id of the target server
 PV_GUILD_ID = "<guild_id>"
@@ -67,6 +67,7 @@ pnpm dev
 ```
 
 Sync commands with discord (only do if necessary so we don't get rate limited):
+
 ```sh
 pnpm dev-deploy
 ```
