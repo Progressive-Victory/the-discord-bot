@@ -17,9 +17,9 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   // Extract the locale and options from the interaction.
   const options = interaction.options;
 
-  // HACK: This re-fetches all members if the cache is small, e.g., it only
-  // contains members who have used the bot and the bot itself. The threshold
-  // is arbitrary.
+  // HACK: This re-fetches all members if the cache is out of date. The
+  // threshold is arbitrary, but should generally prevent the cache from being
+  // re-fetched multiple times a day.
   const cacheSize = interaction.guild.members.cache.size;
   const memberCount = interaction.guild.memberCount;
   const cacheThreshold = 0.7;
