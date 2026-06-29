@@ -208,7 +208,7 @@ export function stateMessageCreate(
   return {
     flags: MessageFlags.IsComponentsV2,
     components: [container],
-    allowedMentions: { parse: ["users", "roles"] },
+    allowedMentions: { parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role ] },
   };
 }
 
