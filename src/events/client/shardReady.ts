@@ -8,7 +8,9 @@ import { Events } from "discord.js";
  */
 export const shardReady = new Event({
   name: Events.ShardReady,
-  execute: async () => {
+  execute: async (shardId, unavailableGuilds) => {
+    console.log("[Info] Shard ready!", { shardId, unavailableGuilds });
+
     const pvGuild = await client.guilds.fetch(process.env.PV_GUILD_ID!);
 
     await Promise.all([

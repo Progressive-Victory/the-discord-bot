@@ -21,7 +21,7 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   // contains members who have used the bot and the bot itself. The threshold
   // is arbitrary.
   const cacheSize = interaction.guild.members.cache.size;
-  if (cacheSize < 50) {
+  if (cacheSize < 7000) {
     console.log(
       `[Debug] Detected a bad member cache (size ${cacheSize}! Refetching...`,
     );
