@@ -19,7 +19,7 @@ To contribute to this repo, follow the contribution standards and instructions o
 
 ### Installation
 
-If you're running this through `the-local-setup`, you don't need to do anything here. Just run `pnpm dev` and you're ready to go.
+If you're running this through `the-local-setup`, you don't need to do anything here. Just start `the-api`, then run `pnpm dev` and you're ready to go.
 
 Otherwise, to get started we recommend you install the following software:
 
