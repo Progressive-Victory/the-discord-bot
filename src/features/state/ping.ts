@@ -168,7 +168,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
         titleOption ?? `${state.stateName} Announcement`,
       );
 
-      const pingMessage = await channel.send(stateMessageCreateOptions);
+    const pingMessage = await channel.send(stateMessageCreateOptions);
     await statePingReply(interaction, pingMessage, true);
     return;
   }
