@@ -1,5 +1,7 @@
 export { default as state } from "./chat/state";
 
+export { default as team } from "./chat/team";
+
 export { default as feedback } from "./chat/feedback";
 
 export { warn } from "./chat/moderation";

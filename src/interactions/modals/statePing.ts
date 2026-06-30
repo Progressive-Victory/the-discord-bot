@@ -1,10 +1,10 @@
 import { Routes } from "@/Classes/API/ApiConnService/routes";
 import { Interaction } from "@/Classes/Interaction";
 import {
-  legacyStateMessageCreate,
-  stateMessageCreate,
-  statePingReply,
-} from "@/features/state/ping";
+  legacyPingMessageCreate,
+  pingMessageCreate,
+  pingReply,
+} from "@/features/ping/helpers";
 import { apiConnService } from "@/util/api/pvapi";
 import {
   IDiscordStateRole,
@@ -54,10 +54,16 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
       );
     } catch (err) {
       console.error(err);
-      //@ts-expect-error can't type error args
-      return interaction.reply(err.message);
+      if (
+        typeof err === "object" &&
+        err &&
+        "message" in err &&
+        typeof err.message === "string"
+      ) {
+        await interaction.editReply(err.message);
+      }
+      return;
     }
-
     const content = fields.getTextInputValue("message");
     const title = fields.getTextInputValue("title");
     const stateChannel =
@@ -68,22 +74,24 @@ export const statePing = new Interaction<ModalSubmitInteraction>({
     let stateMessageCreateOptions: MessageCreateOptions;
 
     if (legacyOption)
-      stateMessageCreateOptions = legacyStateMessageCreate(
+      stateMessageCreateOptions = legacyPingMessageCreate(
         state.memberRoleId,
         user.id,
         content,
         title,
+        "team",
       );
     else
-      stateMessageCreateOptions = stateMessageCreate(
+      stateMessageCreateOptions = pingMessageCreate(
         state.memberRoleId,
         user.id,
         content,
         title,
+        "team",
       );
 
     const pingMessage = await stateChannel.send(stateMessageCreateOptions);
 
-    await statePingReply(interaction, pingMessage, true);
+    await pingReply(interaction, pingMessage, true);
   },
 });

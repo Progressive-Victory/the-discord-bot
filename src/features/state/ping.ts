@@ -7,29 +7,22 @@ import {
 } from "@/util/states/discordStateRole";
 import { isStateAbbreviations } from "@/util/states/types";
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   ChatInputCommandInteraction,
-  ContainerBuilder,
-  Guild,
-  GuildMember,
-  heading,
   LabelBuilder,
-  Message,
   MessageCreateOptions,
   MessageFlags,
   ModalBuilder,
-  ModalSubmitInteraction,
   roleMention,
-  SeparatorSpacingSize,
-  Snowflake,
-  subtext,
   TextInputBuilder,
   TextInputStyle,
-  userMention,
 } from "discord.js";
-import { messageMaxLength, titleMaxLength } from "./constants";
+import { messageMaxLength, titleMaxLength } from "../ping/constants";
+import {
+  pingMessageCreate,
+  legacyPingMessageCreate,
+  pingReply,
+  resolveGuildInteraction,
+} from "../ping/helpers";
 
 /**
  * Executes the ping command to send a message to a channel.
@@ -37,30 +30,8 @@ import { messageMaxLength, titleMaxLength } from "./constants";
  * @returns interaction
  */
 export default async function ping(interaction: ChatInputCommandInteraction) {
-  let guild: Guild;
-  let member: GuildMember;
-  const { client, options } = interaction;
+  const { options } = interaction;
 
-  // interaction.deferReply({flags:MessageFlags.Ephemeral})
-
-  if (interaction.inCachedGuild()) {
-    guild = interaction.guild;
-    member = interaction.member;
-  } else if (interaction.inRawGuild()) {
-    try {
-      guild = await client.guilds.fetch(interaction.guildId);
-      member = await guild.members.fetch(interaction.user);
-    } catch (error) {
-      console.log(error);
-      await interaction.reply({
-        flags: MessageFlags.Ephemeral,
-        content: "An Error has occurred, contact your administrator",
-      });
-      return;
-    }
-  } else {
-    throw Error("ping not in guild");
-  }
   const stateAbbreviation = options.getString("state", true).toLowerCase();
 
   if (!isStateAbbreviations(stateAbbreviation)) {
@@ -115,6 +86,15 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
 
   await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
+  const resolved = await resolveGuildInteraction(interaction);
+  if (!resolved) {
+    await interaction.editReply({
+      content: "An Error has occurred, contact your administrator",
+    });
+    return;
+  }
+  const { guild, member } = resolved;
+
   let state: IDiscordStateRole | undefined = undefined;
 
   try {
@@ -132,7 +112,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       "message" in err &&
       typeof err.message === "string"
     ) {
-      await interaction.reply(err.message);
+      await interaction.editReply(err.message);
       return;
     }
   }
@@ -154,107 +134,24 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
   let stateMessageCreateOptions: MessageCreateOptions;
   if (messageOption) {
     if (legacyOption)
-      stateMessageCreateOptions = legacyStateMessageCreate(
+      stateMessageCreateOptions = legacyPingMessageCreate(
         state.memberRoleId,
         member.id,
         messageOption,
         titleOption ?? `${state.stateName} Announcement`,
+        "team",
       );
     else
-      stateMessageCreateOptions = stateMessageCreate(
+      stateMessageCreateOptions = pingMessageCreate(
         state.memberRoleId,
         member.id,
         messageOption,
         titleOption ?? `${state.stateName} Announcement`,
+        "team",
       );
 
     const pingMessage = await channel.send(stateMessageCreateOptions);
-    await statePingReply(interaction, pingMessage, true);
+    await pingReply(interaction, pingMessage, true);
     return;
-  }
-}
-
-/**
- * @param stateRoleId - The ID of the state role
- * @param authorId - The author of the message
- * @param message - The contents of the message container
- * @param title - The title of the message container
- * @returns a {@link ContainerBuilder} used to format the message the state lead is sending
- * to the guild members with the `stateRoleId` role
- */
-export function stateMessageCreate(
-  stateRoleId: Snowflake,
-  authorId: Snowflake,
-  message: string,
-  title: string,
-): MessageCreateOptions {
-  const container = new ContainerBuilder()
-    // .setAccentColor()
-    .addTextDisplayComponents((builder) =>
-      builder.setContent([heading(title), message].join("\n")),
-    )
-    .addSeparatorComponents((builder) =>
-      builder.setDivider(true).setSpacing(SeparatorSpacingSize.Small),
-    )
-    .addTextDisplayComponents((builder) =>
-      builder.setContent(
-        [
-          subtext(`Message from your ${roleMention(stateRoleId)} team`),
-          subtext(`Written by ${userMention(authorId)}`),
-        ].join("\n"),
-      ),
-    );
-
-  return {
-    flags: MessageFlags.IsComponentsV2,
-    components: [container],
-    // allowedMentions:{parse:['roles']}
-  };
-}
-
-export function legacyStateMessageCreate(
-  stateRoleId: Snowflake,
-  authorId: Snowflake,
-  message: string,
-  title: string,
-): MessageCreateOptions {
-  return {
-    content: [
-      heading(title),
-      message,
-      "",
-      subtext(`Message from your ${roleMention(stateRoleId)} team`),
-      subtext(`Written by ${userMention(authorId)}`),
-    ].join("\n"),
-    // allowedMentions:{parse:[AllowedMentionsTypes.Role]}
-  };
-}
-
-/**
- * @param interaction - the interaction to reply to
- * @param message - the message to send
- * @returns
- */
-export async function statePingReply(
-  interaction: ModalSubmitInteraction | ChatInputCommandInteraction,
-  message: Message<true>,
-  deferred: boolean = false,
-) {
-  const button = new ButtonBuilder()
-    .setStyle(ButtonStyle.Link)
-    .setURL(message.url)
-    .setLabel("Jump to Message");
-  const row = new ActionRowBuilder<ButtonBuilder>().setComponents(button);
-  if (deferred) {
-    await interaction.editReply({
-      content: "Your message has been sent",
-      components: [row],
-    });
-  } else {
-    await interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      content: "Your message has been sent",
-      components: [row],
-    });
   }
 }

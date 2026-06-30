@@ -97,6 +97,12 @@ State lead tools. This command has two subcommands:
 - ping - Allows our state leads to ping members' state roles
 - members - Gets a list of all members with a specified role
 
+### team
+
+Team lead tools. This command has one subcommand:
+
+- ping - Allows team leads to ping their team's members.
+
 ### feedback
 
 Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs.

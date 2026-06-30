@@ -1,6 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import { lead } from "@/features/state";
-import { messageMaxLength, titleMaxLength } from "@/features/state/constants";
+import { messageMaxLength, titleMaxLength } from "@/features/ping/constants";
 import { localize } from "@/i18n";
 import { states } from "@/util/states/types";
 import {
