@@ -208,7 +208,9 @@ export function stateMessageCreate(
   return {
     flags: MessageFlags.IsComponentsV2,
     components: [container],
-    allowedMentions: { parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role ] },
+    allowedMentions: {
+      parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
+    },
   };
 }
 
@@ -226,7 +228,9 @@ export function legacyStateMessageCreate(
       subtext(`Message from your ${roleMention(stateRoleId)} team`),
       subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
-    allowedMentions: { parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role ] },
+    allowedMentions: {
+      parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
+    },
   };
 }
 

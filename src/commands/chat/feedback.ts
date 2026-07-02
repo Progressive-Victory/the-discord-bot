@@ -1,5 +1,4 @@
 import { ChatInputCommand } from "@/Classes";
-import { localize } from "@/i18n";
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -19,25 +18,17 @@ export default new ChatInputCommand()
   .setBuilder((builder) =>
     builder
       .setName("feedback")
-      .setDescription("Find out how to submit feedback about the bot")
-      .setNameLocalizations(
-        localize.discordLocalizationRecord("feedback-name", ns),
-      )
-      .setDescriptionLocalizations(
-        localize.discordLocalizationRecord("feedback-description", ns),
-      ),
+      .setDescription("Find out how to submit feedback about the bot"),
   )
   .setExecute(async (interaction) => {
     await interaction.reply({
-      content: localize.t("feedback-message", ns, interaction.locale),
+      content:
+        "Your feedback is important to us. Click the button below to report an issue on our GitHub page",
       flags: MessageFlags.Ephemeral,
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
-            .setLabel(
-              localize.t("feedback-button", ns, interaction.locale) ??
-                "Feedback",
-            )
+            .setLabel("GitHub Issues")
             .setEmoji("📝")
             .setStyle(ButtonStyle.Link)
             .setURL(

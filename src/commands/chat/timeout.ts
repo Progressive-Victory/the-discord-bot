@@ -127,11 +127,10 @@ export const timeout = new ChatInputCommand()
       return;
     }
 
+    const targetMember = target.toString();
+    const endDate = durationText[duration.toString() as durationValue];
     await interaction.editReply({
-      content: localize.t("reply_timeout", ns, locale, {
-        member: target.toString(),
-        endDate: durationText[duration.toString() as durationValue],
-      }),
+      content: targetMember + " has been timed out until " + endDate,
     });
 
     const res = await fetchSetting("timeout_log_channel_id");
