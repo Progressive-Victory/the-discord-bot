@@ -25,28 +25,30 @@ interface ScheduleInput {
 }
 
 export function replyEphemeral(
-  interaction: ChatInputCommandInteraction,
+  command: ChatInputCommandInteraction,
   content: string,
 ) {
-  return interaction.reply({
+  return command.reply({
     content,
     flags: MessageFlags.Ephemeral,
   });
 }
 
+// Essentially a constructor for ScheduleInput from a ChatInputCommandInteraction
 export function getScheduleInput(
-  interaction: ChatInputCommandInteraction,
+  command: ChatInputCommandInteraction,
 ): ScheduleInput {
   return {
-    channelId:
-      interaction.options.getChannel("channel")?.id ?? interaction.channelId,
-    guild: interaction.guild!,
-    authorId: interaction.user.id,
-    title: interaction.options.getString("title")?.trim() ?? "",
-    body: interaction.options.getString("message")?.trim() ?? "",
-    pattern: interaction.options.getString("cron")?.trim() ?? "",
-    timezone: interaction.createdAt.getTimezoneOffset(), // Will break on daylight savings. That's why I was trying Luxon, but it wasn't cooperating
-    everyone: false,
+    channelId: command.options.getChannel("channel")?.id ?? command.channelId,
+    guild: command.guild!,
+    authorId: command.user.id,
+    title: command.options.getString("title")?.trim() ?? "",
+    body: command.options.getString("message")?.trim() ?? "",
+    pattern: command.options.getString("cron")?.trim() ?? "",
+    timezone: command.createdAt.getTimezoneOffset(), // Will break on daylight savings. That's why I was trying Luxon, but it wasn't cooperating
+    everyone:
+      command.memberPermissions?.has(PermissionFlagsBits.MentionEveryone) ??
+      false,
   };
 }
 
@@ -73,7 +75,7 @@ export function buildScheduledPayload(
       .filter(Boolean)
       .join("\n\n"),
     allowedMentions: input.everyone
-      ? undefined // If undefined, defaults to all
+      ? undefined // If undefined, defaults to all allowed in channel  (MessagePayload.js:179)
       : {
           parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
         },
@@ -97,33 +99,29 @@ export function createScheduledTask(
 
 /**
  *
- * @param trigger - The "message" that triggered the bot
+ * @param command - The "message" that triggered the bot
  * @param numRuns - The number of times the message will be sent. For practical
  *    purposes, this will almost always be 1
  * @returns
  */
 export async function prepareScheduledMessage(
-  trigger: ChatInputCommandInteraction,
+  command: ChatInputCommandInteraction,
   numRuns: number,
   input: ScheduleInput,
 ) {
-  if (!trigger.inGuild()) {
-    await replyEphemeral(trigger, "This command can only be used in a server.");
+  if (!command.inGuild()) {
+    await replyEphemeral(command, "This command can only be used in a server.");
     return null;
   }
   const validationError = validateScheduleInput(input);
   if (validationError) {
-    await replyEphemeral(trigger, validationError);
+    await replyEphemeral(command, validationError);
     return null;
-  }
-  console.debug(trigger.memberPermissions);
-  if (trigger.memberPermissions.has(PermissionFlagsBits.MentionEveryone)) {
-    input.everyone = true;
   }
 
   const payload = buildScheduledPayload(input);
   const id = AddSplitCustomId(
-    trigger.channel?.name ?? "schedule",
+    command.channel?.name ?? "schedule",
     DiscordSnowflake.generate().toString(),
   );
   const task = createScheduledTask(id, input.pattern, input.timezone, numRuns);

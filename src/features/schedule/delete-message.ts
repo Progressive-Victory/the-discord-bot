@@ -3,21 +3,21 @@ import { ChatInputCommandInteraction, codeBlock } from "discord.js";
 import { replyEphemeral } from "@/util/schedule/helpers.js";
 import { scheduledMessages } from "../../util/schedule/state.js";
 export async function deleteScheduledMessage(
-  trigger: ChatInputCommandInteraction,
+  command: ChatInputCommandInteraction,
 ) {
-  const id: string = trigger.options.getString("id") ?? "";
+  const id: string = command.options.getString("id") ?? "";
   if (!id) return;
 
   const message = scheduledMessages.get(id);
   if (!message) {
-    await replyEphemeral(trigger, "Message not found.");
+    await replyEphemeral(command, "Message not found.");
     console.debug(scheduledMessages);
     return;
   }
 
   message.task.stop();
   await replyEphemeral(
-    trigger,
+    command,
     "Message " +
       codeBlock(message.payload.content ?? "(Unknown)") +
       " Unscheduled.",

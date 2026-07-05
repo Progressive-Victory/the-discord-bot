@@ -8,23 +8,23 @@ import { parseDate } from "chrono-node";
 import { ChatInputCommandInteraction, inlineCode } from "discord.js";
 
 export async function createScheduledMessage(
-  trigger: ChatInputCommandInteraction,
+  command: ChatInputCommandInteraction,
 ) {
-  const input = getScheduleInput(trigger);
+  const input = getScheduleInput(command);
   const dateParsed = parseDate(
-    trigger.options.getString("when")!,
-    { instant: trigger.createdAt }, // Includes user timezone info
+    command.options.getString("when")!,
+    { instant: command.createdAt }, // Includes user timezone info
     { forwardDate: true },
   );
   if (!dateParsed) {
-    const badDate = trigger.options.getString("when");
+    const badDate = command.options.getString("when");
     console.log(
       'Received "',
       badDate,
       "\" and I (chrono-node) didn't know what to do with it.",
     );
     await replyEphemeral(
-      trigger,
+      command,
       "Sorry, I couldn't understand what " +
         badDate +
         " means. Try reformatting or being more specific.",
@@ -32,7 +32,7 @@ export async function createScheduledMessage(
     return;
   }
   input.pattern = dateParsed;
-  const prepared = await prepareScheduledMessage(trigger, 1, input);
+  const prepared = await prepareScheduledMessage(command, 1, input);
   if (!prepared) {
     return;
   }
@@ -45,7 +45,7 @@ export async function createScheduledMessage(
   );
 
   await replyEphemeral(
-    trigger,
+    command,
     `Scheduled message created (${inlineCode(prepared.id)}) for ${inlineCode(prepared.task.nextRun()?.toLocaleString() ?? "Unknown")}.`,
   );
 }
