@@ -21,6 +21,7 @@ interface ScheduleInput {
   body: string;
   pattern: string | Date;
   timezone: number;
+  everyone: boolean;
 }
 
 export function replyEphemeral(
@@ -36,15 +37,16 @@ export function replyEphemeral(
 export function getScheduleInput(
   interaction: ChatInputCommandInteraction,
 ): ScheduleInput {
-  const time = interaction.createdAt;
   return {
-    channelId: interaction.channelId,
+    channelId:
+      interaction.options.getChannel("channel")?.id ?? interaction.channelId,
     guild: interaction.guild!,
     authorId: interaction.user.id,
     title: interaction.options.getString("title")?.trim() ?? "",
     body: interaction.options.getString("message")?.trim() ?? "",
     pattern: interaction.options.getString("cron")?.trim() ?? "",
-    timezone: time.getTimezoneOffset(), // Will break on utc. That's why I was trying Luxon, but it wasn't cooperating
+    timezone: interaction.createdAt.getTimezoneOffset(), // Will break on daylight savings. That's why I was trying Luxon, but it wasn't cooperating
+    everyone: false,
   };
 }
 
@@ -70,9 +72,11 @@ export function buildScheduledPayload(
     content: [input.title && bold(input.title), input.body]
       .filter(Boolean)
       .join("\n\n"),
-    allowedMentions: {
-      parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
-    },
+    allowedMentions: input.everyone
+      ? undefined // If undefined, defaults to all
+      : {
+          parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
+        },
   };
   // TODO: COMPONENTS V2
 }
@@ -113,9 +117,8 @@ export async function prepareScheduledMessage(
     return null;
   }
   console.debug(trigger.memberPermissions);
-  if (!trigger.memberPermissions.has(PermissionFlagsBits.MentionEveryone)) {
-    await replyEphemeral(trigger, "You are missing the required permissions.");
-    return null;
+  if (trigger.memberPermissions.has(PermissionFlagsBits.MentionEveryone)) {
+    input.everyone = true;
   }
 
   const payload = buildScheduledPayload(input);

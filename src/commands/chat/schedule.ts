@@ -8,7 +8,9 @@ export default new ChatInputCommand()
     builder
       .setName("schedule")
       .setDescription("Commands for scheduling messages")
-      .setDefaultMemberPermissions(PermissionFlagsBits.MentionEveryone)
+      .setDefaultMemberPermissions(
+        PermissionFlagsBits.MentionEveryone || PermissionFlagsBits.ManageGuild,
+      )
       .setContexts(InteractionContextType.Guild)
       .addSubcommand((subcommand) =>
         subcommand
@@ -29,6 +31,14 @@ export default new ChatInputCommand()
               .setDescription("send message using components V2")
               .setRequired(false),
           )
+          .addChannelOption((chan) =>
+            chan
+              .setName("channel")
+              .setDescription(
+                "Channel to send message in. Defaults to current channel",
+              )
+              .setRequired(false),
+          )
           .addStringOption((title) =>
             title
               .setName("title")
@@ -44,7 +54,7 @@ export default new ChatInputCommand()
               .setRequired(false),
           ),
       )
-      .addSubcommand((subcommand) =>
+      /* .addSubcommand((subcommand) =>
         subcommand
           .setName("create-cron") //I've changed my mind i don't see a reason to get rid of this
           .setDescription(
@@ -86,7 +96,7 @@ export default new ChatInputCommand()
               )
               .setRequired(false),
           ),
-      )
+      ) */
       .addSubcommand(
         (subcommand) =>
           subcommand
