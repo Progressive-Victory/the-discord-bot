@@ -25,12 +25,6 @@ export default new ChatInputCommand()
               .setMaxLength(messageMaxLength)
               .setRequired(true),
           )
-          .addBooleanOption((legacy) =>
-            legacy
-              .setName("usecomponents")
-              .setDescription("send message using components V2")
-              .setRequired(false),
-          )
           .addChannelOption((chan) =>
             chan
               .setName("channel")

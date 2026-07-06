@@ -3,6 +3,7 @@ import { DiscordSnowflake } from "@sapphire/snowflake";
 import { Cron } from "croner";
 import {
   AllowedMentionsTypes,
+  APIMessageTopLevelComponent,
   bold,
   ChannelType,
   ChatInputCommandInteraction,
@@ -39,7 +40,7 @@ export function replyEphemeral(
 }
 
 // Deal with implicit permissions
-// A user is prevented from specifying a channel they can't see, 
+// A user is prevented from specifying a channel they can't see,
 // so this is mainly for the bot (in the edge case the bot doesn't have Admin)
 function canSend(perms: PermissionsBitField) {
   return (
@@ -96,18 +97,29 @@ export function validateMessage(input: ScheduleInput) {
 export function buildScheduledPayload(
   input: ScheduleInput,
 ): MessageCreateOptions {
+  const components: APIMessageTopLevelComponent[] = [];
+  if (input.title) {
+    components.push({
+      type: 10,
+      content: bold(input.title),
+    });
+  }
+  if (input.body) {
+    components.push({
+      type: 10,
+      content: input.body,
+    });
+  }
   return {
-    content: [input.title && bold(input.title), input.body]
-      .filter(Boolean)
-      .join("\n\n"),
+    components,
     allowedMentions: input.perms.has(PermissionFlagsBits.MentionEveryone)
       ? undefined // If undefined, this defaults to all allowed in channel (MessagePayload.js:179)
       : {
           parse: [AllowedMentionsTypes.User], // @everyone and "mention all roles" are the same permission.
-          // This does not account for roles with "allow anyone to mention". I am unsure how to handle that edge-case 
+          // This does not account for roles with "allow anyone to mention". I am unsure how to handle that edge-case
         },
+    flags: MessageFlags.IsComponentsV2,
   };
-  // TODO: COMPONENTS V2
 }
 
 export function createScheduledTask(
