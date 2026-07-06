@@ -1,8 +1,8 @@
 import { ChatInputCommandInteraction } from "discord.js";
 import { createCronMessage } from "./create-cron-message";
-import { createScheduledMessage } from "./create-message";
+import { createDelayedMessage } from "./create-message";
 import { deleteScheduledMessage } from "./delete-message";
-import { listScheduledMessages } from "./list-scheduled";
+import { listScheduledMessages } from "./list-messages";
 /**
  * Executes the lead command based on the subcommand and subcommand group provided in the interaction options.
  * @param command - The chat input command interaction object.
@@ -12,7 +12,7 @@ export async function lead(command: ChatInputCommandInteraction) {
   const subcommand = command.options.getSubcommand(true);
   switch (subcommand) {
     case "create":
-      return createScheduledMessage(command);
+      return createDelayedMessage(command);
     case "list":
       return listScheduledMessages(command);
     case "delete":

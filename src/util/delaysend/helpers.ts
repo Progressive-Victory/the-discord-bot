@@ -50,7 +50,7 @@ function canSend(perms: PermissionsBitField) {
 }
 
 // Essentially a constructor for ScheduleInput from a ChatInputCommandInteraction
-export function getScheduleInput(
+export function getDelayedInput(
   command: ChatInputCommandInteraction,
 ): ScheduleInput {
   const channel =

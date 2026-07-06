@@ -1,13 +1,13 @@
 import { ChatInputCommand } from "@/Classes";
-import { lead } from "@/features/schedule";
-import { messageMaxLength, titleMaxLength } from "@/util/schedule/constants";
+import { lead } from "@/features/delaysend";
+import { messageMaxLength, titleMaxLength } from "@/util/delaysend/constants";
 import { InteractionContextType, PermissionFlagsBits } from "discord.js";
 
 export default new ChatInputCommand()
   .setBuilder((builder) =>
     builder
-      .setName("schedule")
-      .setDescription("Commands for scheduling messages")
+      .setName("delayedsend")
+      .setDescription("Commands for scheduling messages to be sent later")
       .setDefaultMemberPermissions(
         PermissionFlagsBits.MentionEveryone || PermissionFlagsBits.ManageGuild,
       )

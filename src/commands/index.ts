@@ -4,7 +4,7 @@ export { default as feedback } from "./chat/feedback";
 
 export { warn } from "./chat/moderation";
 
-export { default as schedule } from "./chat/schedule";
+export { default as schedule } from "./chat/delaysend";
 // export { userProfile } from "./context_menu/profile";
 
 export { settings } from "./chat/setting";

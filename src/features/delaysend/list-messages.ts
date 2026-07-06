@@ -1,11 +1,13 @@
 import {
+  APIMessageTopLevelComponent,
   bold,
   ChatInputCommandInteraction,
   codeBlock,
+  ComponentType,
   MessageFlags,
   unorderedList,
 } from "discord.js";
-import { scheduledMessages } from "../../util/schedule/state.js";
+import { scheduledMessages } from "../../util/delaysend/state.js";
 export async function listScheduledMessages(
   command: ChatInputCommandInteraction,
 ) {
@@ -23,7 +25,7 @@ export async function listScheduledMessages(
       .toArray()
       .map(
         (msg) =>
-          `${bold(msg.id)} (${msg.pattern})\n${codeBlock(msg.payload.content ?? "Unknown")}`,
+          `${bold(msg.id)} (${msg.pattern})\n${codeBlock(msg.payload.components?.join(", ") ?? "Unknown")}`,
       ),
   );
   console.debug(messageList);

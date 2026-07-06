@@ -1,16 +1,16 @@
 import {
-  getScheduleInput,
-  prepareScheduledMessage,
-  registerScheduledMessage,
+  getDelayedInput,
+  prepareScheduledMessage as prepareDelayedMessage,
+  registerScheduledMessage as registerDelayedMessage,
   replyEphemeral,
-} from "@/util/schedule/helpers";
+} from "@/util/delaysend/helpers";
 import { parseDate } from "chrono-node";
 import { ChatInputCommandInteraction, inlineCode } from "discord.js";
 
-export async function createScheduledMessage(
+export async function createDelayedMessage(
   command: ChatInputCommandInteraction,
 ) {
-  const input = getScheduleInput(command);
+  const input = getDelayedInput(command);
   const dateParsed = parseDate(
     command.options.getString("when")!,
     { instant: command.createdAt }, // Includes user timezone info
@@ -32,12 +32,12 @@ export async function createScheduledMessage(
     return;
   }
   input.pattern = dateParsed;
-  const prepared = await prepareScheduledMessage(command, 1, input);
+  const prepared = await prepareDelayedMessage(command, 1, input);
   if (!prepared) {
     return;
   }
 
-  registerScheduledMessage(
+  registerDelayedMessage(
     prepared.input,
     prepared.id,
     prepared.payload,
@@ -46,6 +46,6 @@ export async function createScheduledMessage(
 
   await replyEphemeral(
     command,
-    `Scheduled message created (${inlineCode(prepared.id)}) for ${inlineCode(prepared.task.nextRun()?.toLocaleString() ?? "Unknown")}.`,
+    `Delayed message created (${inlineCode(prepared.id)}) for ${inlineCode(prepared.task.nextRun()?.toLocaleString() ?? "Unknown")}.`,
   );
 }
