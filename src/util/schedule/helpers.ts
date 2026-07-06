@@ -4,24 +4,28 @@ import { Cron } from "croner";
 import {
   AllowedMentionsTypes,
   bold,
+  ChannelType,
   ChatInputCommandInteraction,
   MessageCreateOptions,
   MessageFlags,
   PermissionFlagsBits,
+  PermissionsBitField,
+  TextBasedChannel,
   TextChannel,
 } from "discord.js";
 import { messageMaxLength, titleMaxLength } from "./constants";
 import { ScheduledMessage, scheduledMessages } from "./state";
 
 interface ScheduleInput {
-  channelId: string;
+  channel: TextBasedChannel;
   authorId: string;
   guild: ScheduledMessage["guild"];
   title: string;
   body: string;
   pattern: string | Date;
   timezone: number;
-  everyone: boolean;
+  perms: PermissionsBitField;
+  botPerms: PermissionsBitField;
 }
 
 export function replyEphemeral(
@@ -34,27 +38,49 @@ export function replyEphemeral(
   });
 }
 
+// Deal with implicit permissions
+// A user is prevented from specifying a channel they can't see, 
+// so this is mainly for the bot (in the edge case the bot doesn't have Admin)
+function canSend(perms: PermissionsBitField) {
+  return (
+    perms.has(PermissionFlagsBits.ViewChannel) &&
+    perms.has(PermissionFlagsBits.SendMessages)
+  );
+}
+
 // Essentially a constructor for ScheduleInput from a ChatInputCommandInteraction
 export function getScheduleInput(
   command: ChatInputCommandInteraction,
 ): ScheduleInput {
+  const channel =
+    command.options.getChannel<ChannelType.GuildText>("channel") ??
+    command.channel!;
+  const author = command.user;
+  const perms = (channel as TextChannel).permissionsFor(author.id)!;
+  const botPerms = (channel as TextChannel).permissionsFor(
+    command.client.user.id,
+  )!;
+  console.debug(botPerms);
   return {
-    channelId: command.options.getChannel("channel")?.id ?? command.channelId,
+    channel,
     guild: command.guild!,
-    authorId: command.user.id,
+    authorId: author.id,
     title: command.options.getString("title")?.trim() ?? "",
     body: command.options.getString("message")?.trim() ?? "",
     pattern: command.options.getString("cron")?.trim() ?? "",
     timezone: command.createdAt.getTimezoneOffset(), // Will break on daylight savings. That's why I was trying Luxon, but it wasn't cooperating
-    everyone:
-      command.memberPermissions?.has(PermissionFlagsBits.MentionEveryone) ??
-      false,
+    perms,
+    botPerms,
   };
 }
 
-export function validateScheduleInput(
-  input: Pick<ScheduleInput, "title" | "body">,
-) {
+export function validateMessage(input: ScheduleInput) {
+  if (!canSend(input.perms)) {
+    return "You don't have permission to send messages in that channel.";
+  }
+  if (!canSend(input.botPerms)) {
+    return `I don't have permission to send messages in that channel [${input.channel}]. Contact an administrator.`;
+  }
   if (!input.title && !input.body) {
     return "Provide at least a title or message.";
   }
@@ -74,10 +100,11 @@ export function buildScheduledPayload(
     content: [input.title && bold(input.title), input.body]
       .filter(Boolean)
       .join("\n\n"),
-    allowedMentions: input.everyone
-      ? undefined // If undefined, defaults to all allowed in channel  (MessagePayload.js:179)
+    allowedMentions: input.perms.has(PermissionFlagsBits.MentionEveryone)
+      ? undefined // If undefined, this defaults to all allowed in channel (MessagePayload.js:179)
       : {
-          parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
+          parse: [AllowedMentionsTypes.User], // @everyone and "mention all roles" are the same permission.
+          // This does not account for roles with "allow anyone to mention". I am unsure how to handle that edge-case 
         },
   };
   // TODO: COMPONENTS V2
@@ -113,7 +140,7 @@ export async function prepareScheduledMessage(
     await replyEphemeral(command, "This command can only be used in a server.");
     return null;
   }
-  const validationError = validateScheduleInput(input);
+  const validationError = validateMessage(input);
   if (validationError) {
     await replyEphemeral(command, validationError);
     return null;
@@ -138,7 +165,7 @@ export function registerScheduledMessage(
   scheduledMessages.set(id, {
     id,
     guild: input.guild,
-    channelId: input.channelId,
+    channelId: input.channel.id,
     authorId: input.authorId,
     pattern: input.pattern,
     payload,
