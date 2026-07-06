@@ -15,12 +15,12 @@ import {
   TextChannel,
 } from "discord.js";
 import { messageMaxLength, titleMaxLength } from "./constants";
-import { ScheduledMessage, scheduledMessages } from "./state";
+import { DelayedMessage, scheduledMessages } from "./state";
 
 interface ScheduleInput {
   channel: TextBasedChannel;
   authorId: string;
-  guild: ScheduledMessage["guild"];
+  guild: DelayedMessage["guild"];
   title: string;
   body: string;
   pattern: string | Date;

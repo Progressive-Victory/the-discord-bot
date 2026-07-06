@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, codeBlock } from "discord.js";
 
 import { replyEphemeral } from "@/util/delaysend/helpers.js";
 import { scheduledMessages } from "../../util/delaysend/state.js";
-export async function deleteScheduledMessage(
+export async function deleteDelayedMessage(
   command: ChatInputCommandInteraction,
 ) {
   const id: string = command.options.getString("id") ?? "";

@@ -1,7 +1,7 @@
 import { Cron } from "croner";
 import { Guild, MessageCreateOptions } from "discord.js";
 
-export type ScheduledMessage = {
+export type DelayedMessage = {
   id: string;
   guild: Guild;
   channelId: string;
@@ -11,4 +11,4 @@ export type ScheduledMessage = {
   task: Cron;
 };
 
-export const scheduledMessages = new Map<string, ScheduledMessage>();
+export const scheduledMessages = new Map<string, DelayedMessage>();

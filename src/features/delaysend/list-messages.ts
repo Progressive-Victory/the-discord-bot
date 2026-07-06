@@ -1,9 +1,7 @@
 import {
-  APIMessageTopLevelComponent,
   bold,
   ChatInputCommandInteraction,
   codeBlock,
-  ComponentType,
   MessageFlags,
   unorderedList,
 } from "discord.js";
