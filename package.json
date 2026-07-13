@@ -19,7 +19,7 @@
   "scripts": {
     "build": "pnpm format && node esbuild.config.js",
     "predev": "pnpm build",
-    "dev": "node .",
+    "dev": "node --enable-source-maps .",
     "predev-deploy": "pnpm build",
     "dev-deploy": "node . --deploy",
     "start": "node . --deploy",

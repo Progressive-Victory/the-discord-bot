@@ -50,7 +50,7 @@ PV_API_URL = "<api_address>"
 PV_GUILD_ID = "<guild_id>"
 ```
 
-You can ask the current tech director to provide these values.
+You can ask a lead to provide these values.
 
 ### Runing the Bot
 
