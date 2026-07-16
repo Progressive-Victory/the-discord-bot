@@ -159,11 +159,7 @@ export const mute = new ChatInputCommand({
 
     // VC Mute
     else if (mute_type == 2) {
-      targetMember.voice.setMute(true, reason);
-      setTimeout(() => {
-        if (targetMember.voice.serverMute)
-          targetMember.voice.setMute(false, "Mute Time Elapsed");
-      }, durationMinutes * 60000);
+      muteUser(targetMember, durationMinutes, reason);
     }
 
     // Both Mute
@@ -177,6 +173,7 @@ export const mute = new ChatInputCommand({
       }
     }
 
+    // NOTE: Calling Logs causes the bot to crash with a Guild UnOwned Error
     //vcMessage(targetMember, mutingMember, durationMinutes);
     //logMessage(targetMember, mutingMember, durationMinutes, reason);
 
@@ -187,25 +184,12 @@ export const mute = new ChatInputCommand({
   },
 });
 
-async function userMessages(guildID, userID, messageAmt, cutoff) {
-  client.guilds.cache.get(guildID).channels.cache.forEach((ch) => {
-    if (ch.type === "text") {
-      ch.messages
-        .fetch({
-          limit: 100,
-        })
-        .then((messages) => {
-          const msgs = messages.filter(
-            (m) => m.author.id === userID && m.createdTimestamp <= cutoff,
-          );
-          msgs.forEach((m) => {
-            console.log(`${m.content} - ${m.channel.name}`);
-          });
-        });
-    } else {
-      return;
-    }
-  });
+async function muteUser(targetMember, durationMinutes, reason) {
+  targetMember.voice.setMute(true, reason);
+  setTimeout(() => {
+    if (targetMember.voice.serverMute)
+      targetMember.voice.setMute(false, "Mute Time Elapsed");
+  }, durationMinutes * 60000);
 }
 
 /**
