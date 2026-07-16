@@ -55,6 +55,7 @@ export const mute = new ChatInputCommand({
         .setDescription("How long should this user be muted?")
         .setRequired(true)
         .addChoices(
+          { name: "1 min", value: 1 }, // For testing
           { name: "3 min", value: 3 },
           { name: "10 min", value: 10 },
           { name: "30 min", value: 30 },
@@ -69,11 +70,11 @@ export const mute = new ChatInputCommand({
         .setDescription("What should this user be muted from?")
         .setRequired(true)
         .addChoices(
-          { name: "Chat", value: 0 },
-          { name: "Voice Channel", value: 1 },
-          { name: "Both", value: 2 },
+          { name: "Chat", value: 1 },
+          { name: "Voice Channel", value: 2 },
+          { name: "Both", value: 3 },
         ),
-     )
+    )
     .addStringOption((option) =>
       option
         .setName("reason")
@@ -128,26 +129,56 @@ export const mute = new ChatInputCommand({
     const reason = interaction.options.getString("reason", true);
 
     // set mute to true
-    targetMember.voice.setMute(true, reason);
+    //targetMember.voice.setMute(true, reason);
 
     // set timeout to revert mute
+    /*
     setTimeout(() => {
       if (targetMember.voice.serverMute)
         targetMember.voice.setMute(false, "Mute Time Elapsed");
     }, durationMinutes * 60000);
+    */
 
     const endDate = new Date(new Date().getTime() + durationMinutes * 60000);
 
     // Message to be sent to channels
     const mute_type = interaction.options.getInteger("mute_type", true);
-    // VC Mute
+
+    //logMessage(targetMember, mutingMember, durationMinutes, reason);
+
+    // Chat Mute
     if (mute_type == 1) {
+      const timeInterval = 15 * 60 * 1000;
+      const cutoff = Date.now() - timeInterval;
+      const userId = targetMember.id;
+      const msgAmount = 5;
+
       vcMessage(targetMember, mutingMember, durationMinutes);
       logMessage(targetMember, mutingMember, durationMinutes, reason);
     }
 
-    vcMessage(targetMember, mutingMember, durationMinutes);
-    logMessage(targetMember, mutingMember, durationMinutes, reason);
+    // VC Mute
+    else if (mute_type == 2) {
+      targetMember.voice.setMute(true, reason);
+      setTimeout(() => {
+        if (targetMember.voice.serverMute)
+          targetMember.voice.setMute(false, "Mute Time Elapsed");
+      }, durationMinutes * 60000);
+    }
+
+    // Both Mute
+    else if (mute_type == 3) {
+      const timeInterval = 15 * 60 * 1000;
+      const userId = targetMember.id;
+      const msgAmount = 15;
+      if (!targetMember.voice.channel) {
+      } else {
+        logMessage(targetMember, mutingMember, durationMinutes, reason);
+      }
+    }
+
+    //vcMessage(targetMember, mutingMember, durationMinutes);
+    //logMessage(targetMember, mutingMember, durationMinutes, reason);
 
     interaction.reply({
       content: `${targetMember.toString()} has been server muted. They will be unmuted ${time(endDate, TimestampStyles.RelativeTime)}`,
@@ -155,6 +186,27 @@ export const mute = new ChatInputCommand({
     });
   },
 });
+
+async function userMessages(guildID, userID, messageAmt, cutoff) {
+  client.guilds.cache.get(guildID).channels.cache.forEach((ch) => {
+    if (ch.type === "text") {
+      ch.messages
+        .fetch({
+          limit: 100,
+        })
+        .then((messages) => {
+          const msgs = messages.filter(
+            (m) => m.author.id === userID && m.createdTimestamp <= cutoff,
+          );
+          msgs.forEach((m) => {
+            console.log(`${m.content} - ${m.channel.name}`);
+          });
+        });
+    } else {
+      return;
+    }
+  });
+}
 
 /**
  * log the mute in specified logging server
