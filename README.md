@@ -6,6 +6,8 @@ This bot supports operations in the Progressive Victory Discord Server. To join,
 
 The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
 
+
+
 - [pnpm](https://pnpm.io/) to manage dependencies
 - [MySQL](https://dev.mysql.com/doc/refman/8.4/en/)
 - [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
