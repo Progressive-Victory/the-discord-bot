@@ -1,5 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import { getGuildChannel } from "@/util";
+import { muteEmbed } from "@/features/mute";
 import { fetchSetting } from "@/util/api/fetchSettings";
 import {
   ContainerBuilder,
@@ -127,24 +128,10 @@ export const mute = new ChatInputCommand({
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
     const reason = interaction.options.getString("reason", true);
-
-    // set mute to true
-    //targetMember.voice.setMute(true, reason);
-
-    // set timeout to revert mute
-    /*
-    setTimeout(() => {
-      if (targetMember.voice.serverMute)
-        targetMember.voice.setMute(false, "Mute Time Elapsed");
-    }, durationMinutes * 60000);
-    */
-
     const endDate = new Date(new Date().getTime() + durationMinutes * 60000);
 
     // Message to be sent to channels
     const mute_type = interaction.options.getInteger("mute_type", true);
-
-    //logMessage(targetMember, mutingMember, durationMinutes, reason);
 
     // Chat Mute
     if (mute_type == 1) {
@@ -153,13 +140,14 @@ export const mute = new ChatInputCommand({
       const userId = targetMember.id;
       const msgAmount = 5;
 
-      vcMessage(targetMember, mutingMember, durationMinutes);
+      vcMessage(targetMember, mutingMember, durationMinutes, reason);
       logMessage(targetMember, mutingMember, durationMinutes, reason);
     }
 
     // VC Mute
     else if (mute_type == 2) {
       muteUser(targetMember, durationMinutes, reason);
+      vcMessage(targetMember, mutingMember, durationMinutes, reason);
     }
 
     // Both Mute
@@ -185,6 +173,14 @@ export const mute = new ChatInputCommand({
 });
 
 async function muteUser(targetMember, durationMinutes, reason) {
+  targetMember.voice.setMute(true, reason);
+  setTimeout(() => {
+    if (targetMember.voice.serverMute)
+      targetMember.voice.setMute(false, "Mute Time Elapsed");
+  }, durationMinutes * 60000);
+}
+
+async function getActiveChannel(targetMember, durationMinutes, reason) {
   targetMember.voice.setMute(true, reason);
   setTimeout(() => {
     if (targetMember.voice.serverMute)
@@ -255,36 +251,27 @@ async function logMessage(
  * @param targetMember - The member who was muted
  * @param mutingMember - The member who muted targetMember
  * @param durationMinutes - number representing the number minutes targetMember is muted for
+ * @param reason -  reason why member is muted
  */
 function vcMessage(
   targetMember: GuildMember,
   mutingMember: GuildMember,
   durationMinutes: number,
+  reason: string,
 ) {
   // check if member is connected to channel
   const channel = targetMember.voice.channel;
   if (!channel) return;
+  const createdAt = new Date();
+  const expiresAt = new Date(createdAt.getTime() + durationMinutes * 60000);
 
-  const text = new TextDisplayBuilder().setContent(
-    [
-      `${targetMember.toString()} was muted for ${durationText[durationMinutes.toString() as dTime]}`,
-    ].join("\n"),
-  );
-  const separator = new SeparatorBuilder()
-    .setDivider(true)
-    .setSpacing(SeparatorSpacingSize.Small);
-  const footer = new TextDisplayBuilder().setContent(
-    subtext(`User ID: ${targetMember.id}`),
+  const embed = muteEmbed(
+    targetMember,
+    mutingMember,
+    createdAt,
+    expiresAt,
+    reason,
   );
 
-  const container = new ContainerBuilder()
-    .addTextDisplayComponents(text)
-    .addSeparatorComponents(separator)
-    .addTextDisplayComponents(footer)
-    .setAccentColor(MUTE_COLOR);
-
-  channel.send({
-    components: [container],
-    flags: MessageFlags.IsComponentsV2,
-  });
+  channel.send({ embeds: [embed] });
 }
