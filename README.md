@@ -6,6 +6,8 @@ This bot supports operations in the Progressive Victory Discord Server. To join,
 
 The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
 
+
+
 - [pnpm](https://pnpm.io/) to manage dependencies
 - [MySQL](https://dev.mysql.com/doc/refman/8.4/en/)
 - [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
@@ -19,7 +21,9 @@ To contribute to this repo, follow the contribution standards and instructions o
 
 ### Installation
 
-To get started we recommend you install the following software:
+If you're running this through `the-local-setup`, you don't need to do anything here. Just start `the-api`, then run `pnpm dev` and you're ready to go.
+
+Otherwise, to get started we recommend you install the following software:
 
 - [git](https://git-scm.com/downloads)
 - [Visual Studio Code](https://code.visualstudio.com/Download)
@@ -36,19 +40,19 @@ Finally, copy `./.env.sample` to a file `./.env` then edit the following vaules 
 ```txt
 # Required for minimum function
 # Discord Bot Token from Dev portal
-DISCORD_TOKEN = "<bot_token>"
+PV_DISCORD_TOKEN = "<bot_token>"
 
 # Express server port
-PORT = "<port>"
+PV_DISCORD_BOT_PORT = "<port>"
 
-# host address (including port) for the api
-API_HOST_ADDR = "<api_address>"
+# host address (including port for localhost) for the api
+PV_API_URL = "<api_address>"
 
 # guild id of the target server
 PV_GUILD_ID = "<guild_id>"
 ```
 
-You can ask the current tech director to provide these values.
+You can ask a lead to provide these values.
 
 ### Runing the Bot
 
@@ -67,6 +71,7 @@ pnpm dev
 ```
 
 Sync commands with discord (only do if necessary so we don't get rate limited):
+
 ```sh
 pnpm dev-deploy
 ```

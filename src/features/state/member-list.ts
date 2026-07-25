@@ -17,6 +17,23 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   // Extract the locale and options from the interaction.
   const options = interaction.options;
 
+  // HACK: This re-fetches all members if the cache is out of date. The
+  // threshold is arbitrary, but should generally prevent the cache from being
+  // re-fetched multiple times a day.
+  const cacheSize = interaction.guild.members.cache.size;
+  const memberCount = interaction.guild.memberCount;
+  const cacheThreshold = 0.7;
+  if (cacheSize < memberCount * cacheThreshold) {
+    console.log(
+      `[Debug] Detected a bad member cache (${cacheSize} < ${memberCount} * ${cacheThreshold})! Refetching...`,
+    );
+    interaction.guild.members.cache.clear();
+    await interaction.guild.members.fetch();
+    console.log(
+      `[Debug] New member cache size: ${interaction.guild.members.cache.size}`,
+    );
+  }
+
   // Get the role from interaction options using true to make the argument required
   const role = options.getRole("role", true);
 

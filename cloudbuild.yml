@@ -24,8 +24,8 @@ steps:
         gcloud compute instances update-container ${_COMPUTE_INSTANCE_NAME} \
           --zone=us-central1-${_ZONE} \
           --container-image=us-central1-docker.pkg.dev/$PROJECT_ID/docker-deploy/pv-bot:$SHORT_SHA \
-          --container-env "PORT=${_PORT},DISCORD_TOKEN=$$DISCORD_TOKEN,API_HOST_ADDR=${_API_HOST_ADDR},PV_GUILD_ID=${_PV_GUILD_ID}"
-    secretEnv: ["DISCORD_TOKEN"]
+          --container-env "PV_DISCORD_BOT_PORT=${_PV_DISCORD_BOT_PORT},PV_DISCORD_TOKEN=$$PV_DISCORD_TOKEN,PV_API_URL=${_PV_API_URL},PV_GUILD_ID=${_PV_GUILD_ID}"
+    secretEnv: ["PV_DISCORD_TOKEN"]
 
 options:
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
@@ -33,4 +33,4 @@ options:
 availableSecrets:
   secretManager:
     - versionName: "projects/$PROJECT_NUMBER/secrets/bot-token/versions/latest"
-      env: "DISCORD_TOKEN"
+      env: "PV_DISCORD_TOKEN"

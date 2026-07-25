@@ -8,6 +8,7 @@ import {
 import { isStateAbbreviations } from "@/util/states/types";
 import {
   ActionRowBuilder,
+  AllowedMentionsTypes,
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
@@ -132,7 +133,7 @@ export default async function ping(interaction: ChatInputCommandInteraction) {
       "message" in err &&
       typeof err.message === "string"
     ) {
-      await interaction.reply(err.message);
+      await interaction.editReply(err.message);
       return;
     }
   }
@@ -208,7 +209,9 @@ export function stateMessageCreate(
   return {
     flags: MessageFlags.IsComponentsV2,
     components: [container],
-    // allowedMentions:{parse:['roles']}
+    allowedMentions: {
+      parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
+    },
   };
 }
 
@@ -226,7 +229,9 @@ export function legacyStateMessageCreate(
       subtext(`Message from your ${roleMention(stateRoleId)} team`),
       subtext(`Written by ${userMention(authorId)}`),
     ].join("\n"),
-    // allowedMentions:{parse:[AllowedMentionsTypes.Role]}
+    allowedMentions: {
+      parse: [AllowedMentionsTypes.User, AllowedMentionsTypes.Role],
+    },
   };
 }
 
