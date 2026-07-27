@@ -1,6 +1,5 @@
 import { ChatInputCommand } from "@/Classes/index";
 import { timeoutEmbed } from "@/features/timeout";
-import { localize } from "@/i18n";
 import { getGuildChannel, isGuildMember } from "@/util";
 import { fetchSetting } from "@/util/api/fetchSettings";
 import {

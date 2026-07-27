@@ -1,5 +1,4 @@
 import { ChatInputCommand } from "@/Classes";
-import { localize } from "@/i18n";
 import { getMember } from "@/util";
 import {
   ActionRowBuilder,

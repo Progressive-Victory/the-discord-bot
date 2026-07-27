@@ -1,6 +1,5 @@
 import { Interaction } from "@/Classes";
 import { ns } from "@/commands/chat/move";
-import { localize } from "@/i18n";
 import { UserSelectMenuInteraction, VoiceChannel } from "discord.js";
 import { client } from "../..";
 
