@@ -1,7 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import { lead } from "@/features/state";
 import { messageMaxLength, titleMaxLength } from "@/features/state/constants";
-import { localize } from "@/i18n";
 import { states } from "@/util/states/types";
 import {
   ApplicationCommandOptionType,
@@ -23,24 +22,12 @@ export default new ChatInputCommand()
     builder
       .setName("state")
       .setDescription("Commands for state leads to help manage their state")
-      .setNameLocalizations(
-        localize.discordLocalizationRecord("state-name", ns),
-      )
-      .setDescriptionLocalizations(
-        localize.discordLocalizationRecord("state-description", ns),
-      )
       .setDefaultMemberPermissions(PermissionFlagsBits.MentionEveryone)
       .setContexts(InteractionContextType.Guild)
       .addSubcommand((subcommand) =>
         subcommand
           .setName("ping")
           .setDescription("Ping State Role")
-          .setNameLocalizations(
-            localize.discordLocalizationRecord("ping-name", ns),
-          )
-          .setDescriptionLocalizations(
-            localize.discordLocalizationRecord("ping-description", ns),
-          )
           .addStringOption((option) =>
             option
               .setName("state")
@@ -75,28 +62,10 @@ export default new ChatInputCommand()
           .setDescription(
             "Exports a list of the users with a role to a csv file",
           )
-          .setNameLocalizations(
-            localize.discordLocalizationRecord("member-list-name", ns),
-          )
-          .setDescriptionLocalizations(
-            localize.discordLocalizationRecord("member-list-description", ns),
-          )
           .addRoleOption((option) =>
             option
               .setName("role")
               .setDescription("The role from which to get list")
-              .setNameLocalizations(
-                localize.discordLocalizationRecord(
-                  "member-list-role-option-name",
-                  ns,
-                ),
-              )
-              .setDescriptionLocalizations(
-                localize.discordLocalizationRecord(
-                  "member-list-role-option-description",
-                  ns,
-                ),
-              )
               .setRequired(true),
           ),
       ),

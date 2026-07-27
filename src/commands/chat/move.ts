@@ -21,25 +21,12 @@ export default new ChatInputCommand()
     builder
       .setName("move")
       .setDescription("Moves members from one VC to another")
-      .setNameLocalizations(localize.discordLocalizationRecord("name", ns))
-      .setDescriptionLocalizations(
-        localize.discordLocalizationRecord("description", ns),
-      )
       .setDefaultMemberPermissions(PermissionsBitField.Flags.MoveMembers)
       .setContexts(InteractionContextType.Guild)
       .addChannelOption((option) =>
         option
           .setName("destination")
           .setDescription("Channel where members will be move to")
-          .setNameLocalizations(
-            localize.discordLocalizationRecord("option_destination_name", ns),
-          )
-          .setDescriptionLocalizations(
-            localize.discordLocalizationRecord(
-              "option_destination_description",
-              ns,
-            ),
-          )
           .addChannelTypes(ChannelType.GuildVoice, ChannelType.GuildStageVoice)
           .setRequired(true),
       )
@@ -47,15 +34,6 @@ export default new ChatInputCommand()
         option
           .setName("everyone")
           .setDescription("Do you want to move everyone in the VC")
-          .setNameLocalizations(
-            localize.discordLocalizationRecord("option_everyone_name", ns),
-          )
-          .setDescriptionLocalizations(
-            localize.discordLocalizationRecord(
-              "option_everyone_description",
-              ns,
-            ),
-          )
           .setRequired(false),
       ),
   )
@@ -74,15 +52,13 @@ export default new ChatInputCommand()
     // user must be in a VC to use this command
     if (source == null)
       return interaction.reply({
-        content: localize.t("reply_must_be_in_channel", ns, locale),
+        content: "You must be in a voice channel to use this command",
         ephemeral: true,
       });
     // Target VC must be different that the users current VC
     else if (source.id == destination.id)
       return interaction.reply({
-        content: localize.t("reply_must_be_different_channel", ns, locale, {
-          destination: destination.toString(),
-        }),
+        content: "Members are already in" + destination.toString(),
         ephemeral: true,
       });
     // If everyone flag is set move all members in a VC to another
@@ -95,9 +71,7 @@ export default new ChatInputCommand()
         );
 
       return interaction.reply({
-        content: localize.t("reply_moved_everyone", ns, locale, {
-          destination: destination.toString(),
-        }),
+        content: "All members have been moved to" + destination.toString(),
         ephemeral: true,
       });
     }
@@ -118,9 +92,12 @@ export default new ChatInputCommand()
       new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(userMenu);
 
     return interaction.reply({
-      content: localize.t("reply_select_members", ns, locale, {
-        source: source.toString(),
-      }),
+      content:
+        "Select the members you would like to move: " +
+        "-#" +
+        " Users out side of " +
+        source.toString() +
+        " will not be moved",
       components: [topActionRow],
       ephemeral: true,
     });
