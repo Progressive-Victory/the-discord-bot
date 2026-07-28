@@ -81,9 +81,7 @@ export default new ChatInputCommand()
       .setCustomId(
         `usermove${client.splitCustomIdOn}${destination.id}${client.splitCustomIdOn}${source.id}`,
       )
-      .setPlaceholder(
-        localize.t("menu_select_placeholder", ns, locale) ?? "Select Member",
-      )
+      .setPlaceholder("Select Member")
       .setMaxValues(8)
       .setMinValues(2);
 

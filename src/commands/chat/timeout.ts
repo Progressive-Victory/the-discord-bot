@@ -48,24 +48,18 @@ export const timeout = new ChatInputCommand()
     builder
       .setName("timeout")
       .setDescription("Custom Timeout Command")
-      // .setNameLocalizations(localize.discordLocalizationRecord('name', ns))
-      // .setNameLocalizations(localize.discordLocalizationRecord('description', ns))
       .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
       .setContexts(InteractionContextType.Guild)
       .addUserOption((option) =>
         option
           .setName("user")
           .setDescription("The user to timeout")
-          // .setNameLocalizations(localize.discordLocalizationRecord('option_member_name', ns))
-          // .setNameLocalizations(localize.discordLocalizationRecord('option_member_description', ns))
           .setRequired(true),
       )
       .addNumberOption((option) =>
         option
           .setName("duration")
           .setDescription("How long the member should be timed out for")
-          // .setNameLocalizations(localize.discordLocalizationRecord('option_duration_name', ns))
-          // .setNameLocalizations(localize.discordLocalizationRecord('option_duration_description', ns))
           .setRequired(true)
           .setChoices(
             { name: "60 secs", value: 60 },
@@ -85,8 +79,6 @@ export const timeout = new ChatInputCommand()
         option
           .setName("reason")
           .setDescription("The reason for timing them out")
-          // .setNameLocalizations(localize.discordLocalizationRecord('option_reason_name', ns))
-          // .setNameLocalizations(localize.discordLocalizationRecord('option_reason_description', ns))
           .setRequired(false),
       ),
   )
@@ -103,7 +95,7 @@ export const timeout = new ChatInputCommand()
         ),
       );
       await interaction.reply({
-        content: localize.t("reply_error", ns, locale),
+        content: "An error has occurred, please notify a server administrator",
         flags: MessageFlags.Ephemeral,
       });
       return;
