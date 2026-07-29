@@ -202,8 +202,8 @@ async function chatMute(
 async function getActiveChannel(
   targetMember: GuildMember,
 ): Promise<TextChannel | null> {
-  const FIFTEEN_MIN_MS = 15 * 60 * 1000;
-  const cutoff = Date.now() - FIFTEEN_MIN_MS;
+  const timeInterval = 15 * 60 * 1000;
+  const cutoff = Date.now() - timeInterval;
   const msgAmount = 5;
   const userId = targetMember.id;
 
