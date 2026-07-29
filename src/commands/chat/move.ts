@@ -70,7 +70,7 @@ export default new ChatInputCommand()
         );
 
       return interaction.reply({
-        content: "All members have been moved to" + destination.toString(),
+        content: `All members have been moved to ${destination.toString()}`,
         ephemeral: true,
       });
     }
