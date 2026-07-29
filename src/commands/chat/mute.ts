@@ -146,13 +146,9 @@ export const mute = new ChatInputCommand({
 
     // Both Mute
     else if (mute_type == 3) {
-      const timeInterval = 15 * 60 * 1000;
-      const userId = targetMember.id;
-      const msgAmount = 15;
-      if (!targetMember.voice.channel) {
-      } else {
-        logMessage(targetMember, mutingMember, durationMinutes, reason);
-      }
+      muteUser(targetMember, durationMinutes, reason);
+      vcMessage(targetMember, mutingMember, durationMinutes, reason);
+      chatMute(targetMember, mutingMember, durationMinutes, reason);
     }
 
     // NOTE: Calling Logs causes the bot to crash with a Guild UnOwned Error
