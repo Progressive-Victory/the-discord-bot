@@ -135,13 +135,7 @@ export const mute = new ChatInputCommand({
 
     // Chat Mute
     if (mute_type == 1) {
-      const timeInterval = 15 * 60 * 1000;
-      const cutoff = Date.now() - timeInterval;
-      const userId = targetMember.id;
-      const msgAmount = 5;
-
-      vcMessage(targetMember, mutingMember, durationMinutes, reason);
-      logMessage(targetMember, mutingMember, durationMinutes, reason);
+      chatMute(targetMember, mutingMember, durationMinutes, reason);
     }
 
     // VC Mute
@@ -180,12 +174,78 @@ async function muteUser(targetMember, durationMinutes, reason) {
   }, durationMinutes * 60000);
 }
 
-async function getActiveChannel(targetMember, durationMinutes, reason) {
-  targetMember.voice.setMute(true, reason);
-  setTimeout(() => {
-    if (targetMember.voice.serverMute)
-      targetMember.voice.setMute(false, "Mute Time Elapsed");
-  }, durationMinutes * 60000);
+async function chatMute(
+  targetMember: GuildMember,
+  mutingMember: GuildMember,
+  durationMinutes: number,
+  reason: string,
+) {
+  const active_channel = await getActiveChannel(targetMember);
+
+  const chat_mute_role = targetMember.guild.roles.cache.find(
+    (role) => role.name === "Chat Muted",
+  );
+
+  await targetMember.roles.add(chat_mute_role);
+
+  if (active_channel != null) {
+    await logMessage(
+      targetMember,
+      mutingMember,
+      durationMinutes,
+      reason,
+      active_channel,
+    );
+  }
+}
+
+async function getActiveChannel(
+  targetMember: GuildMember,
+): Promise<TextChannel | null> {
+  const FIFTEEN_MIN_MS = 15 * 60 * 1000;
+  const cutoff = Date.now() - FIFTEEN_MIN_MS;
+  const msgAmount = 5;
+  const userId = targetMember.id;
+
+  const guild = await client.guilds.fetch(guildId);
+
+  const textChannels = guild.channels.cache.filter(
+    (ch): ch is TextChannel => ch.type === ChannelType.GuildText,
+  );
+
+  const channel_map = new Map<TextChannel, number>();
+
+  await Promise.all(
+    textChannels.map(async (ch) => {
+      let messages: Collection<string, any>;
+      try {
+        messages = await ch.messages.fetch({ limit: 100 });
+      } catch (err) {
+        return;
+      }
+
+      let count = 0;
+      messages.forEach((m) => {
+        if (m.author.id === userId && m.createdTimestamp >= cutoff) {
+          count++;
+        }
+      });
+
+      if (count > 0) {
+        channel_map.set(ch, count);
+      }
+    }),
+  );
+
+  if (channel_map.size === 0) {
+    return null;
+  }
+
+  const [maxChannel, maxCount] = [...channel_map.entries()].reduce(
+    (best, entry) => (entry[1] > best[1] ? entry : best),
+  );
+
+  return maxCount >= msgAmount ? maxChannel : null;
 }
 
 /**
@@ -200,37 +260,21 @@ async function logMessage(
   mutingMember: GuildMember,
   durationMinutes: number,
   reason: string,
+  targetChannel: TextChannel,
 ) {
   // check if log channel is set
-  const res = await fetchSetting("timeout_log_channel_id");
-  const timeoutLogChannelId = res.data;
+  const createdAt = new Date();
+  const expiresAt = new Date(createdAt.getTime() + durationMinutes * 60000);
 
-  if (!timeoutLogChannelId) return;
-
-  // check that channel is real
-  const timeoutChannel = await getGuildChannel(
-    targetMember.guild,
-    timeoutLogChannelId,
+  const embed = muteEmbed(
+    targetMember,
+    mutingMember,
+    createdAt,
+    expiresAt,
+    reason,
   );
-  if (!timeoutChannel?.isSendable()) return;
 
-  const title = "User Muted";
-  const description = `${targetMember.toString()} was muted by ${mutingMember.toString()}`;
-  const avatarURL = targetMember.displayAvatarURL({ forceStatic: true });
-
-  const embed = new EmbedBuilder()
-    .setAuthor({ iconURL: avatarURL, name: title })
-    .setDescription(description)
-    .addFields(
-      { name: "Duration", value: `${durationMinutes} minutes` },
-      { name: "Reason", value: reason },
-    )
-    .setTimestamp()
-    .setFooter({ text: `User ID: ${targetMember.id}` })
-    .setColor(MUTE_COLOR);
-
-  // send to channel
-  timeoutChannel.send({ embeds: [embed] });
+  targetChannel.send({ embeds: [embed] });
 }
 
 // /**
