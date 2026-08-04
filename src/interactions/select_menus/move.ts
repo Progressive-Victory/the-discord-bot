@@ -1,6 +1,4 @@
 import { Interaction } from "@/Classes";
-import { ns } from "@/commands/chat/move";
-import { localize } from "@/i18n";
 import { UserSelectMenuInteraction, VoiceChannel } from "discord.js";
 import { client } from "../..";
 
@@ -38,9 +36,8 @@ export const usermove = new Interaction<UserSelectMenuInteraction>()
 
     // updated message that move has been competed
     await interaction.update({
-      content: localize.t("reply_moved", ns, locale, {
-        destination: destination.toString(),
-      }),
+      content:
+        "All Selected members have been moved to " + destination.toString(),
       components: [],
     });
   });

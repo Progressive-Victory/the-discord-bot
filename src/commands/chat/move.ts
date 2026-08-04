@@ -1,5 +1,4 @@
 import { ChatInputCommand } from "@/Classes";
-import { localize } from "@/i18n";
 import { getMember } from "@/util";
 import {
   ActionRowBuilder,
@@ -71,7 +70,7 @@ export default new ChatInputCommand()
         );
 
       return interaction.reply({
-        content: "All members have been moved to" + destination.toString(),
+        content: `All members have been moved to ${destination.toString()}`,
         ephemeral: true,
       });
     }
@@ -82,9 +81,7 @@ export default new ChatInputCommand()
       .setCustomId(
         `usermove${client.splitCustomIdOn}${destination.id}${client.splitCustomIdOn}${source.id}`,
       )
-      .setPlaceholder(
-        localize.t("menu_select_placeholder", ns, locale) ?? "Select Member",
-      )
+      .setPlaceholder("Select Member")
       .setMaxValues(8)
       .setMinValues(2);
 
