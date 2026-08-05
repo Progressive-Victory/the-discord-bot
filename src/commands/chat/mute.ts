@@ -18,6 +18,7 @@ import {
   TextDisplayBuilder,
   time,
   TimestampStyles,
+  ChannelType,
 } from "discord.js";
 
 const MUTE_COLOR = 0x7c018c;
@@ -116,6 +117,7 @@ export const mute = new ChatInputCommand({
     if (!(mutingMember instanceof GuildMember)) {
       mutingMember = await guild.members.fetch(interaction.user);
     }
+    /*
 
     if (!targetMember.voice.channel) {
       interaction.reply({
@@ -124,6 +126,7 @@ export const mute = new ChatInputCommand({
       });
       return;
     }
+      */
 
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
@@ -135,25 +138,65 @@ export const mute = new ChatInputCommand({
 
     // Chat Mute
     if (mute_type == 1) {
-      chatMute(targetMember, mutingMember, durationMinutes, reason);
+      const type = "chat";
+      chatMute(
+        targetMember,
+        mutingMember,
+        durationMinutes,
+        reason,
+        guild,
+        type,
+      );
     }
 
     // VC Mute
     else if (mute_type == 2) {
-      muteUser(targetMember, durationMinutes, reason);
-      vcMessage(targetMember, mutingMember, durationMinutes, reason);
+      const type = "voice";
+      voiceMute(targetMember, mutingMember, durationMinutes, reason, type);
     }
 
     // Both Mute
     else if (mute_type == 3) {
-      muteUser(targetMember, durationMinutes, reason);
-      vcMessage(targetMember, mutingMember, durationMinutes, reason);
-      chatMute(targetMember, mutingMember, durationMinutes, reason);
+      voiceMute(targetMember, mutingMember, durationMinutes, reason, "voice");
+      chatMute(
+        targetMember,
+        mutingMember,
+        durationMinutes,
+        reason,
+        guild,
+        "chat",
+      );
     }
 
-    // NOTE: Calling Logs causes the bot to crash with a Guild UnOwned Error
-    //vcMessage(targetMember, mutingMember, durationMinutes);
-    //logMessage(targetMember, mutingMember, durationMinutes, reason);
+    // TODO: below code needs testing, likely cause of issue #303 since there is no Timeout Channel in the Simple Server
+
+    /*
+    const res = await fetchSetting("timeout_log_channel_id");
+    const timeoutLogChannelId = res.data;
+    if (!timeoutLogChannelId) return;
+
+    const timeoutChannel = await getGuildChannel(
+      targetMember.guild,
+      timeoutLogChannelId,
+    );
+    logMessage(
+      targetMember,
+      mutingMember,
+      durationMinutes,
+      reason,
+      timeoutChannel,
+      "voice",
+    );
+
+    logMessage(
+      targetMember,
+      mutingMember,
+      durationMinutes,
+      reason,
+      timeoutChannel,
+      "chat",
+    );
+    */
 
     interaction.reply({
       content: `${targetMember.toString()} has been server muted. They will be unmuted ${time(endDate, TimestampStyles.RelativeTime)}`,
@@ -162,12 +205,20 @@ export const mute = new ChatInputCommand({
   },
 });
 
-async function muteUser(targetMember, durationMinutes, reason) {
+async function voiceMute(
+  targetMember: GuildMember,
+  mutingMember: GuildMember,
+  durationMinutes: number,
+  reason: string,
+  type: string,
+) {
   targetMember.voice.setMute(true, reason);
   setTimeout(() => {
     if (targetMember.voice.serverMute)
       targetMember.voice.setMute(false, "Mute Time Elapsed");
   }, durationMinutes * 60000);
+
+  vcMessage(targetMember, mutingMember, durationMinutes, reason, type);
 }
 
 async function chatMute(
@@ -175,35 +226,42 @@ async function chatMute(
   mutingMember: GuildMember,
   durationMinutes: number,
   reason: string,
+  guild: Guild,
+  type: string,
 ) {
-  const active_channel = await getActiveChannel(targetMember);
-
+  const active_channel = await getActiveChannel(targetMember, guild);
   const chat_mute_role = targetMember.guild.roles.cache.find(
     (role) => role.name === "Chat Muted",
   );
 
   await targetMember.roles.add(chat_mute_role);
 
+  setTimeout(() => {
+    if (targetMember.roles.cache.some((role) => role.name === "Chat Muted")) {
+      targetMember.roles.remove(chat_mute_role);
+    }
+  }, durationMinutes * 60000);
+
   if (active_channel != null) {
-    await logMessage(
+    logMessage(
       targetMember,
       mutingMember,
       durationMinutes,
       reason,
       active_channel,
+      type,
     );
   }
 }
 
 async function getActiveChannel(
   targetMember: GuildMember,
+  guild: Guild,
 ): Promise<TextChannel | null> {
   const timeInterval = 15 * 60 * 1000;
   const cutoff = Date.now() - timeInterval;
   const msgAmount = 5;
   const userId = targetMember.id;
-
-  const guild = await client.guilds.fetch(guildId);
 
   const textChannels = guild.channels.cache.filter(
     (ch): ch is TextChannel => ch.type === ChannelType.GuildText,
@@ -257,6 +315,7 @@ async function logMessage(
   durationMinutes: number,
   reason: string,
   targetChannel: TextChannel,
+  type: string,
 ) {
   // check if log channel is set
   const createdAt = new Date();
@@ -268,6 +327,7 @@ async function logMessage(
     createdAt,
     expiresAt,
     reason,
+    type,
   );
 
   targetChannel.send({ embeds: [embed] });
@@ -298,6 +358,7 @@ function vcMessage(
   mutingMember: GuildMember,
   durationMinutes: number,
   reason: string,
+  type: string,
 ) {
   // check if member is connected to channel
   const channel = targetMember.voice.channel;
@@ -311,6 +372,7 @@ function vcMessage(
     createdAt,
     expiresAt,
     reason,
+    type,
   );
 
   channel.send({ embeds: [embed] });
