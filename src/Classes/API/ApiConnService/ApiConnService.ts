@@ -19,6 +19,7 @@ export class ApiConnService {
 
   async auth(token: string) {
     await fetch(`${this.host}/auth`, {
+      //process.env.API_HOST_ADDR
       method: "POST",
       headers: {
         "Content-Type": "application/json",

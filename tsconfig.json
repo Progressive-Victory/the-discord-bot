@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "rootDir": ".",
+    "baseUrl": "src",
     "outDir": "./dist",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./*"]
     },
 
     "moduleResolution": "bundler",
