@@ -7,6 +7,7 @@ import {
   TimestampStyles,
 } from "discord.js";
 import { getAuthorOptions, reasonField, userField } from "./moderation/embeds";
+import { MuteType } from "@/contracts/data";
 
 const muteEmbedColor: ColorResolvable = Colors.Aqua;
 
@@ -24,14 +25,15 @@ export function muteEmbed(
   createdAt: Date,
   expiresAt: Date,
   reason: string = "No Reason Given",
-  type: string,
+  type: Enum,
 ) {
+  const type_str = type == MuteType.Chat ? "chat" : "voice";
   return new EmbedBuilder()
     .setTitle("Mute")
     .setAuthor(getAuthorOptions(executor))
     .setThumbnail(target.displayAvatarURL({ forceStatic: true }))
     .setDescription(
-      `${target} ${inlineCode(target.user.username)} was ${type} muted until ${expiresAt.toDiscordString(TimestampStyles.LongDateTime)}`,
+      `${target} ${inlineCode(target.user.username)} was ${type_str} muted until ${expiresAt.toDiscordString(TimestampStyles.LongDateTime)}`,
     )
     .setFields(reasonField(reason), userField("Action By", executor.user))
     .setTimestamp(createdAt)

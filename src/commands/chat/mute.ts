@@ -1,4 +1,5 @@
 import { ChatInputCommand } from "@/Classes";
+import { MuteType } from "@/contracts/data";
 import { getGuildChannel } from "@/util";
 import { muteEmbed } from "@/features/mute";
 import { fetchSetting } from "@/util/api/fetchSettings";
@@ -57,7 +58,6 @@ export const mute = new ChatInputCommand({
         .setDescription("How long should this user be muted?")
         .setRequired(true)
         .addChoices(
-          { name: "1 min", value: 1 }, // For testing
           { name: "3 min", value: 3 },
           { name: "10 min", value: 10 },
           { name: "30 min", value: 30 },
@@ -72,9 +72,9 @@ export const mute = new ChatInputCommand({
         .setDescription("What should this user be muted from?")
         .setRequired(true)
         .addChoices(
-          { name: "Chat", value: 1 },
-          { name: "Voice Channel", value: 2 },
-          { name: "Both", value: 3 },
+          { name: "Chat", value: MuteType.Chat },
+          { name: "Voice Channel", value: MuteType.Voice },
+          { name: "Both", value: MuteType.Both },
         ),
     )
     .addStringOption((option) =>
@@ -117,16 +117,6 @@ export const mute = new ChatInputCommand({
     if (!(mutingMember instanceof GuildMember)) {
       mutingMember = await guild.members.fetch(interaction.user);
     }
-    /*
-
-    if (!targetMember.voice.channel) {
-      interaction.reply({
-        flags: MessageFlags.Ephemeral,
-        content: "User is not in a vc.",
-      });
-      return;
-    }
-      */
 
     // and for how long
     const durationMinutes = interaction.options.getInteger("duration", true);
@@ -136,36 +126,49 @@ export const mute = new ChatInputCommand({
     // Message to be sent to channels
     const mute_type = interaction.options.getInteger("mute_type", true);
 
-    // Chat Mute
-    if (mute_type == 1) {
-      const type = "chat";
-      chatMute(
-        targetMember,
-        mutingMember,
-        durationMinutes,
-        reason,
-        guild,
-        type,
-      );
-    }
+    switch (mute_type) {
+      case MuteType.Chat: {
+        chatMute(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          guild,
+          mute_type,
+        );
+        break;
+      }
 
-    // VC Mute
-    else if (mute_type == 2) {
-      const type = "voice";
-      voiceMute(targetMember, mutingMember, durationMinutes, reason, type);
-    }
+      case MuteType.Voice: {
+        voiceMute(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          mute_type,
+          interaction,
+        );
+        break;
+      }
 
-    // Both Mute
-    else if (mute_type == 3) {
-      voiceMute(targetMember, mutingMember, durationMinutes, reason, "voice");
-      chatMute(
-        targetMember,
-        mutingMember,
-        durationMinutes,
-        reason,
-        guild,
-        "chat",
-      );
+      default: {
+        voiceMute(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          MuteType.Voice,
+        );
+        chatMute(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          guild,
+          MuteType.Chat,
+        );
+        break;
+      }
     }
 
     // TODO: below code needs testing, likely cause of issue #303 since there is no Timeout Channel in the Simple Server
@@ -210,10 +213,31 @@ async function voiceMute(
   mutingMember: GuildMember,
   durationMinutes: number,
   reason: string,
-  type: string,
+  type: Enum,
+  interaction: any,
 ) {
-  targetMember.voice.setMute(true, reason);
+  if (!targetMember.voice.channel) {
+    interaction.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "User is not in a vc.",
+    });
+    return;
+  }
+
+  await targetMember.voice.setMute(true, reason);
   setTimeout(() => {
+    if (!targetMember.voice.channel) {
+      /*
+            TODO: Have voice state tracking here. 
+            Since we are hitting the role limit and can't give a Voice State role we need to keep track of server mute in the event that the user leaves VC. 
+            This will be a separate issue.
+      */
+      console.log(
+        `${targetMember.toString()} has left voice call and will need to manually be un server muted.`,
+      );
+      return;
+    }
+
     if (targetMember.voice.serverMute)
       targetMember.voice.setMute(false, "Mute Time Elapsed");
   }, durationMinutes * 60000);
@@ -227,7 +251,7 @@ async function chatMute(
   durationMinutes: number,
   reason: string,
   guild: Guild,
-  type: string,
+  type: Enum,
 ) {
   const active_channel = await getActiveChannel(targetMember, guild);
   const chat_mute_role = targetMember.guild.roles.cache.find(
