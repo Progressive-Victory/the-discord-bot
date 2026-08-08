@@ -2,6 +2,7 @@ name: "[PV Bot] Bug Report"
 description: File a bug report for the PV Bot.
 title: "[Bug]: "
 labels: ["bug"]
+projects: ["Progressive-Victory/27"]
 body:
   - type: markdown
     attributes:

@@ -2,6 +2,7 @@ name: "[PV Bot] Feature Request"
 description: Submit a feature request
 title: "[Feature]: "
 labels: ["feature"]
+projects: ["Progressive-Victory/27"]
 body:
   - type: markdown
     attributes:
