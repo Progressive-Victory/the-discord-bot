@@ -1,5 +1,6 @@
 import { ChatInputCommand } from "@/Classes";
 import { MuteType } from "@/contracts/data";
+import { guildMemberVoiceUpdate } from "@/events/guild_member";
 import { getGuildChannel } from "@/util";
 import { muteEmbed } from "@/features/mute";
 import { fetchSetting } from "@/util/api/fetchSettings";
@@ -20,6 +21,8 @@ import {
   time,
   TimestampStyles,
   ChannelType,
+  Client,
+  GatewayIntentBits,
 } from "discord.js";
 
 const MUTE_COLOR = 0x7c018c;
@@ -58,6 +61,7 @@ export const mute = new ChatInputCommand({
         .setDescription("How long should this user be muted?")
         .setRequired(true)
         .addChoices(
+          { name: "1 min", value: 1 },
           { name: "3 min", value: 3 },
           { name: "10 min", value: 10 },
           { name: "30 min", value: 30 },
@@ -125,6 +129,7 @@ export const mute = new ChatInputCommand({
 
     // Message to be sent to channels
     const mute_type = interaction.options.getInteger("mute_type", true);
+    const timeout_map = new Map();
 
     switch (mute_type) {
       case MuteType.Chat: {
@@ -147,6 +152,7 @@ export const mute = new ChatInputCommand({
           reason,
           mute_type,
           interaction,
+          timeout_map,
         );
         break;
       }
@@ -158,6 +164,8 @@ export const mute = new ChatInputCommand({
           durationMinutes,
           reason,
           MuteType.Voice,
+          interaction,
+          timeout_map,
         );
         chatMute(
           targetMember,
@@ -201,6 +209,34 @@ export const mute = new ChatInputCommand({
     );
     */
 
+    interaction.client.on("voiceStateUpdate", (oldState, newState) => {
+      console.log("VoiceStateUpdate");
+      const cur_time = Date.now();
+      const member = newState.member ?? oldState.member;
+      if (!member || !timeout_map.has(member.id)) return;
+      const start_time = timeout_map.get(member.id)[1];
+      const duration_ms = durationMinutes * 60000;
+
+      // User joined VC
+      if (!oldState.channelId && newState.channelId) {
+        // User was voice muted outside of VC, needs to be muted if under timeout still
+        if (!member.voice.serverMute && cur_time - duration_ms < start_time) {
+          member.edit({ mute: true });
+          setTimeout(() => {
+            member.edit({ mute: false });
+          }, duration_ms);
+        }
+
+        // Should unmute user here
+        if (cur_time - duration_ms > start_time) {
+          const unmute_bool = member.edit({ mute: false });
+          if (unmute_bool) {
+            timeout_map.delete(member.id);
+          }
+        }
+      }
+    });
+
     interaction.reply({
       content: `${targetMember.toString()} has been server muted. They will be unmuted ${time(endDate, TimestampStyles.RelativeTime)}`,
       flags: MessageFlags.Ephemeral,
@@ -215,31 +251,20 @@ async function voiceMute(
   reason: string,
   type: Enum,
   interaction: any,
+  timeout_map: Map,
 ) {
+  const start_time = Date.now();
+  timeout_map.set(targetMember.id, [durationMinutes, start_time]);
   if (!targetMember.voice.channel) {
-    interaction.reply({
-      flags: MessageFlags.Ephemeral,
-      content: "User is not in a vc.",
-    });
     return;
   }
-
-  await targetMember.voice.setMute(true, reason);
+  await targetMember.edit({ mute: true });
   setTimeout(() => {
     if (!targetMember.voice.channel) {
-      /*
-            TODO: Have voice state tracking here. 
-            Since we are hitting the role limit and can't give a Voice State role we need to keep track of server mute in the event that the user leaves VC. 
-            This will be a separate issue.
-      */
-      console.log(
-        `${targetMember.toString()} has left voice call and will need to manually be un server muted.`,
-      );
       return;
     }
-
-    if (targetMember.voice.serverMute)
-      targetMember.voice.setMute(false, "Mute Time Elapsed");
+    targetMember.edit({ mute: false });
+    timeout_map.delete(targetMember.id);
   }, durationMinutes * 60000);
 
   vcMessage(targetMember, mutingMember, durationMinutes, reason, type);
@@ -385,8 +410,9 @@ function vcMessage(
   type: string,
 ) {
   // check if member is connected to channel
+  if (!targetMember.voice.channel) return;
+
   const channel = targetMember.voice.channel;
-  if (!channel) return;
   const createdAt = new Date();
   const expiresAt = new Date(createdAt.getTime() + durationMinutes * 60000);
 
