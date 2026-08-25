@@ -32,7 +32,7 @@ export default new ChatInputCommand()
             .setEmoji("📝")
             .setStyle(ButtonStyle.Link)
             .setURL(
-              "https://github.com/Progressive-Victory/the-discord-bot/issues",
+              "https://discord.com/channels/928709707542175814/1506814367734304869",
             ),
         ),
       ],
