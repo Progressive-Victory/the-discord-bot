@@ -61,6 +61,7 @@ export const mute = new ChatInputCommand({
         .setDescription("How long should this user be muted?")
         .setRequired(true)
         .addChoices(
+          { name: "1 min", value: 1 },
           { name: "3 min", value: 3 },
           { name: "10 min", value: 10 },
           { name: "30 min", value: 30 },
@@ -130,6 +131,17 @@ export const mute = new ChatInputCommand({
     const mute_type = interaction.options.getInteger("mute_type", true);
     const timeout_map = new Map();
 
+    // TODO: below code needs testing, likely cause of issue #303 since there is no Timeout Channel in the Simple Server
+
+    const res = await fetchSetting("timeout_log_channel_id");
+    const timeoutLogChannelId = res.data;
+    if (!timeoutLogChannelId) return;
+
+    const timeoutChannel = await getGuildChannel(
+      targetMember.guild,
+      timeoutLogChannelId,
+    );
+
     switch (mute_type) {
       case MuteType.Chat: {
         chatMute(
@@ -138,6 +150,14 @@ export const mute = new ChatInputCommand({
           durationMinutes,
           reason,
           guild,
+          mute_type,
+        );
+        logMessage(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          timeoutChannel,
           mute_type,
         );
         break;
@@ -153,6 +173,14 @@ export const mute = new ChatInputCommand({
           interaction,
           timeout_map,
         );
+        logMessage(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          timeoutChannel,
+          mute_type,
+        );
         break;
       }
 
@@ -166,6 +194,15 @@ export const mute = new ChatInputCommand({
           interaction,
           timeout_map,
         );
+        logMessage(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          timeoutChannel,
+          MuteType.Voice,
+        );
+
         chatMute(
           targetMember,
           mutingMember,
@@ -174,39 +211,18 @@ export const mute = new ChatInputCommand({
           guild,
           MuteType.Chat,
         );
+        logMessage(
+          targetMember,
+          mutingMember,
+          durationMinutes,
+          reason,
+          timeoutChannel,
+          MuteType.Chat,
+        );
+
         break;
       }
     }
-
-    // TODO: below code needs testing, likely cause of issue #303 since there is no Timeout Channel in the Simple Server
-
-    /*
-    const res = await fetchSetting("timeout_log_channel_id");
-    const timeoutLogChannelId = res.data;
-    if (!timeoutLogChannelId) return;
-
-    const timeoutChannel = await getGuildChannel(
-      targetMember.guild,
-      timeoutLogChannelId,
-    );
-    logMessage(
-      targetMember,
-      mutingMember,
-      durationMinutes,
-      reason,
-      timeoutChannel,
-      "voice",
-    );
-
-    logMessage(
-      targetMember,
-      mutingMember,
-      durationMinutes,
-      reason,
-      timeoutChannel,
-      "chat",
-    );
-    */
 
     interaction.client.on("voiceStateUpdate", (oldState, newState) => {
       console.log("VoiceStateUpdate");
