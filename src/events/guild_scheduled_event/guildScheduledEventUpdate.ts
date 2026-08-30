@@ -95,7 +95,7 @@ export const guildScheduledEventUpdate = new Event({
         data.endedAtUtc = new Date();
         switch (newEvent.status) {
           case 1:
-            data.status = DiscordEventStatus.Completed;
+            data.status = DiscordEventStatus.Scheduled;
             break;
           case 3:
             data.status = DiscordEventStatus.Completed;
