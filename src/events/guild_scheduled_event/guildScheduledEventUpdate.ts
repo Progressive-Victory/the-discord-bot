@@ -49,7 +49,7 @@ export const guildScheduledEventUpdate = new Event({
         userCount: null,
         startedAtUtc: new Date(),
         endedAtUtc: null,
-        thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
+        thumbnailUrl: newEvent.coverImageURL(),
         createdAtUtc: newEvent.createdAt,
         creatorDiscordId: newEvent.creatorId,
         scheduledStartUtc: newEvent.scheduledStartAt,

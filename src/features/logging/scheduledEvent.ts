@@ -66,7 +66,10 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
     if (existingPost) {
       const { cont } = await logContainer(event, init);
       const files = [];
-      if (event.thumbnailUrl === "attachment://image.jpg")
+      if (
+        !event.thumbnailUrl ||
+        event.thumbnailUrl === "attachment://image.jpg"
+      )
         files.push(new AttachmentBuilder("./assets/image.jpg"));
       if (!init)
         files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
@@ -80,7 +83,10 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
     } else {
       const { cont } = await logContainer(event, init);
       const files = [];
-      if (event.thumbnailUrl === "attachment://image.jpg")
+      if (
+        !event.thumbnailUrl ||
+        event.thumbnailUrl === "attachment://image.jpg"
+      )
         files.push(new AttachmentBuilder("./assets/image.jpg"));
       if (!init)
         files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
