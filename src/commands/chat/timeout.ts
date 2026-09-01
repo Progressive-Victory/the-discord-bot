@@ -79,7 +79,7 @@ export const timeout = new ChatInputCommand()
         option
           .setName("reason")
           .setDescription("The reason for timing them out")
-          .setRequired(false),
+          .setRequired(true),
       ),
   )
   .setExecute(async (interaction) => {
@@ -101,7 +101,7 @@ export const timeout = new ChatInputCommand()
       return;
     }
 
-    const reason = options.getString("reason", false) ?? "No reason given";
+    const reason = options.getString("reason", true);
     const duration = options.getNumber("duration", true);
     // const endNumber = Math.floor(new Date().getTime() / 1000) + duration;
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -123,6 +123,9 @@ export const timeout = new ChatInputCommand()
     await interaction.editReply({
       content: targetMember + " has been timed out until " + endDate,
     });
+
+    // Send DM to target with reason for timeout - leaving out user who timed them out to prevent retribution.
+    await target.send("You have been timed out for ${reason}.").catch(console.error)
 
     const res = await fetchSetting("timeout_log_channel_id");
     const timeoutLogChannelId = res;
