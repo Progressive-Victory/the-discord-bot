@@ -1,3 +1,4 @@
+import { createObjectCsvStringifier } from "csv-writer";
 import {
   AttachmentBuilder,
   ChatInputCommandInteraction,
@@ -40,14 +41,34 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   console.log(
     `[Debug] Current members with "${role.name}" in cache ${role.members.size}`,
   );
-  const memberLines = role.members.map(
-    (member) => `${member.displayName},${member.user.username},${member.id}`,
-  );
+
+  const writer = createObjectCsvStringifier({
+    header: [
+      {
+        id: "displayName",
+        title: "Display Name",
+      },
+      {
+        id: "username",
+        title: "Username",
+      },
+      {
+        id: "id",
+        title: "Id",
+      },
+    ],
+  });
+  const memberData = role.members.map((member) => ({
+    id: member.id,
+    displayName: member.displayName,
+    username: member.user.username,
+  }));
+  const csvStr = writer.getHeaderString() + writer.stringifyRecords(memberData);
 
   // Create a CSV attachment using the AttachmentBuilder class.
   const csv = new AttachmentBuilder(
-    // Construct the CSV content using the role's members.
-    Buffer.from(`Display Name,Username,Id\n${memberLines.join("\n")}`),
+    // Use the CSV content using the role's members.
+    Buffer.from(csvStr),
     // Set the file name for the CSV attachment based on the role name and interaction ID.
     { name: `${role.name.replace(" ", "-")}.csv` },
   );
