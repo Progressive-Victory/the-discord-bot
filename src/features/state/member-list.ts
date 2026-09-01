@@ -45,7 +45,7 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   const writer = createObjectCsvStringifier({
     header: [
       {
-        id: "display_name",
+        id: "displayName",
         title: "Display Name",
       },
       {
@@ -60,7 +60,7 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
   });
   const memberData = role.members.map((member) => ({
     id: member.id,
-    display_name: member.displayName,
+    displayName: member.displayName,
     username: member.user.username,
   }));
   const csvStr = writer.getHeaderString() + writer.stringifyRecords(memberData);
