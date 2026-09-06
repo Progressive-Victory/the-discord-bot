@@ -68,7 +68,6 @@ export const mute = new ChatInputCommand({
         .setDescription("How long should this user be muted?")
         .setRequired(true)
         .addChoices(
-          { name: "1 min", value: 1 },
           { name: "3 min", value: 3 },
           { name: "10 min", value: 10 },
           { name: "30 min", value: 30 },
@@ -235,7 +234,7 @@ export const mute = new ChatInputCommand({
 async function serverMute(
   muteParams: MuteParams,
   muteType: Enum,
-  timeoutChannel?: TextChannel,
+  timeoutChannel: TextChannel,
   interaction?: any,
   guild?: any,
   timeoutMap?: any,
