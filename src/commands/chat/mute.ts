@@ -27,6 +27,13 @@ import {
 
 const MUTE_COLOR = 0x7c018c;
 
+interface MuteParams {
+  targetMember: GuildMember;
+  mutingMember: GuildMember;
+  durationMinutes: number;
+  reason: string;
+}
+
 const durationText = {
   "3": "3 mins",
   "10": "10 mins",
@@ -61,6 +68,7 @@ export const mute = new ChatInputCommand({
         .setDescription("How long should this user be muted?")
         .setRequired(true)
         .addChoices(
+          { name: "1 min", value: 1 },
           { name: "3 min", value: 3 },
           { name: "10 min", value: 10 },
           { name: "30 min", value: 30 },
@@ -127,10 +135,9 @@ export const mute = new ChatInputCommand({
     const endDate = new Date(new Date().getTime() + durationMinutes * 60000);
 
     // Message to be sent to channels
-    const mute_type = interaction.options.getInteger("mute_type", true);
-    const timeout_map = new Map();
-
-    // TODO: below code needs testing, likely cause of issue #303 since there is no Timeout Channel in the Simple Server
+    const muteType = interaction.options.getInteger("mute_type", true);
+    // TODO: persist this map across VM resets (or put in persistent storage like a database)
+    const timeoutMap = new Map();
 
     const res = await fetchSetting("timeout_log_channel_id");
     const timeoutLogChannelId = res.data;
@@ -141,111 +148,79 @@ export const mute = new ChatInputCommand({
       timeoutLogChannelId,
     );
 
-    switch (mute_type) {
-      case MuteType.Chat: {
-        chatMute(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          guild,
-          mute_type,
-        );
-        logMessage(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          timeoutChannel,
-          mute_type,
-        );
-        break;
-      }
+    const muteParams: MuteParams = {
+      targetMember: targetMember,
+      mutingMember: mutingMember,
+      durationMinutes: durationMinutes,
+      reason: reason,
+    };
 
-      case MuteType.Voice: {
-        voiceMute(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          mute_type,
-          interaction,
-          timeout_map,
-        );
-        logMessage(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          timeoutChannel,
-          mute_type,
-        );
-        break;
-      }
-
-      default: {
-        voiceMute(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          MuteType.Voice,
-          interaction,
-          timeout_map,
-        );
-        logMessage(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          timeoutChannel,
-          MuteType.Voice,
-        );
-
-        chatMute(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
-          guild,
+    switch (muteType) {
+      case MuteType.Chat:
+        serverMute(
+          muteParams,
           MuteType.Chat,
-        );
-        logMessage(
-          targetMember,
-          mutingMember,
-          durationMinutes,
-          reason,
           timeoutChannel,
-          MuteType.Chat,
+          undefined,
+          guild,
+          undefined,
         );
-
         break;
-      }
+
+      case MuteType.Voice:
+        serverMute(
+          muteParams,
+          MuteType.Voice,
+          timeoutChannel,
+          interaction,
+          undefined,
+          timeoutMap,
+        );
+        break;
+
+      default:
+        serverMute(
+          muteParams,
+          MuteType.Chat,
+          timeoutChannel,
+          undefined,
+          guild,
+          undefined,
+        );
+        serverMute(
+          muteParams,
+          MuteType.Voice,
+          timeoutChannel,
+          interaction,
+          undefined,
+          timeoutMap,
+        );
+        break;
     }
 
     interaction.client.on("voiceStateUpdate", (oldState, newState) => {
       console.log("VoiceStateUpdate");
-      const cur_time = Date.now();
+      const curTime = Date.now();
       const member = newState.member ?? oldState.member;
-      if (!member || !timeout_map.has(member.id)) return;
-      const start_time = timeout_map.get(member.id)[1];
-      const duration_ms = durationMinutes * 60000;
+      if (!member || !timeoutMap.has(member.id)) return;
+      const startTime = timeoutMap.get(member.id)[1];
+      const durationMs = durationMinutes * 60000;
 
       // User joined VC
       if (!oldState.channelId && newState.channelId) {
         // User was voice muted outside of VC, needs to be muted if under timeout still
-        if (!member.voice.serverMute && cur_time - duration_ms < start_time) {
+        if (!member.voice.serverMute && curTime - durationMs < startTime) {
           member.edit({ mute: true });
           setTimeout(() => {
             member.edit({ mute: false });
-          }, duration_ms);
+          }, durationMs);
         }
 
-        // Should unmute user here
-        if (cur_time - duration_ms > start_time) {
+        // Unmute user if durationMs has passed since start of mute
+        if (curTime - durationMs > startTime) {
           const unmute_bool = member.edit({ mute: false });
           if (unmute_bool) {
-            timeout_map.delete(member.id);
+            timeoutMap.delete(member.id);
           }
         }
       }
@@ -257,18 +232,55 @@ export const mute = new ChatInputCommand({
     });
   },
 });
+async function serverMute(
+  muteParams: MuteParams,
+  muteType: Enum,
+  timeoutChannel?: TextChannel,
+  interaction?: any,
+  guild?: any,
+  timeoutMap?: any,
+) {
+  if (muteType == MuteType.Chat) {
+    chatMute(
+      muteParams.targetMember,
+      muteParams.mutingMember,
+      muteParams.durationMinutes,
+      muteParams.reason,
+      guild,
+      MuteType.Chat,
+    );
+  } else {
+    voiceMute(
+      muteParams.targetMember,
+      muteParams.mutingMember,
+      muteParams.durationMinutes,
+      muteParams.reason,
+      interaction,
+      timeoutMap,
+      MuteType.Voice,
+    );
+  }
 
+  logMessage(
+    muteParams.targetMember,
+    muteParams.mutingMember,
+    muteParams.durationMinutes,
+    muteParams.reason,
+    timeoutChannel,
+    muteType,
+  );
+}
 async function voiceMute(
   targetMember: GuildMember,
   mutingMember: GuildMember,
   durationMinutes: number,
   reason: string,
-  type: Enum,
   interaction: any,
-  timeout_map: Map,
+  timeoutMap: Map,
+  type: Enum,
 ) {
-  const start_time = Date.now();
-  timeout_map.set(targetMember.id, [durationMinutes, start_time]);
+  const startTime = Date.now();
+  timeoutMap.set(targetMember.id, [durationMinutes, startTime]);
   if (!targetMember.voice.channel) {
     return;
   }
@@ -278,7 +290,7 @@ async function voiceMute(
       return;
     }
     targetMember.edit({ mute: false });
-    timeout_map.delete(targetMember.id);
+    timeoutMap.delete(targetMember.id);
   }, durationMinutes * 60000);
 
   vcMessage(targetMember, mutingMember, durationMinutes, reason, type);
@@ -289,7 +301,7 @@ async function chatMute(
   mutingMember: GuildMember,
   durationMinutes: number,
   reason: string,
-  guild: Guild,
+  guild: any,
   type: Enum,
 ) {
   const active_channel = await getActiveChannel(targetMember, guild);
@@ -330,7 +342,7 @@ async function getActiveChannel(
     (ch): ch is TextChannel => ch.type === ChannelType.GuildText,
   );
 
-  const channel_map = new Map<TextChannel, number>();
+  const channelMap = new Map<TextChannel, number>();
 
   await Promise.all(
     textChannels.map(async (ch) => {
@@ -349,16 +361,16 @@ async function getActiveChannel(
       });
 
       if (count > 0) {
-        channel_map.set(ch, count);
+        channelMap.set(ch, count);
       }
     }),
   );
 
-  if (channel_map.size === 0) {
+  if (channelMap.size === 0) {
     return null;
   }
 
-  const [maxChannel, maxCount] = [...channel_map.entries()].reduce(
+  const [maxChannel, maxCount] = [...channelMap.entries()].reduce(
     (best, entry) => (entry[1] > best[1] ? entry : best),
   );
 
