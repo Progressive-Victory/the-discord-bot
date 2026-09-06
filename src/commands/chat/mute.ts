@@ -217,8 +217,8 @@ export const mute = new ChatInputCommand({
 
         // Unmute user if durationMs has passed since start of mute
         if (curTime - durationMs > startTime) {
-          const unmute_bool = member.edit({ mute: false });
-          if (unmute_bool) {
+          const unmuteBool = member.edit({ mute: false });
+          if (unmuteBool) {
             timeoutMap.delete(member.id);
           }
         }
