@@ -177,7 +177,7 @@ export const mute = new ChatInputCommand({
         );
         break;
 
-      default:
+      case MuteType.Both:
         serverMute(
           muteParams,
           MuteType.Chat,
@@ -239,7 +239,10 @@ async function serverMute(
   guild?: any,
   timeoutMap?: any,
 ) {
-  if (muteType == MuteType.Chat) {
+  if (muteType == MuteType.Both) {
+    console.error("MuteType.Both should not be passed in.");
+    return;
+  } else if (muteType == MuteType.Chat) {
     chatMute(
       muteParams.targetMember,
       muteParams.mutingMember,
@@ -248,7 +251,7 @@ async function serverMute(
       guild,
       MuteType.Chat,
     );
-  } else {
+  } else if (muteType == MuteType.Voice) {
     voiceMute(
       muteParams.targetMember,
       muteParams.mutingMember,
