@@ -23,10 +23,12 @@ import {
 } from "discord.js";
 import { client } from "../..";
 
+const FALLBACK_IMAGE = "attachment://image.jpg";
+
 /**
  * Logging function to log a discord event
- * @param event the discord event to log
- * @param init boolean controlling if attendees data is included in log (rename?)
+ * @param event - the discord event to log
+ * @param init - boolean controlling if attendees data is included in log (rename?)
  */
 export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
   try {
@@ -66,7 +68,7 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
     if (existingPost) {
       const { cont } = await logContainer(event, init);
       const files = [];
-      if (event.thumbnailUrl === "attachment://image.jpg")
+      if (!event.thumbnailUrl || event.thumbnailUrl === FALLBACK_IMAGE)
         files.push(new AttachmentBuilder("./assets/image.jpg"));
       if (!init)
         files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
@@ -80,7 +82,7 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
     } else {
       const { cont } = await logContainer(event, init);
       const files = [];
-      if (event.thumbnailUrl === "attachment://image.jpg")
+      if (!event.thumbnailUrl || event.thumbnailUrl === FALLBACK_IMAGE)
         files.push(new AttachmentBuilder("./assets/image.jpg"));
       if (!init)
         files.push(new AttachmentBuilder("./assets/temp/attendees.csv"));
@@ -100,11 +102,11 @@ export async function logScheduledEvent(event: DiscordEvent, init: boolean) {
 /***** REWRITE THIS FUNCTION *****/
 /**
  * Utility function for generating a object conaining a ContainerBuilder
- * @param event discord event being logged
- * @param init boolean controlling if attendees data is included in log (rename?)
- * @returns js object {
+ * @param event - discord event being logged
+ * @param init - boolean controlling if attendees data is included in log (rename?)
+ * @returns js object \{
  *    cont: ContainerBuilder
- * }
+ * \}
  */
 async function logContainer(event: DiscordEvent, init: boolean) {
   const wrapper = new ScheduledEventWrapper(event);
@@ -136,7 +138,9 @@ async function logContainer(event: DiscordEvent, init: boolean) {
         .addSectionComponents(
           new SectionBuilder()
             .setThumbnailAccessory(
-              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
+              new ThumbnailBuilder().setURL(
+                wrapper.thumbnail() ?? FALLBACK_IMAGE,
+              ),
             )
             .addTextDisplayComponents(
               new TextDisplayBuilder().setContent(
@@ -178,7 +182,9 @@ async function logContainer(event: DiscordEvent, init: boolean) {
         .addSectionComponents(
           new SectionBuilder()
             .setThumbnailAccessory(
-              new ThumbnailBuilder().setURL(wrapper.thumbnail()),
+              new ThumbnailBuilder().setURL(
+                wrapper.thumbnail() ?? FALLBACK_IMAGE,
+              ),
             )
             .addTextDisplayComponents(
               new TextDisplayBuilder().setContent(

@@ -49,7 +49,7 @@ export const guildScheduledEventUpdate = new Event({
         userCount: null,
         startedAtUtc: new Date(),
         endedAtUtc: null,
-        thumbnailUrl: newEvent.coverImageURL() ?? "attachment://image.jpg",
+        thumbnailUrl: newEvent.coverImageURL(),
         createdAtUtc: newEvent.createdAt,
         creatorDiscordId: newEvent.creatorId,
         scheduledStartUtc: newEvent.scheduledStartAt,
@@ -95,7 +95,7 @@ export const guildScheduledEventUpdate = new Event({
         data.endedAtUtc = new Date();
         switch (newEvent.status) {
           case 1:
-            data.status = DiscordEventStatus.Completed;
+            data.status = DiscordEventStatus.Scheduled;
             break;
           case 3:
             data.status = DiscordEventStatus.Completed;
