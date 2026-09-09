@@ -18,3 +18,7 @@ export { stateAdmin } from "./chat/state-admin";
 export { searchEvents } from "./chat/search-events";
 
 export { mute } from "./chat/mute";
+
+export { vcStatus } from "./chat/vc-status";
+
+export { connectFour } from "./chat/connect-four";
