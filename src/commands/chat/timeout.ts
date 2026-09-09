@@ -126,7 +126,7 @@ export const timeout = new ChatInputCommand()
 
     // Send DM to target with reason for timeout - leaving out user who timed them out to prevent retribution.
     await target
-      .send("You have been timed out for ${reason}.")
+      .send(`You have been timed out for ${reason}.`)
       .catch(console.error);
 
     const res = await fetchSetting("timeout_log_channel_id");
