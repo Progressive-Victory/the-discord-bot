@@ -6,8 +6,6 @@ This bot supports operations in the Progressive Victory Discord Server. To join,
 
 The Progressive Victory Discord bot runs in a [Docker](https://docs.docker.com/get-started/) container deployed to the [GCP Compute Engine](https://cloud.google.com/compute/docs/containers). The bot uses:
 
-
-
 - [pnpm](https://pnpm.io/) to manage dependencies
 - [MySQL](https://dev.mysql.com/doc/refman/8.4/en/)
 - [express.js](https://expressjs.com/en/api.html) to implement RESTful APIs
@@ -92,25 +90,43 @@ Then, open `./docs/index.html` in a browser.
 
 Commands help users interact with the server and manage its members:
 
-### state
-
-State lead tools. This command has two subcommands:
-
-- ping - Allows our state leads to ping members' state roles
-- members - Gets a list of all members with a specified role
-
-### feedback
-
-Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs.
-
 ### warn
 
 Moderation tools. This command has four subcommands:
 
 - create - Add a warning to a user
-- update - Update an existing warning
-- remove - Remove an existing warning
+- update - Update an existing warning `TODO: NOT YET IMPLEMENTED`
+- remove - Remove an existing warning `TODO: NOT YET IMPLEMENTED`
 - view - Gets a filterable list of all warnings
+
+### feedback
+
+Directs members to the [GitHub issues](https://github.com/Progressive-Victory/the-discord-bot/issues) page to submit feedback and report bugs.
+
+### move
+
+Move members between VC's
+
+Requires that user is in a VC, and can move either:
+
+- everybody in the VC
+- 2-8 specific people in the VC### mute
+
+### mute
+
+Moderation tool to mute a user for a specified duration.
+
+- log mutes to logging channel, into VC sidebar channe;
+- mute for duration, mute-ee must be in VC
+
+### search-events
+
+Browse server events by `name` or date range
+
+- Find by name - matched against Id
+- Filtered by name and date range
+
+Autocomplete exists for the namefield, referencing the list of events in the server by name
 
 ### settings
 
@@ -121,20 +137,25 @@ Admin tools for managing the server structure. This command has four subcommands
 - welcome channel - Configure which channel to send join logs to
 - logging channels - Configure which channels logs are sent to
 
-### timeout
-
-Moderation tool to timeout a user for a specified duration.
-
 ### state-admin
 
 Admin tools for managing the server structure for states. This command has two subcommands:
 
-- team set - Set a state's team channel and role
-- set - Set a state's channel and role
+- team set - Set a state's team channel and role (the channel and role for team leadership)
+- set - Set a state's member channel and role (the channel and role for the team in general)
 
-### mute
+### state
 
-Moderation tool to mute a user for a specified duration.
+State lead tools. This command has two subcommands:
+
+- ping - Allows our state leads to ping members' state roles
+- members - Gets a list of all members with a specified role
+
+### timeout
+
+Moderation tool to timeout a user for a specified duration.
+
+Send the user a DM explaining the timeout
 
 ### Context Menus
 
