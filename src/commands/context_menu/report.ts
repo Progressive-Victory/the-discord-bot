@@ -25,13 +25,13 @@ export const reportUser =
           flags: MessageFlags.Ephemeral,
           content: "You can not report a bot",
         });
-        return;
+        return Promise.resolve();
       } else if (interaction.targetUser === interaction.user) {
         interaction.reply({
           flags: MessageFlags.Ephemeral,
           content: "You can not report yourself",
         });
-        return;
+        return Promise.resolve();
       }
       const modal = reportModel;
       modal.setCustomId(
@@ -39,6 +39,7 @@ export const reportUser =
       );
 
       interaction.showModal(modal);
+      return Promise.resolve();
     },
   });
 
@@ -57,13 +58,13 @@ export const reportMessage =
           flags: MessageFlags.Ephemeral,
           content: "You can not report a bot message",
         });
-        return;
+        return Promise.resolve();
       } else if (interaction.targetMessage.author === interaction.user) {
         interaction.reply({
           flags: MessageFlags.Ephemeral,
           content: "You can not report yourself",
         });
-        return;
+        return Promise.resolve();
       }
 
       const modal = reportModel;
@@ -76,5 +77,6 @@ export const reportMessage =
       );
 
       interaction.showModal(modal);
+      return Promise.resolve();
     },
   });
