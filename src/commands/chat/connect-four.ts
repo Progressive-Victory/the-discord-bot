@@ -151,6 +151,14 @@ export const connectFour = new ChatInputCommand({
                 gameBoard,
               );
 
+              if (gameState === -1) {
+                interaction.editReply({
+                  content: `The game is a draw. No one won the game.\n*${turn} Turns*\n\n${renderGameBoard(gameBoard)}> *${players[0].displayName} (🔴) vs. ${players[1].displayName} (🟡)*`,
+                  components: [],
+                });
+                turnCollector.stop("game_end");
+              }
+
               if (gameState === 0) {
                 turn++;
 
@@ -280,6 +288,16 @@ function updateGameState(
   if (checkDirection(x, y, 0, 1, playerID, board) >= 4) return playerID;
   if (checkDirection(x, y, 1, 1, playerID, board) >= 4) return playerID;
   if (checkDirection(x, y, 1, -1, playerID, board) >= 4) return playerID;
+
+  let gameHasMoves = false;
+  for (let col = 0; col < board.length; col++) {
+    if (board[col].includes(0)) {
+      gameHasMoves = true;
+      break;
+    }
+  }
+
+  if (!gameHasMoves) return -1;
 
   return 0;
 }
