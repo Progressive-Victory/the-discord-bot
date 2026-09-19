@@ -56,12 +56,17 @@ export async function memberList(interaction: ChatInputCommandInteraction) {
         id: "id",
         title: "Id",
       },
+      {
+        id: "joinedAt",
+        title: "Join Date",
+      },
     ],
   });
   const memberData = role.members.map((member) => ({
     id: member.id,
     displayName: member.displayName,
     username: member.user.username,
+    joinedAt: member.joinedAt,
   }));
   const csvStr = writer.getHeaderString() + writer.stringifyRecords(memberData);
 
