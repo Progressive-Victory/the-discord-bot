@@ -4,12 +4,7 @@ export { default as feedback } from "./chat/feedback";
 
 export { warn } from "./chat/moderation";
 
-// export { userProfile } from "./context_menu/profile";
-
 export { settings } from "./chat/setting";
-
-// TODO: re-enabled reportMessage once intent permission is received
-export { reportUser } from "./context_menu/report";
 
 export { timeout } from "./chat/timeout";
 
@@ -20,3 +15,9 @@ export { searchEvents } from "./chat/search-events";
 export { mute } from "./chat/mute";
 
 export { vcStatus } from "./chat/vc-status";
+
+export { move } from "./chat/move";
+
+// TODO: these are not implemented properly yet.
+// export { userProfile } from "./context_menu/profile";
+// export { reportMessage, reportUser } from "./context_menu/report";

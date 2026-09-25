@@ -15,7 +15,7 @@ export const ns = "move";
  * The `move` chat command allows users with the permission to move members to move
  * specific/all members in a voice channel to another.
  */
-export default new ChatInputCommand()
+export const move = new ChatInputCommand()
   .setBuilder((builder) =>
     builder
       .setName("move")
@@ -49,17 +49,21 @@ export default new ChatInputCommand()
     ]);
 
     // user must be in a VC to use this command
-    if (source == null)
-      return interaction.reply({
+    if (source == null) {
+      interaction.reply({
         content: "You must be in a voice channel to use this command",
         ephemeral: true,
       });
+      return;
+    }
     // Target VC must be different that the users current VC
-    else if (source.id == destination.id)
-      return interaction.reply({
+    else if (source.id == destination.id) {
+      interaction.reply({
         content: "Members are already in" + destination.toString(),
         ephemeral: true,
       });
+      return;
+    }
     // If everyone flag is set move all members in a VC to another
     else if (options.getBoolean("everyone")) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -69,33 +73,32 @@ export default new ChatInputCommand()
           `Moved by ${interaction.user.username} using bot command`,
         );
 
-      return interaction.reply({
+      interaction.reply({
         content: `All members have been moved to ${destination.toString()}`,
         ephemeral: true,
       });
+      return;
     }
 
     // select menu generation
-    // users must select between 2 and 8 members to move
+    // users must select between 1 and 8 members to move
     const userMenu = new UserSelectMenuBuilder()
       .setCustomId(
         `usermove${client.splitCustomIdOn}${destination.id}${client.splitCustomIdOn}${source.id}`,
       )
       .setPlaceholder("Select Member")
       .setMaxValues(8)
-      .setMinValues(2);
+      .setMinValues(1);
 
     const topActionRow =
       new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(userMenu);
 
-    return interaction.reply({
+    interaction.reply({
       content:
-        "Select the members you would like to move: " +
-        "-#" +
-        " Users out side of " +
-        source.toString() +
-        " will not be moved",
+        "Select the members you would like to move:\n" +
+        `-# Users out side of ${source.toString()}  will not be moved`,
       components: [topActionRow],
       ephemeral: true,
     });
+    return;
   });
