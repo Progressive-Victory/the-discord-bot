@@ -15,7 +15,7 @@ export const ns = "move";
  * The `move` chat command allows users with the permission to move members to move
  * specific/all members in a voice channel to another.
  */
-export default new ChatInputCommand()
+export const move = new ChatInputCommand()
   .setBuilder((builder) =>
     builder
       .setName("move")
