@@ -81,25 +81,22 @@ export const move = new ChatInputCommand()
     }
 
     // select menu generation
-    // users must select between 2 and 8 members to move
+    // users must select between 1 and 8 members to move
     const userMenu = new UserSelectMenuBuilder()
       .setCustomId(
         `usermove${client.splitCustomIdOn}${destination.id}${client.splitCustomIdOn}${source.id}`,
       )
       .setPlaceholder("Select Member")
       .setMaxValues(8)
-      .setMinValues(2);
+      .setMinValues(1);
 
     const topActionRow =
       new ActionRowBuilder<UserSelectMenuBuilder>().addComponents(userMenu);
 
     interaction.reply({
       content:
-        "Select the members you would like to move: " +
-        "-#" +
-        " Users out side of " +
-        source.toString() +
-        " will not be moved",
+        "Select the members you would like to move:\n" +
+        `-# Users out side of ${source.toString()}  will not be moved`,
       components: [topActionRow],
       ephemeral: true,
     });
