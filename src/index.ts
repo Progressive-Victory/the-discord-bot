@@ -23,7 +23,7 @@ export const client = new Client({
     Intents.GuildMembers,
     Intents.GuildModeration,
     Intents.GuildScheduledEvents,
-    Intents.DirectMessage,
+    Intents.DirectMessages,
   ],
   partials: [Partials.GuildMember],
   receiveMessageComponents: true,
