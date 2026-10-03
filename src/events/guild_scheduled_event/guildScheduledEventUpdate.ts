@@ -29,7 +29,6 @@ export const guildScheduledEventUpdate = new Event({
   execute: async (oldEvent, newEvent) => {
     try {
       if (!oldEvent) throw Error("No old event reported");
-      console.log(+newEvent.status);
 
       // map event interface
       if (!newEvent.channelId)
@@ -39,27 +38,28 @@ export const guildScheduledEventUpdate = new Event({
       if (!newEvent.scheduledStartAt)
         throw Error("No start time specified for event: " + newEvent.id);
 
-      const eventCreateRequest: CreateDiscordEventRequest = {
-        discordId: newEvent.id,
-        channelId: newEvent.channelId,
-        name: newEvent.name,
-        description: newEvent.description ?? null,
-        status: newEvent.status as number as DiscordEventStatus,
-        recurrent: newEvent.recurrenceRule ? true : false,
-        userCount: null,
-        startedAtUtc: new Date(),
-        endedAtUtc: null,
-        thumbnailUrl: newEvent.coverImageURL(),
-        createdAtUtc: newEvent.createdAt,
-        creatorDiscordId: newEvent.creatorId,
-        scheduledStartUtc: newEvent.scheduledStartAt,
-        scheduledEndUtc: newEvent.scheduledEndAt ?? null,
-      };
-
-      // Event Started
+      // Event Started - creates new "occurrence"
       if (oldEvent.isScheduled() && newEvent.isActive()) {
+        const eventCreateRequest: CreateDiscordEventRequest = {
+          discordId: newEvent.id,
+          channelId: newEvent.channelId,
+          name: newEvent.name,
+          description: newEvent.description ?? null,
+          status: newEvent.status as number as DiscordEventStatus,
+          recurrent: newEvent.recurrenceRule ? true : false,
+          userCount: null,
+          startedAtUtc: new Date(),
+          endedAtUtc: null,
+          thumbnailUrl: newEvent.coverImageURL(),
+          createdAtUtc: newEvent.createdAt,
+          creatorDiscordId: newEvent.creatorId,
+          scheduledStartUtc: newEvent.scheduledStartAt,
+          scheduledEndUtc: newEvent.scheduledEndAt ?? null,
+        };
+
         eventCreateRequest.startedAtUtc = new Date();
         eventCreateRequest.status = DiscordEventStatus.Active;
+        eventCreateRequest.userCount = newEvent.userCount;
 
         const myWholeEvent = await apiConnService.post<DiscordEvent>(
           Routes.discordEvents,
@@ -76,8 +76,6 @@ export const guildScheduledEventUpdate = new Event({
 
         await logScheduledEvent(myWholeEvent, true);
 
-        console.log(myWholeEvent.id);
-
         const channelFresh = await newEvent.channel?.fetch();
 
         channelFresh?.members.forEach(async (usr) => {
@@ -85,25 +83,31 @@ export const guildScheduledEventUpdate = new Event({
         });
       }
 
-      // Event Ended
-      else if (oldEvent.isActive() && !newEvent.isActive()) {
+      // Event updated
+      else {
+        // get the object in our db
         const data: DiscordEvent = await apiConnService.get<DiscordEvent>(
           Routes.latestDiscordEvent(newEvent.id),
           zDiscordEvent,
         );
 
-        data.endedAtUtc = new Date();
-        switch (newEvent.status) {
-          case 1:
-            data.status = DiscordEventStatus.Scheduled;
-            break;
-          case 3:
-            data.status = DiscordEventStatus.Completed;
-            break;
-          case 4:
-            data.status = DiscordEventStatus.Cancelled;
-            break;
-        }
+        data.discordId = newEvent.id;
+        data.channelId = newEvent.channelId;
+        data.name = newEvent.name;
+        data.description = newEvent.description;
+        data.status = newEvent.status as number as DiscordEventStatus;
+        data.recurrent = newEvent.recurrenceRule ? true : false;
+        // when an event is cancelled, this gets nulled; we still want it:
+        data.userCount = newEvent.userCount ?? data.userCount;
+        data.endedAtUtc =
+          oldEvent.isActive() && !newEvent.isActive() ? new Date() : null;
+        data.thumbnailUrl = newEvent.coverImageURL();
+        data.createdAtUtc = newEvent.createdAt;
+        data.creatorDiscordId = newEvent.creatorId;
+        // when an event is cancelled, these also get nulled; we still want them:
+        data.scheduledStartUtc =
+          newEvent.scheduledStartAt ?? data.scheduledStartUtc;
+        data.scheduledEndUtc = newEvent.scheduledEndAt ?? data.scheduledEndUtc;
 
         const myWholeEvent = z.parse(zDiscordEvent, data);
 
