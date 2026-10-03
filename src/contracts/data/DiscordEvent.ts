@@ -1,6 +1,6 @@
+import z from "zod";
 import { zDiscordEventAttendee } from "./DiscordEventAttendee";
 import { zDiscordEventStatus } from "./DiscordEventStatus";
-import z from "zod";
 
 export const zDiscordEvent = z.object({
   id: z.number(),
@@ -11,7 +11,7 @@ export const zDiscordEvent = z.object({
   status: zDiscordEventStatus.nullable(),
   recurrent: z.boolean(),
   userCount: z.number().nullable(),
-  thumbnailUrl: z.string().nonempty(),
+  thumbnailUrl: z.string().nonempty().nullable(),
   createdAtUtc: z.coerce.date(),
   creatorDiscordId: z.string().nonempty(),
   scheduledStartUtc: z.coerce.date(),
