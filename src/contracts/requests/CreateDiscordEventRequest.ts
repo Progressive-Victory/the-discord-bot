@@ -9,7 +9,7 @@ export const zCreateDiscordEventRequest = z.object({
   status: zDiscordEventStatus.nullable(),
   recurrent: z.boolean(),
   userCount: z.number().nullable(),
-  thumbnailUrl: z.string().nonempty(),
+  thumbnailUrl: z.string().nonempty().nullable(),
   createdAtUtc: z.coerce.date(),
   creatorDiscordId: z.string().nonempty(),
   scheduledStartUtc: z.coerce.date(),
