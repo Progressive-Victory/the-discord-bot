@@ -1,21 +1,23 @@
-name: github-project-issue-to-sheets
+name: Sync GitHub Issues to Google Sheet
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
-  workflow_dispatch:
   issues:
-    types: [opened, deleted, transferred, closed, reopened, assigned, unassigned, labeled, unlabeled]
+    types: [opened, edited, deleted, closed, reopened]
+  workflow_dispatch:
 
 jobs:
-    github-project-issue-to-sheets:
-        runs-on: ubuntu-latest
-        name: github-project-issue-to-sheets
-        steps:
-        - name: github-project-issue-to-sheets
-          id: github-project-issue-to-sheets
-          uses: ViRGiL175/github-project-issue-to-sheets@dev
-          with:
-            google-api-service-account-credentials: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_DATA }}
-            document-id: '1j7ImYpYIi3LcUi9MwIRASVnLsIhBMudWRVCqZiXd9cY'
-            sheet-name: 'GitHub Issues'
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Sync Issues to Google Sheet
+        uses: serban-petrescu/gh-issues-to-sheet@v1
+        with:
+          repository: ${{ github.repository }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-types: 'issue'
+          delta-update: 'true'
+          sheet-url: 'https://docs.google.com/spreadsheets/d/1j7ImYpYIi3LcUi9MwIRASVnLsIhBMudWRVCqZiXd9cY/edit?gid=473074716#gid=473074716'
+          sheet-creds: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_DATA }}
