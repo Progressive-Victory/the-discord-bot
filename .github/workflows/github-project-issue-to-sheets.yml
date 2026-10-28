@@ -18,6 +18,6 @@ jobs:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-types: 'issue'
-          delta-update: 'true'
+          delta-update: 'false'
           sheet-url: 'https://docs.google.com/spreadsheets/d/1j7ImYpYIi3LcUi9MwIRASVnLsIhBMudWRVCqZiXd9cY/edit?gid=473074716#gid=473074716'
           sheet-creds: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_DATA }}
