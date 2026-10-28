@@ -51,7 +51,7 @@ export class ApiConnService {
         Authorization: "Bot " + this.jwt,
       },
     });
-    if (res.status === 401 && options.attempt && options.attempt > 2) {
+    if (res.status === 401 && options.attempt && options.attempt < 2) {
       this.jwt = null;
       options.attempt++;
       return this.request<R>(options, schema);
