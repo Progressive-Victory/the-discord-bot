@@ -19,10 +19,10 @@
   "scripts": {
     "build": "pnpm format && node esbuild.config.js",
     "predev": "pnpm build",
-    "dev": "node --env-file=.env --enable-source-maps .",
+    "dev": "node --enable-source-maps .",
     "predev-deploy": "pnpm build",
     "dev-deploy": "node . --deploy",
-    "start": "node --env-file=.env . --deploy",
+    "start": "node . --deploy",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "format": "prettier -w src",

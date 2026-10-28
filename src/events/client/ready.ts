@@ -1,4 +1,5 @@
 import { Event } from "@/Classes";
+import { apiConnService } from "@/util/api/pvapi";
 import { Events } from "discord.js";
 
 /**
@@ -14,5 +15,8 @@ export const ready = new Event({
    */
   execute: async (client) => {
     console.log(`[Info] Ready! Logged in as ${client.user.username}`);
+    apiConnService.init(process.env.PV_API_URL!);
+    apiConnService.auth(process.env.PV_DISCORD_TOKEN!);
+    console.log("Authenticate with the api!");
   },
 });

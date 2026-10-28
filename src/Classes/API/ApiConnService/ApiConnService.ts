@@ -1,6 +1,5 @@
 import { ZodType } from "zod";
 import {
-  ApiConnServiceOptions,
   InternalRequest,
   RequestData,
   RequestMethod,
@@ -10,11 +9,10 @@ import { parseResponse } from "./utils";
 
 export class ApiConnService {
   jwt: string | null = null;
+  host: string | null = null;
 
-  host: string;
-
-  constructor(options: ApiConnServiceOptions) {
-    this.host = options.host;
+  init(host: string) {
+    this.host ??= host;
   }
 
   async auth(token: string) {
