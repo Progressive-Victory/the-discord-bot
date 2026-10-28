@@ -42,7 +42,7 @@
     "esbuild": "^0.27.4",
     "express": "^5.2.1",
     "ts-transformer-keys": "^0.4.4",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
