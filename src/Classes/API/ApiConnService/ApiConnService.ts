@@ -16,7 +16,7 @@ export class ApiConnService {
   }
 
   async auth(token: string) {
-    await fetch(`${this.host}/auth`, {
+    const res = await fetch(`${this.host}/auth`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,20 +24,22 @@ export class ApiConnService {
       body: JSON.stringify({
         discordToken: "Bot " + token,
       }),
-    })
-      .then(async (res) => {
-        if (!res.ok) throw Error("Can't fucking connect to API dawg");
-        const { accessToken } = await res.json();
-        this.jwt = accessToken;
-      })
-      .catch(console.error);
+    });
+    console.log(res.status);
+    if (!res.ok) console.error(Error("Can't fucking connect to API dawg"));
+    const { accessToken } = await res.json();
+    this.jwt = accessToken;
+  }
+
+  async authRefresh(token: string) {
+    await fetch(`${this.host}/auth/refresh`);
   }
 
   async request<R = void>(
     options: InternalRequest,
     schema?: ZodType,
   ): Promise<R | void> {
-    if (!this.jwt) throw Error("run auth function");
+    if (!this.jwt) await this.auth(process.env.PV_DISCORD_TOKEN!);
     // console.log(this.host, options.fullRoute, options.query?.toString());
     const url = new URL(this.host + options.fullRoute);
     options.query?.forEach((val: string, key: string) => {
@@ -51,7 +53,8 @@ export class ApiConnService {
         Authorization: "Bot " + this.jwt,
       },
     });
-    if (res.status === 401 && options.attempt && options.attempt < 2) {
+    console.log(res.status);
+    if (res.status === 401 && (options.attempt ??= 0) < 2) {
       this.jwt = null;
       options.attempt++;
       return this.request<R>(options, schema);
