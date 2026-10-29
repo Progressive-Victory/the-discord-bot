@@ -31,10 +31,6 @@ export class ApiConnService {
     this.jwt = accessToken;
   }
 
-  async authRefresh(token: string) {
-    await fetch(`${this.host}/auth/refresh`);
-  }
-
   async request<R = void>(
     options: InternalRequest,
     schema?: ZodType,
