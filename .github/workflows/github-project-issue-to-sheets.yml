@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Sync Issues to Google Sheet
-        uses: widget-pv/gh-issues-to-sheet@v1
+        uses: widget-pv/gh-issues-to-sheet@field-parsing-branch
         with:
           repository: ${{ github.repository }}
           token: ${{ secrets.GITHUB_TOKEN }}
