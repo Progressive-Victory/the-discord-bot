@@ -25,7 +25,6 @@ export class ApiConnService {
         discordToken: "Bot " + token,
       }),
     });
-    console.log(res.status);
     if (!res.ok) console.error(Error("Can't fucking connect to API dawg"));
     const { accessToken } = await res.json();
     this.jwt = accessToken;
@@ -35,25 +34,28 @@ export class ApiConnService {
     options: InternalRequest,
     schema?: ZodType,
   ): Promise<R | void> {
-    if (!this.jwt) await this.auth(process.env.PV_DISCORD_TOKEN!);
-    // console.log(this.host, options.fullRoute, options.query?.toString());
-    const url = new URL(this.host + options.fullRoute);
-    options.query?.forEach((val: string, key: string) => {
-      url.searchParams.append(key, val);
-    });
-    const res = await fetch(url, {
-      method: options.method,
-      body: options.body,
-      headers: {
-        ...options.headers,
-        Authorization: "Bot " + this.jwt,
-      },
-    });
-    console.log(res.status);
-    if (res.status === 401 && (options.attempt ??= 0) < 2) {
+    const doFetch = async (options: InternalRequest) => {
+      if (!this.jwt) await this.auth(process.env.PV_DISCORD_TOKEN!);
+      // console.log(this.host, options.fullRoute, options.query?.toString());
+      const url = new URL(this.host + options.fullRoute);
+      options.query?.forEach((val: string, key: string) => {
+        url.searchParams.append(key, val);
+      });
+      return await fetch(url, {
+        method: options.method,
+        body: options.body,
+        headers: {
+          ...options.headers,
+          Authorization: "Bot " + this.jwt,
+        },
+      });
+    };
+
+    let res = await doFetch(options);
+
+    if (res.status === 401) {
       this.jwt = null;
-      options.attempt++;
-      return this.request<R>(options, schema);
+      res = await doFetch(options);
     }
 
     if (!res.ok)
