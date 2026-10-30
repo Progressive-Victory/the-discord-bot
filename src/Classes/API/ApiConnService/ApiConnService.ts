@@ -53,15 +53,23 @@ export class ApiConnService {
 
     let res = await doFetch(options);
 
+    console.log("Res1:", res);
+
     if (res.status === 401) {
       this.jwt = null;
       res = await doFetch(options);
     }
 
-    if (!res.ok)
-      throw Error(
-        `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+    console.log("Res2:", res);
+
+    if (!res.ok) {
+      console.error(
+        Error(
+          `API threw exception: ${res.status} ${res.statusText}${res.body ? "\n" + (await res.text()) : ""}`,
+        ),
       );
+      return;
+    }
 
     return parseResponse<R>(res, schema);
   }
