@@ -17,6 +17,5 @@ export const ready = new Event({
     console.log(`[Info] Ready! Logged in as ${client.user.username}`);
     apiConnService.init(process.env.PV_API_URL!);
     apiConnService.auth(process.env.PV_DISCORD_TOKEN!);
-    console.log("Authenticate with the api!");
   },
 });
