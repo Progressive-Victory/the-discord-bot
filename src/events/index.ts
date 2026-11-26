@@ -10,10 +10,6 @@ export { interactionCreate } from "./interactionCreate";
 
 export { guildAuditLogEntryCreate } from "./guild_audit_log/guildAuditLogEntryCreate";
 
-// export { guildMemberAdd } from "./guild_member/guildMemberAdd";
-
-export { GuildMemberRemove } from "./guild_member/guildMemberRemove";
-
 export { guildMemberUpdate } from "./guild_member/guildMemberUpdate";
 
 export { guildMemberVoiceUpdate } from "./guild_member/guildMemberVoiceUpdate";
@@ -24,3 +20,4 @@ export { guildScheduledEventUpdate } from "./guild_scheduled_event/guildSchedule
 export { shardReady } from "./client/shardReady";
 export { shardReconnecting } from "./client/shardReconnecting";
 export { shardResume } from "./client/shardResume";
+
