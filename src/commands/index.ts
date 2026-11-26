@@ -4,8 +4,6 @@ export { default as feedback } from "./chat/feedback";
 
 export { warn } from "./chat/moderation";
 
-export { settings } from "./chat/setting";
-
 export { timeout } from "./chat/timeout";
 
 export { stateAdmin } from "./chat/state-admin";
